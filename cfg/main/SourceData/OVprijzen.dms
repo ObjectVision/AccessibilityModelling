@@ -1,0 +1,97 @@
+container OVprijzen
+{
+	unit<uint8> Provincie := SourceData/RegioIndelingen/Provincie
+	{
+		// attribute<
+	}
+	
+	unit<uint32> Arriva
+	: StorageName = "%ProjDir%/Data/Arriva tarieven 2023.csv"
+	, StorageType = "gdal.vect"
+	, StorageReadOnly = "true"
+	{
+		attribute<TariefTypeK> TariefType_rel := rlookup(tarieftype, TariefTypeK/name);
+	}
+	unit<uint32> NS_prijzen_per_tariefeenheid
+	: StorageName = "%ProjDir%/Data/NS tarieven 2023.csv"
+	, StorageType = "gdal.vect"
+	, StorageReadOnly = "true"
+	{
+		attribute<uint32>  TariefEenheden := uint32(Aantal_tarief_eenheden);
+		attribute<float32> Voltarief      := float32(Voltarief_incl_9_btw);
+		attribute<float32> Korting_20pr   := float32(_20_korting_incl_9_btw);
+		attribute<float32> Korting_40pr   := float32(_40_korting_incl_9_btw);
+	}
+	unit<uint32> NS_tariefeenheden_matrix
+	: StorageName = "%ProjDir%/Data/NS_tariefnet.csv"
+	, StorageType = "gdal.vect"
+	, StorageReadOnly = "true"
+	{
+		attribute<NS_stations> StartPoint_rel := rlookup(org, NS_stations/code);
+		attribute<NS_stations> EndPoint_rel   := rlookup(dest, NS_stations/code);
+		attribute<rdc>         StartPoint     := NS_stations/geometry[StartPoint_rel];
+		attribute<rdc>         EndPoint       := NS_stations/geometry[EndPoint_rel];
+		attribute<uint32>      tariefeenheid  := uint32(unit2);
+		attribute<rdc>         geometry (arc) := points2sequence(LinkPoints/Point, LinkPoints/Sequence_rel, LinkPoints/Ordinal);
+
+		unit<uint32> OrgDest := select_with_org_rel(IsDefined(rlookup(NS_stations/geometry, StartPoint)) || IsDefined(rlookup(NS_stations/geometry, EndPoint)))
+		{
+			attribute<rdc>    geometry := NS_stations/geometry[org_rel];
+			attribute<string> label    := NS_stations/label[org_rel];
+		}
+		
+		unit<uint32> LinkPoints := union_unit(., .)
+		{
+			attribute<rdc>                  Point        := union_data(., StartPoint, EndPoint);
+			attribute<..>                   Sequence_rel := union_data(., id(..), id(..));
+			attribute<uint32>               Ordinal      := union_data(., const(0,..,uint32), const(1,..,uint32));
+		}
+		
+		unit<uint32> ConnectedNetwork := select_with_attr_by_cond(., IsDefined(StartPoint) && IsDefined(EndPoint))
+		{
+			unit<uint32> NodeSet := unique(LinkPoints/Point)
+			{
+				attribute<rdc>    geometry := values;
+				attribute<string> label    := rjoin(geometry, NS_stations/geometry, NS_stations/label);
+				
+			}
+			
+			attribute<NodeSet>  F1                  := rlookup(StartPoint,NodeSet/geometry);
+			attribute<NodeSet>  F2                  := rlookup(EndPoint,NodeSet/geometry);
+		
+			attribute<NodeSet>  org_node (OrgDest)  := rlookup(OrgDest/geometry, NodeSet/geometry);
+			attribute<NodeSet>  dst_node (OrgDest)  := rlookup(OrgDest/geometry, NodeSet/geometry);
+		
+			unit<uint32> ODMatrix :=
+				dijkstra_m('bidirectional;startPoint(Node_rel);endPoint(Node_rel);od:impedance,OrgZone_rel,DstZone_rel'
+					, tariefeenheid
+					, F1
+					, F2
+					
+					, org_node
+					, dst_node
+				)
+			{
+				attribute<float32> Prijs_voltarief := impedance >= 200 ? max(NS_prijzen_per_tariefeenheid/Voltarief) : rjoin(impedance, NS_prijzen_per_tariefeenheid/TariefEenheden, NS_prijzen_per_tariefeenheid/Voltarief);
+			}
+		}
+		
+	}
+
+	unit<uint32> NS_stations
+	: StorageName = "%ProjDir%/Data/NS_stations.csv"
+	, StorageType = "gdal.vect"
+	, StorageReadOnly = "true"
+	{
+		attribute<string> code  := trim(stations_code);
+		attribute<string> label := trim(stations_naam);
+		attribute<rdc>    geometry := rjoin(code, lowercase(Infrastructuur/Read_NS_Stations_SHP/code), Infrastructuur/Read_NS_Stations_SHP/geometry_rd);
+	}
+
+
+	unit<uint8> TariefTypeK : nrofrows = 2
+	{
+		attribute<string> name   : ['PerRit', 'Kilometertarief'];
+		attribute<string> label  := name;
+	}
+}
