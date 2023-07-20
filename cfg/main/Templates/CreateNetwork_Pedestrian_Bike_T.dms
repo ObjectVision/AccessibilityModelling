@@ -20,7 +20,7 @@ Template CreateNetwork_Pedestrian_Bike_T : using = "geometries"
 		attribute<rdc>        geometry (arc) := Roads/geometry;
 		attribute<float32>    length         := arc_length(geometry, m);
 		parameter<string>     speed_str      := ModelParameters/UseActualBikeSpeeds && TravelMode == 'Biking'
-													? 'Roads/congestion_speed_bike '
+													? 'Roads/speed_congested_bike '
 													: ModelParameters/UseActualBikeSpeeds && TravelMode == 'Walking'
 														? 'const(ModelParameters/Advanced/WalkingSpeed_kmhr,.)'
 														: !ModelParameters/UseActualBikeSpeeds && TravelMode == 'Biking'

@@ -69,15 +69,15 @@ container NetworkSetup : using = "units;geometries;SourceData;Classifications"
 				unit<uint32> Stops_TrainMetrostation     := SourceData/Infrastructuur/GTFS/StudyAreaFeeds/Stops_TrainMetrostation;
 				unit<uint32> Stops_TrainMetroTramstation := SourceData/Infrastructuur/GTFS/StudyAreaFeeds/Stops_TrainMetroTramstation;
 				
-				container RoadNets_Org2Stop_W    := templates/createNetwork(Org   ,Stops                       ,SourceData/Infrastructuur/OSM/Network_Pedestrian, 'Walking', 'Org2Stop');
-				container RoadNets_Org2Stop_B    := templates/createNetwork(Org   ,Stops                       ,SourceData/Infrastructuur/OSM/Network_Bike      , 'Biking' , 'Org2Stop');
-				container RoadNets_Org2StopIC_B  := templates/createNetwork(Org   ,Stops_ICstations            ,SourceData/Infrastructuur/OSM/Network_Bike      , 'Biking' , 'Org2Stop');
-				container RoadNets_Org2StopT_B   := templates/createNetwork(Org   ,Stops_Trainstations         ,SourceData/Infrastructuur/OSM/Network_Bike      , 'Biking' , 'Org2Stop');
-				container RoadNets_Org2StopTM_B  := templates/createNetwork(Org   ,Stops_TrainMetrostation     ,SourceData/Infrastructuur/OSM/Network_Bike      , 'Biking' , 'Org2Stop');
-				container RoadNets_Org2StopTMT_B := templates/createNetwork(Org   ,Stops_TrainMetroTramstation ,SourceData/Infrastructuur/OSM/Network_Bike      , 'Biking' , 'Org2Stop');
+				container RoadNets_Org2Stop_W    := templates/CreateNetwork_Pedestrian_Bike_T(Org   ,Stops                       ,SourceData/Infrastructuur/OSM/Network_Pedestrian, 'Walking', 'Org2Stop');
+				container RoadNets_Org2Stop_B    := templates/CreateNetwork_Pedestrian_Bike_T(Org   ,Stops                       ,SourceData/Infrastructuur/OSM/Network_Bike      , 'Biking' , 'Org2Stop');
+				container RoadNets_Org2StopIC_B  := templates/CreateNetwork_Pedestrian_Bike_T(Org   ,Stops_ICstations            ,SourceData/Infrastructuur/OSM/Network_Bike      , 'Biking' , 'Org2Stop');
+				container RoadNets_Org2StopT_B   := templates/CreateNetwork_Pedestrian_Bike_T(Org   ,Stops_Trainstations         ,SourceData/Infrastructuur/OSM/Network_Bike      , 'Biking' , 'Org2Stop');
+				container RoadNets_Org2StopTM_B  := templates/CreateNetwork_Pedestrian_Bike_T(Org   ,Stops_TrainMetrostation     ,SourceData/Infrastructuur/OSM/Network_Bike      , 'Biking' , 'Org2Stop');
+				container RoadNets_Org2StopTMT_B := templates/CreateNetwork_Pedestrian_Bike_T(Org   ,Stops_TrainMetroTramstation ,SourceData/Infrastructuur/OSM/Network_Bike      , 'Biking' , 'Org2Stop');
 				
-				container RoadNets_Stop2Dest_W   := templates/createNetwork(Stops ,Dest                        ,SourceData/Infrastructuur/OSM/Network_Pedestrian, 'Walking', 'Stop2Dest');
-				container RoadNets_Stop2Dest_B   := templates/createNetwork(Stops ,Dest                        ,SourceData/Infrastructuur/OSM/Network_Bike      , 'Biking' , 'Stop2Dest');
+				container RoadNets_Stop2Dest_W   := templates/CreateNetwork_Pedestrian_Bike_T(Stops ,Dest                        ,SourceData/Infrastructuur/OSM/Network_Pedestrian, 'Walking', 'Stop2Dest');
+				container RoadNets_Stop2Dest_B   := templates/CreateNetwork_Pedestrian_Bike_T(Stops ,Dest                        ,SourceData/Infrastructuur/OSM/Network_Bike      , 'Biking' , 'Stop2Dest');
 				
 				container CreateODconnections : using = "/SourceData/Infrastructuur/GTFS/StaticNets"
 				{

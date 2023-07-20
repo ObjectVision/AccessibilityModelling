@@ -120,7 +120,7 @@ Template PublicTransport_T
 			////
 			parameter<string> transport_type := name == 'WW' ? 'pedestrian' : name == 'BB' ? 'bike' : '';
 			
-			unit<uint64> OD := ='NetworkSetup/ConfigurationPerRegio/'+Regio_Name+'/PrivateTransport/'+transport_type+'/Calc_Traveltimes_freeflow/Traveltimes'
+			unit<uint64> OD := ='NetworkSetup/ConfigurationPerRegio/'+Regio_Name+'/PrivateTransport/'+transport_type+'/Calc_Traveltimes_maxspeed/Traveltimes'  
 			{
 				attribute<float32>          reistijd_min                                    := value(impedance, float32);
 				attribute<Combine_OrgDest>  OD_nummer                                       := combine_data(Combine_OrgDest, OrgZone_rel, DstZone_rel);
