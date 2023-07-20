@@ -352,33 +352,13 @@ container NetworkSetup : using = "units;geometries;SourceData;Classifications"
 			
 			Container Pedestrian
 			{
-				// container NetwerkSpec :=
-					 // templates/netwerk(
-						  // org
-						// , dest
-						// , SourceData/Infrastructuur/OSM/Network_Pedestrian
-						// , org/point
-						// , dest/point
-						// , SourceData/Infrastructuur/OSM/Network_Pedestrian/geometry
-						// , 'pedestrian'
-					// );
-					
-				container NetwerkSpec :=
-					Templates/CreateNetwork_T(
-						  org
-						, dest
-						, SourceData/Infrastructuur/OSM/Network_Pedestrian/IsVerbonden
-						, 'Pedestrian' //Pedestrian Bike MorningRush NoonRush LateEveningRush
-					);
+				container Create_Optimised_Network  := Templates/CreateNetwork_Efficient_T(org, dest, SourceData/Infrastructuur/OSM/Network_Pedestrian/IsVerbonden, 'Pedestrian');
 				
-				unit<uint32> LinkSet := NetwerkSpec/FinalLinkSet 
-				{
-					attribute<min_f> impedance_freeflow        := NetwerkSpec/FinalLinkSet/impedance_freeflow  / 60[s_f / min_f];
-				}
-			
-				container Calc_Traveltimes_freeflow := freeflow_T(LinkSet, LinkSet/impedance_freeflow, ModelParameters/MaxPedestrianTime_Org2Dest);
+				unit<uint32> LinkSet := Create_Optimised_Network/CreateMoreEfficientNetwork/FinalLinkSet;
+				unit<uint32> NodeSet := Create_Optimised_Network/CreateMoreEfficientNetwork/FinalNodeSet;
+				container Calc_Traveltimes_maxspeed := Calc_Traveltimes_T(LinkSet, NodeSet, LinkSet/Impedance_per_ImpedanceType/max_pedestrian, ModelParameters/MaxPedestrianTime_Org2Dest);
 				
-				unit<uint64> ExportTable_Traveltimes := Calc_Traveltimes_freeflow/Traveltimes
+				unit<uint64> ExportTable_Traveltimes := Calc_Traveltimes_maxspeed/Traveltimes
 				{
 					attribute<org > Org_rel := OrgZone_rel;
 					attribute<dest> Dst_rel := DstZone_rel;
@@ -393,7 +373,7 @@ container NetworkSetup : using = "units;geometries;SourceData;Classifications"
 				}
 				unit<uint32> ExportTable_Decayed := org
 				{
-					attribute<float32> nr_items_of_interest_decayed_freeflow        := Calc_Traveltimes_freeflow/Decay/D_i;
+					attribute<float32> nr_items_of_interest_decayed_freeflow        := Calc_Traveltimes_maxspeed/Decay/D_i;
 					
 					attribute<string> BodyLines (org) := org/name + ';' + string(nr_items_of_interest_decayed_freeflow);
 					parameter<string> File            := 'Org;freeflow\n'++AsList(BodyLines, '\n'), StorageName = "=impl/fileNamePrefix+''+ModelParameters/items_of_interest+'_decayed'+replace(impl/fileNameSuffix, '@@', 'Pedestrian')+'.csv'", StorageType = "str";
@@ -402,48 +382,42 @@ container NetworkSetup : using = "units;geometries;SourceData;Classifications"
 			
 			Container Bike
 			{
-				container NetwerkSpec :=
-					Templates/CreateNetwork_T(
-						  org
-						, dest
-						, SourceData/Infrastructuur/OSM/Network_Bike/IsVerbonden
-						, 'Bike' //Pedestrian Bike MorningRush NoonRush LateEveningRush
-					);
+				container Create_Optimised_Network_Bike    := Templates/CreateNetwork_Efficient_T(org, dest, SourceData/Infrastructuur/OSM/Network_Bike/IsVerbonden, 'Bike');
+				container Create_Optimised_Network_EBike   := Templates/CreateNetwork_Efficient_T(org, dest, SourceData/Infrastructuur/OSM/Network_Bike/IsVerbonden, 'E_Bike');
+				// container NetwerkSpec :=
+					// Templates/CreateNetwork_Pedestrian_Bike_T(
+						  // org
+						// , dest
+						// , SourceData/Infrastructuur/OSM/Network_Bike/IsVerbonden
+						// , 'Bike' //Pedestrian Bike MorningRush NoonRush LateEveningRush
+					// );
 					
-				container NetwerkSpec_ebike :=
-					Templates/CreateNetwork_T(
-						  org
-						, dest
-						, SourceData/Infrastructuur/OSM/Network_Bike/IsVerbonden
-						, 'E_Bike' //Pedestrian Bike MorningRush NoonRush LateEveningRush
-					);
+				// container NetwerkSpec_ebike :=
+					// Templates/CreateNetwork_Pedestrian_Bike_T(
+						  // org
+						// , dest
+						// , SourceData/Infrastructuur/OSM/Network_Bike/IsVerbonden
+						// , 'E_Bike' //Pedestrian Bike MorningRush NoonRush LateEveningRush
+					// );
+				unit<uint32> LinkSet_bike := Create_Optimised_Network_Bike/CreateMoreEfficientNetwork/FinalLinkSet;
+				unit<uint32> NodeSet_bike := Create_Optimised_Network_Bike/CreateMoreEfficientNetwork/FinalNodeSet;
+				container Calc_Traveltimes_maxspeed_bike  := Calc_Traveltimes_T(LinkSet_bike, NodeSet_bike, LinkSet_bike/Impedance_per_ImpedanceType/max_bike, ModelParameters/MaxBikeTime_Org2Dest);
+				container Calc_Traveltimes_congested_bike := Calc_Traveltimes_T(LinkSet_bike, NodeSet_bike, LinkSet_bike/Impedance_per_ImpedanceType/congested_bike, ModelParameters/MaxBikeTime_Org2Dest);
 				
-				unit<uint32> LinkSet := NetwerkSpec/FinalLinkSet 
-				{
-					attribute<min_f> impedance_freeflow       := NetwerkSpec/FinalLinkSet/impedance_freeflow  / 60[s_f / min_f];
-					attribute<min_f> impedance_congested      := NetwerkSpec/FinalLinkSet/impedance_congested   / 60[s_f / min_f];
-				}
+				unit<uint32> LinkSet_e_bike := Create_Optimised_Network_EBike/CreateMoreEfficientNetwork/FinalLinkSet;
+				unit<uint32> NodeSet_e_bike := Create_Optimised_Network_EBike/CreateMoreEfficientNetwork/FinalNodeSet;
+				container Calc_Traveltimes_maxspeed_e_bike := Calc_Traveltimes_T(LinkSet_e_bike, NodeSet_e_bike, LinkSet_e_bike/Impedance_per_ImpedanceType/max_e_bike, ModelParameters/MaxBikeTime_Org2Dest);
+				container Calc_Traveltimes_congested_e_bike := Calc_Traveltimes_T(LinkSet_e_bike, NodeSet_e_bike, LinkSet_e_bike/Impedance_per_ImpedanceType/congested_e_bike, ModelParameters/MaxBikeTime_Org2Dest);
 				
-				unit<uint32> LinkSet_ebike := NetwerkSpec_ebike/FinalLinkSet 
-				{
-					attribute<min_f> impedance_freeflow       := NetwerkSpec_ebike/FinalLinkSet/impedance_freeflow  / 60[s_f / min_f];
-					attribute<min_f> impedance_congested      := NetwerkSpec_ebike/FinalLinkSet/impedance_congested   / 60[s_f / min_f];
-				}
-			
-				container Calc_Traveltimes_freeflow        := freeflow_T(LinkSet, LinkSet/impedance_freeflow,  /ModelParameters/MaxBikeTime_Org2Dest);
-				container Calc_Traveltimes_freeflow_ebike  := freeflow_T(LinkSet_ebike, LinkSet_ebike/impedance_freeflow,  /ModelParameters/MaxBikeTime_Org2Dest);
-				container Calc_Traveltimes_congested       := freeflow_T(LinkSet, LinkSet/impedance_congested, /ModelParameters/MaxBikeTime_Org2Dest);
-				container Calc_Traveltimes_congested_ebike := freeflow_T(LinkSet_ebike, LinkSet_ebike/impedance_congested, /ModelParameters/MaxBikeTime_Org2Dest);
-				
-				unit<uint64> ExportTable_Traveltimes := Calc_Traveltimes_freeflow/Traveltimes
+				unit<uint64> ExportTable_Traveltimes := Calc_Traveltimes_maxspeed_bike/Traveltimes
 				{
 					attribute<org > Org_rel := OrgZone_rel;
 					attribute<dest> Dst_rel := DstZone_rel;
 					
 					attribute<min_f> DefaultSpeed_imp     := Impedance;
-					attribute<min_f> E_Bike_imp           := rjoin(Org_Dest, Calc_Traveltimes_freeflow_ebike/Traveltimes/Org_Dest, Calc_Traveltimes_freeflow_ebike/Traveltimes/Impedance);
-					attribute<min_f> ActualBike_imp       := rjoin(Org_Dest, Calc_Traveltimes_congested/Traveltimes/Org_Dest, Calc_Traveltimes_congested/Traveltimes/Impedance);
-					attribute<min_f> ActualE_Bike_Adj_imp := rjoin(Org_Dest, Calc_Traveltimes_congested_ebike/Traveltimes/Org_Dest, Calc_Traveltimes_congested_ebike/Traveltimes/Impedance);
+					attribute<min_f> E_Bike_imp           := rjoin(Org_Dest, Calc_Traveltimes_maxspeed_e_bike/Traveltimes/Org_Dest, Calc_Traveltimes_maxspeed_e_bike/Traveltimes/Impedance);
+					attribute<min_f> ActualBike_imp       := rjoin(Org_Dest, Calc_Traveltimes_congested_bike/Traveltimes/Org_Dest, Calc_Traveltimes_congested_bike/Traveltimes/Impedance);
+					attribute<min_f> ActualE_Bike_Adj_imp := rjoin(Org_Dest, Calc_Traveltimes_congested_e_bike/Traveltimes/Org_Dest, Calc_Traveltimes_congested_e_bike/Traveltimes/Impedance);
 
 					attribute<bool>  IsCorrect_ActualBike     := ActualBike_imp >= DefaultSpeed_imp;
 					
@@ -468,33 +442,35 @@ container NetworkSetup : using = "units;geometries;SourceData;Classifications"
 				
 				unit<uint32> ExportTable_Decayed := org
 				{
-					attribute<float32> nr_items_of_interest_decayed_MaxSpeed         := Calc_Traveltimes_freeflow/Decay/D_i;
-					attribute<float32> nr_items_of_interest_decayed_Ebike            := Calc_Traveltimes_freeflow_ebike/Decay/D_i;
-					attribute<float32> nr_items_of_interest_decayed_ActualBike       := Calc_Traveltimes_congested/Decay/D_i;
-					attribute<float32> nr_items_of_interest_decayed_ActualE_Bike_adj := Calc_Traveltimes_congested_ebike/Decay/D_i;
-					attribute<float32> Loss_ActualBike                               := nr_items_of_interest_decayed_MaxSpeed - nr_items_of_interest_decayed_ActualBike;
+					attribute<float32> nr_items_of_interest_decayed_Bike_MaxSpeed    := Calc_Traveltimes_maxspeed_bike/Decay/D_i;
+					attribute<float32> nr_items_of_interest_decayed_Ebike            := Calc_Traveltimes_maxspeed_e_bike/Decay/D_i;
+					attribute<float32> nr_items_of_interest_decayed_ActualBike       := Calc_Traveltimes_congested_bike/Decay/D_i;
+					attribute<float32> nr_items_of_interest_decayed_ActualE_Bike_adj := Calc_Traveltimes_congested_e_bike/Decay/D_i;
+					attribute<float32> Loss_ActualBike                               := nr_items_of_interest_decayed_Bike_MaxSpeed - nr_items_of_interest_decayed_ActualBike;
 					
-					attribute<string> BodyLines (org) := org/name + ';' + string(nr_items_of_interest_decayed_MaxSpeed) + ';'+string(nr_items_of_interest_decayed_Ebike) + ';'+string(nr_items_of_interest_decayed_ActualBike) + ';'+string(nr_items_of_interest_decayed_ActualE_Bike_adj);
+					attribute<string> BodyLines (org) := org/name + ';' + string(nr_items_of_interest_decayed_Bike_MaxSpeed) + ';'+string(nr_items_of_interest_decayed_Ebike) + ';'+string(nr_items_of_interest_decayed_ActualBike) + ';'+string(nr_items_of_interest_decayed_ActualE_Bike_adj);
 					parameter<string> File            := 'Org;freeflow;freeflow_ebike;ActualBike;ActualE_Bike_Adj\n'++AsList(BodyLines, '\n'), StorageName = "=impl/fileNamePrefix+''+ModelParameters/items_of_interest+'_decayed'+replace(impl/fileNameSuffix, '@@', 'Bike')+'.csv'", StorageType = "str";
 				}
 			}
 			
-			container Car := Templates/PrivateTransport_Car_T(org, dest, true, 'MorningRush');
+			// container Car := Templates/PrivateTransport_Car_T(org, dest, true, 'MorningRush');
+			container Car := Templates/PrivateTransport_Car_T(org, dest, true); //, 'MorningRush');
 			
-			Template freeflow_T
+			Template Calc_Traveltimes_T
 			{
 				unit<uint32>     LinkSet;
-				attribute<min_f> impedance_min   (LinkSet);
+				unit<uint32>     NodeSet;
+				attribute<s_f>   impedance   (LinkSet);
 				parameter<min_f> MaxTraveltime_min;
 				///
 				
 				unit<uint64> Traveltimes :=
 					impedance_matrix_od64('bidirectional;startPoint(Node_rel):max_imp;endPoint(Node_rel);cut(OrgZone_max_imp);od:impedance,OrgZone_rel,DstZone_rel'
-						, impedance_min
+						, convert(impedance, min_f)
 						, LinkSet/F1
 						, LinkSet/F2
-						, LinkSet/OrgNode_rel
-						, LinkSet/DestNode_rel
+						, NodeSet/OrgNode_rel
+						, NodeSet/DestNode_rel
 						, MaxTraveltime_min //cut impedance
 					)
 				{
@@ -505,12 +481,12 @@ container NetworkSetup : using = "units;geometries;SourceData;Classifications"
 				
 				unit<uint64> Decay := 
 					impedance_matrix_od64('bidirectional;startPoint(Node_rel);endPoint(Node_rel);cut(OrgZone_max_imp);interaction(v_i,w_j,dist_logit(alpha,beta,gamma)):D_i'
-						, impedance_min
+						, convert(impedance, min_f)
 						, LinkSet/F1
 						, LinkSet/F2
-						, LinkSet/OrgNode_rel
-						, LinkSet/DestNode_rel
-						, MaxTraveltime_min 
+						, NodeSet/OrgNode_rel
+						, NodeSet/DestNode_rel
+						, MaxTraveltime_min
 						, 1f                                 // v_i
 						, dest/nr_items_of_interest[float32]        // w_j
 						, ModelParameters/Advanced/Distance_Decay/car_a , ModelParameters/Advanced/Distance_Decay/car_b , ModelParameters/Advanced/Distance_Decay/car_c

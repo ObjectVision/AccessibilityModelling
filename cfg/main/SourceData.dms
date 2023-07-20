@@ -21,7 +21,7 @@ container SourceData: Using = "Units;Classifications;geometries"
 		#include<lisa.dms>
 	
 		unit<uint32> Inwoners
-		:	StorageName     = "='%SourceDataDir%/NetworkModel_PBL/Populatie/cbs_vk100_'+Populatie_Jaar+'.gpkg'"
+		:	StorageName     = "='%NetworkModel_dir%/Populatie/cbs_vk100_'+Populatie_Jaar+'.gpkg'"
 		,	StorageType     = "gdal.vect"
 		,	SyncMode        = "AllTables"
 		,	StorageReadOnly = "True"
@@ -119,8 +119,8 @@ container SourceData: Using = "Units;Classifications;geometries"
 					attribute<uint32>               Nr_items_of_interest     := Nr_ziekenhuizen;
 					attribute<uint32>               Type_code;
 					attribute<RegioUnit_Buurt>       buurt_rel           := point_in_polygon(geometry, RegioUnit_Buurt/Geometry);
-					attribute<string>                buurtcode           := RegioUnit_Buurt/BU_CODE[buurt_rel];
-					attribute<string>                buurtnaam           := RegioUnit_Buurt/BU_NAAM[buurt_rel];
+					attribute<string>                buurtcode           := RegioUnit_Buurt/statcode[buurt_rel];
+					attribute<string>                buurtnaam           := RegioUnit_Buurt/statnaam[buurt_rel];
 					
 					unit<uint32> sub:= subset(Type_code == 1 || Type_code == 2 || Type_code == 4) //subset(Locnr >= 100101)
 					{
@@ -162,8 +162,8 @@ container SourceData: Using = "Units;Classifications;geometries"
 					attribute<uint32>               Nr_items_of_interest     := Nr_ziekenhuizen;
 					attribute<uint32>               Type_code;
 					attribute<RegioUnit_Buurt>       buurt_rel           := point_in_polygon(geometry, RegioUnit_Buurt/Geometry);
-					attribute<string>                buurtcode           := RegioUnit_Buurt/BU_CODE[buurt_rel];
-					attribute<string>                buurtnaam           := RegioUnit_Buurt/BU_NAAM[buurt_rel];
+					attribute<string>                buurtcode           := RegioUnit_Buurt/statcode[buurt_rel];
+					attribute<string>                buurtnaam           := RegioUnit_Buurt/statnaam[buurt_rel];
 					
 					unit<uint32> sub:= subset(Type_code == 1 || Type_code == 2 || Type_code == 4) //subset(Locnr >= 100101)
 					{

@@ -1,0 +1,38 @@
+container RegressieTest
+{
+	container Generate_new_output
+	{
+		parameter<string> OUTPUT_Generate_PublicTransport_fullOD_long_CSVFiles  := NetworkSetup/ConfigurationPerRegio/all/PublicTransport/At_07h00m00s/CreateODs/CreateExports/W_OV_W_with_WW/LongFormat/File_fullOD;
+		parameter<string> OUTPUT_Generate_Car_traveltimes_CSVFiles              := NetworkSetup/ConfigurationPerRegio/all/PrivateTransport/Export_Car_Traveltimes;
+		parameter<string> OUTPUT_Generate_Bike_traveltimes_CSVFiles             := NetworkSetup/ConfigurationPerRegio/all/PrivateTransport/Export_Bike_Traveltimes;
+		parameter<string> OUTPUT_Generate_Pedestrian_traveltimes_CSVFiles       := NetworkSetup/ConfigurationPerRegio/all/PrivateTransport/Export_Pedestrian_Traveltimes;
+	}
+	
+	container Read_new_output
+	{
+		unit<uint32> OV 
+		: StorageName     = "=ModelParameters_base/Advanced/fileNamePrefix+'Traveltime_Long_'+NetworkSetup/ConfigurationPerRegio/all/PublicTransport/At_07h00m00s/CreateODs/CreateExports/W_OV_W_with_WW/TypeName+''+NetworkSetup/ConfigurationPerRegio/all/PublicTransport/At_07h00m00s/CreateODs/CreateExports/W_OV_W_with_WW/fileNameSuffix+'.csv'"
+		, StorageType     = "gdal.vect"
+		, StorageReadOnly = "true";
+		unit<uint32> Pedestrian 
+		: StorageName     = "=NetworkSetup/ConfigurationPerRegio/all/PrivateTransport/impl/fileNamePrefix+'Traveltimes'+replace(NetworkSetup/ConfigurationPerRegio/all/PrivateTransport/impl/fileNameSuffix, '@@', 'Pedestrian') +'.csv'"
+		, StorageType     = "gdal.vect"
+		, StorageReadOnly = "true";
+		unit<uint32> Bike 
+		: StorageName     = "=NetworkSetup/ConfigurationPerRegio/all/PrivateTransport/impl/fileNamePrefix+'Traveltimes'+replace(NetworkSetup/ConfigurationPerRegio/all/PrivateTransport/impl/fileNameSuffix, '@@', 'Bike') +'.csv'"
+		, StorageType     = "gdal.vect"
+		, StorageReadOnly = "true";
+		unit<uint32> Car 
+		: StorageName     = "=NetworkSetup/ConfigurationPerRegio/all/PrivateTransport/Car/Settings/fileNamePrefix+'Traveltimes'+NetworkSetup/ConfigurationPerRegio/all/PrivateTransport/Car/Settings/fileNameSuffix+'.csv'"
+		, StorageType     = "gdal.vect"
+		, StorageReadOnly = "true";
+	}
+	
+	container Benchmark_output
+	{
+	
+	}
+	
+	
+
+}

@@ -297,16 +297,18 @@ container OSM
 		attribute<string>                       OSM_id                           := Read_Final_Network/OSM_id[org_rel];
 		attribute<string>                       wegtype_label                    := Read_Final_Network/wegtype_label[org_rel];
 		
-		attribute<km_hr>                        freeflow_speed_car               := Read_Final_Network/maxspeed[org_rel];
-		attribute<km_hr>                        freeflow_speed_bike              := const((0/0)[km_hr],.);
-		attribute<km_hr>                        freeflow_speed_pedestrian        := const((0/0)[km_hr],.);
-		attribute<km_hr>                        congestion_speed_bike            := const((0/0)[km_hr],.);
-		attribute<km_hr>                        congestion_speed_MorningRush     := Read_Final_Network/congestion_speed_MorningRush[org_rel];
-		attribute<km_hr>                        congestion_speed_NoonRush        := Read_Final_Network/congestion_speed_NoonRush[org_rel];
-		attribute<km_hr>                        congestion_speed_LateEveningRush := Read_Final_Network/congestion_speed_LateEveningRush[org_rel];
-		attribute<float32>                      congestion_flow_MorningRush      := Read_Final_Network/congestion_flow_MorningRush[org_rel];
-		attribute<float32>                      congestion_flow_NoonRush         := Read_Final_Network/congestion_flow_NoonRush[org_rel];
-		attribute<float32>                      congestion_flow_LateEveningRush  := Read_Final_Network/congestion_flow_LateEveningRush[org_rel];
+		attribute<bool>                         Connectable                      := wegtype != Classifications/OSM/wegtype/V/motorway && wegtype != Classifications/OSM/wegtype/V/motorway_link;
+		attribute<km_hr>                        speed_max_car                    := Read_Final_Network/maxspeed[org_rel];
+		attribute<km_hr>                        speed_max_bike                   := const((0/0)[km_hr],.);
+		attribute<km_hr>                        speed_max_e_bike                 := const(ModelParameters/Advanced/E_BikingSpeed_kmhr,.);
+		attribute<km_hr>                        speed_max_pedestrian             := const((0/0)[km_hr],.);
+		attribute<km_hr>                        speed_congested_bike            := const((0/0)[km_hr],.);
+		attribute<km_hr>                        speed_congested_MorningRush     := Read_Final_Network/congestion_speed_MorningRush[org_rel];
+		attribute<km_hr>                        speed_congested_NoonRush        := Read_Final_Network/congestion_speed_NoonRush[org_rel];
+		attribute<km_hr>                        speed_congested_LateEveningRush := Read_Final_Network/congestion_speed_LateEveningRush[org_rel];
+		attribute<float32>                      flow_congested_MorningRush      := Read_Final_Network/congestion_flow_MorningRush[org_rel];
+		attribute<float32>                      flow_congested_NoonRush         := Read_Final_Network/congestion_flow_NoonRush[org_rel];
+		attribute<float32>                      flow_congested_LateEveningRush  := Read_Final_Network/congestion_flow_LateEveningRush[org_rel];
 		
 		unit<uint32> isVerbonden := select_with_attr_by_cond(., Connectiveness/isVerbonden);
 		
@@ -354,15 +356,17 @@ container OSM
 		attribute<string>                       OSM_id                           := Read_Final_Network/OSM_id[org_rel];
 		attribute<string>                       wegtype_label                    := Read_Final_Network/wegtype_label[org_rel];
 		
-		attribute<km_hr>                        freeflow_speed_car               := const((0/0)[km_hr],.);
-		attribute<km_hr>                        freeflow_speed_bike              := Read_Final_Network/freeflow_speed_bike[org_rel];
-		attribute<km_hr>                        freeflow_speed_e_bike             := const(ModelParameters/Advanced/E_BikingSpeed_kmhr,.);
-		attribute<km_hr>                        freeflow_speed_pedestrian        := const((0/0)[km_hr],.);
-		attribute<km_hr>                        congestion_speed_bike            := Read_Final_Network/congestion_speed_bike[org_rel];
-		attribute<km_hr>                        congestion_speed_e_bike          := congestion_speed_bike + ModelParameters/Advanced/E_BikingSpeed_actualspeed_addition_kmhr;
-		attribute<km_hr>                        congestion_speed_MorningRush     := const((0/0)[km_hr],.);
-		attribute<km_hr>                        congestion_speed_NoonRush        := const((0/0)[km_hr],.);
-		attribute<km_hr>                        congestion_speed_LateEveningRush := const((0/0)[km_hr],.);
+		attribute<bool>                         Connectable                      := wegtype != Classifications/OSM/wegtype/V/motorway && wegtype != Classifications/OSM/wegtype/V/motorway_link;
+		
+		attribute<km_hr>                        speed_max_car                    := const((0/0)[km_hr],.);
+		attribute<km_hr>                        speed_max_bike                   := Read_Final_Network/freeflow_speed_bike[org_rel];
+		attribute<km_hr>                        speed_max_e_bike                 := const(ModelParameters/Advanced/E_BikingSpeed_kmhr,.);
+		attribute<km_hr>                        speed_max_pedestrian             := const((0/0)[km_hr],.);
+		attribute<km_hr>                        speed_congested_bike             := Read_Final_Network/congestion_speed_bike[org_rel];
+		attribute<km_hr>                        speed_congested_e_bike           := speed_congested_bike + ModelParameters/Advanced/E_BikingSpeed_actualspeed_addition_kmhr;
+		attribute<km_hr>                        speed_congested_MorningRush      := const((0/0)[km_hr],.);
+		attribute<km_hr>                        speed_congested_NoonRush         := const((0/0)[km_hr],.);
+		attribute<km_hr>                        speed_congested_LateEveningRush  := const((0/0)[km_hr],.);
 		
 		unit<uint32> isVerbonden := select_with_attr_by_cond(., Connectiveness/isVerbonden);
 		
@@ -410,14 +414,15 @@ container OSM
 		attribute<string>                       OSM_id                           := Read_Final_Network/OSM_id[org_rel];
 		attribute<string>                       wegtype_label                    := Read_Final_Network/wegtype_label[org_rel];
 		
-		attribute<km_hr>                        freeflow_speed_car               := const((0/0)[km_hr],.);
-		attribute<km_hr>                        freeflow_speed_bike              := const((0/0)[km_hr],.);
-		attribute<km_hr>                        freeflow_speed_pedestrian        := Read_Final_Network/freeflow_speed_pedestrian[org_rel];
-		attribute<km_hr>                        congestion_speed_bike            := const((0/0)[km_hr],.);
-		attribute<km_hr>                        congestion_speed_MorningRush     := const((0/0)[km_hr],.);
-		attribute<km_hr>                        congestion_speed_NoonRush        := const((0/0)[km_hr],.);
-		attribute<km_hr>                        congestion_speed_LateEveningRush := const((0/0)[km_hr],.);
-		attribute<km_hr>                        congestion_speed_pedestrian      := const((0/0)[km_hr],.);
+		attribute<bool>                         Connectable                      := wegtype != Classifications/OSM/wegtype/V/motorway && wegtype != Classifications/OSM/wegtype/V/motorway_link;
+		attribute<km_hr>                        speed_max_car               := const((0/0)[km_hr],.);
+		attribute<km_hr>                        speed_max_bike              := const((0/0)[km_hr],.);
+		attribute<km_hr>                        speed_max_pedestrian        := Read_Final_Network/freeflow_speed_pedestrian[org_rel];
+		attribute<km_hr>                        speed_congested_bike            := const((0/0)[km_hr],.);
+		attribute<km_hr>                        speed_congested_MorningRush     := const((0/0)[km_hr],.);
+		attribute<km_hr>                        speed_congested_NoonRush        := const((0/0)[km_hr],.);
+		attribute<km_hr>                        speed_congested_LateEveningRush := const((0/0)[km_hr],.);
+		attribute<km_hr>                        speed_congested_pedestrian      := const((0/0)[km_hr],.);
 		
 		unit<uint32> isVerbonden := select_with_attr_by_cond(., Connectiveness/isVerbonden);	
 		

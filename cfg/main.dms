@@ -1,5 +1,7 @@
 container NetworkModel : IntegrityCheck = "GeoDmsVersion() >= 7.311 && Strlen('This model needs a GeoDMS version 7.311 or later') >= 0"
 { 
+	parameter<bool> IsTestOmgeving := TRUE;
+	
 	container MaakOntkoppeldeData
 	{
 		
@@ -33,8 +35,9 @@ container NetworkModel : IntegrityCheck = "GeoDmsVersion() >= 7.311 && Strlen('T
 				ExplicitSuppliers = "='NetworkSetup/ConfigurationPerRegio/'+first(ModelParameters/Advanced/Regio/name)+'/PrivateTransport/Car/Determine_CongestedSpeeds/Make_CongestionSpeeds_FSS'";
 		}
 	}
-	#include<ModelParameters.dms>
-	
+	#include<ModelParameters_base.dms>
+	#include<ModelParameters_test.dms>
+	container ModelParameters := =IsTestOmgeving ? 'ModelParameters_test' : 'ModelParameters_base';
 	#include<units.dms>
 	
 	container geometries : using = "units"
@@ -140,17 +143,18 @@ container NetworkModel : IntegrityCheck = "GeoDmsVersion() >= 7.311 && Strlen('T
 	#include<NetworkSetup.dms>
 	#include<Templates.dms>
 	#include<PostAnalysis.dms>
-	#include<ExportSettings.dms>
+	#include<RegressieTest.dms>
 	
+	#include<ExportSettings.dms>
 	container ConfigSettings
 	{
 		container Overridable
 		{
-			parameter<string> NetworkModel_Dir   := '%SourceDataDir%/NetworkModel_PBL';
+			parameter<string> NetworkModel_Dir   := '%SourceDataDir%/NetworkModel';
 			parameter<String> BAG_DataDir        := '%sourceDataDir%';
 			parameter<String> BAG_DataDir_OVSRV6 := 'E:/SourceData';
 		}
 	}
 	
-	unit<uint64> test := /NetworkSetup/ConfigurationPerRegio/Oost_Groningen/PublicTransport/At_07h00m00s/CreateODs/OD_traveltime_W_OV_W/OD;
+	// unit<uint64> test := /NetworkSetup/ConfigurationPerRegio/Oost_Groningen/PublicTransport/At_07h00m00s/CreateODs/OD_traveltime_W_OV_W/OD;
 }

@@ -1,6 +1,6 @@
 container RegioIndelingen : using = "geometries"
 { 
-	parameter<string> Regio_jaar := '2022';
+	parameter<string> Regio_jaar := ModelParameters/RegioIndelingen_jaar;
 
 	unit<uint32> Gebiedsindelingen_jaren := range(uint32, 2019, 2023)
 	{
@@ -18,7 +18,7 @@ container RegioIndelingen : using = "geometries"
 		parameter<string> jaar;
 		//
 		container gpkg
-		:	StorageName     = "='%SourceDataDir%/CBS/cbsgebiedsindelingen'+jaar+'.gpkg'"
+		:	StorageName     = "='%NetworkModel_dir%/RegioIndelingen/cbsgebiedsindelingen'+jaar+'.gpkg'"
 		, 	StorageType     = "gdal.vect"
 		,	StorageReadOnly = "True"
 		,	SyncMode        = "alltables"
@@ -51,9 +51,11 @@ container RegioIndelingen : using = "geometries"
 			attribute<uint32>           nr_banen     := ../nr_banen[invert(Centroiden_rel)];
 			attribute<Provincie>        prov_rel     := point_in_polygon(geometry, Provincie/geometry);
 			attribute<Corop>            corop_rel    := point_in_polygon(geometry, Corop/geometry);
+			container V := for_each_nedv(AsItemName(label), 'value('+string(id(.))+', ..)', void, .);
 		}
 		
-		unit<uint32> Enkele_buurt := select_with_attr_by_cond(centroiden, centroiden/BU_CODE == "BU19520105");
+		unit<uint32> Enkele_Buurt := select_with_attr_by_cond(centroiden, id(centroiden) == centroiden/v/Martenshoek_en_Industriegebied_Martenshoek);
+		unit<uint32> Enkele_Prov  := select_with_attr_by_cond(centroiden, centroiden/prov_rel == Provincie/V/Flevoland);
 		
 		container Per_Prov := 
 			for_each_ne(

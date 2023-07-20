@@ -1,8 +1,8 @@
-﻿container ModelParameters : using = "units"
+﻿container ModelParameters_test : using = "units"
 {   
 	parameter<bool>     RegioIndelingen_Ontkoppeld   := TRUE;                               //De regioindelingen kunnen in fss worden opgeslagen om het rekenproces te versnellen. heb je dit gedaan, zet dan op true. Anders moet je deze eerst creeren.
 	parameter<bool>     Create_Symmetric_fullOD      := FALSE;                              //Als je van org naar org wilt, zet deze dan op true.
-	parameter<bool>     Getiled_berekenen            := TRUE;                               //Als je getiled wilt rekenen, om het rekenproces sneller te maken. En opsplitst om het effect van crashes te verkleinen
+	parameter<bool>     Getiled_berekenen            := FALSE;                               //Als je getiled wilt rekenen, om het rekenproces sneller te maken. En opsplitst om het effect van crashes te verkleinen
 	parameter<string>   Regio_voor_Tiling            := 'corop';                       //Deze indeling bepaald hoe je wilt tilen. Opties: 'corop', 'provincies'
 
 	parameter<string>   GTFS_file_date               := '20211001';                         //GTFS file date #'20191007' #20201002 20211001 20120917
@@ -10,16 +10,18 @@
 	parameter<string>   NWB_file_date                := '20211001';                         //NationaalWegenBestand file date #'20191023' 20211001
 	parameter<string>   NDW_file_date                := '20210928';                         //NDW telpunten versie datum #'20210928' 
 	parameter<string>   LISA_jaar                    := '2018';                             //LISA file date
-	
+	parameter<string>   RegioIndelingen_jaar         := '2022';
 	parameter<string>   CarCongestionSpeed_date      := '20211221';                         //De congestionspeeds worden gemaakt met een OSM bestand van een bepaalde datum. Geef hier die datum op.
 	parameter<string>   Analysis_date                := '20211003', IntegrityCheck = "uint32(Analysis_date) >= uint32(GTFS_file_date)";                //GTFS model date #'20191008' 20201006 20201004 20211005 20211003 20171003 (=dinsdag) 20171001 (=zondag)
 	
 	parameter<string>   CongestionSpeed_DaygroupSelection := replace_value(expand(., '%env:DAYGROUP%'), 'env:DAYGROUP', 'MonTue');  // 'MonTue' 'WedThuFri' 'SatSun'
 
-	parameter<string>   Orgset                       := 'Gemeente';           //Welke origin punten worden gebruikt? Opties: 'PC4' 'PC6' 'Buurt_y2020' 'Buurt_y2017_centroiden' 'Buurt_y2020_centroiden'
+	parameter<string>   Orgset                       := 'Buurt_enkele_Prov';           //Welke origin punten worden gebruikt? Opties: 'PC4' 'PC6' 'Buurt_y2020' 'Buurt_y2017_centroiden' 'Buurt_y2020_centroiden'
 	parameter<string>   Destset                      := 'Ziekenhuizen_y2021_sub';           //Welke destination punten worden gebruikt? Opties: Groen_BS2017 'LISA' 'Huisartsenposten' 'Huisartsenposten_geclusterd', 'Ziekenhuizen_y2020', 'Ziekenhuizen_y2020_sub' 'Supermarkten_yokt2018' 'Winkelsdagelijks_yokt2018' 'PC6pnt_y2020' 'Basisscholen_okt2021' 'Scholen_voortgezet_onderwijs_okt2021'
 	parameter<bool>     Dests_geclusterd             := FALSE;                              //Destinations clusteren? aan te raden bij bijv LISA.
 	
+	parameter<string>   Orgset_EnkeleBuurt_selectie  := 'Martenshoek_en_Industriegebied_Martenshoek';
+	parameter<string>   Orgset_EnkeleProv_selectie   := 'Flevoland';
 	parameter<string>   items_of_interest            := rjoin(lowercase(DestSet), lowercase(Advanced/dest_domain_list/label), ModelParameters/Advanced/dest_domain_list/items_of_interest);
 	parameter<string>   Arrival_or_Departure_at_time := 'Departure';                        //Zijn de analyse tijdsstippen aankomst- of vertrektijden? Opties: 'Arrival'  'Departure'
 
@@ -39,7 +41,7 @@
 	
 	container Advanced   
 	{
-		unit<uint32> org_domain_list : nrofrows = 14 // Hier worden de paden voor elke org set opgegeven. En wanneer er nieuwe bij komen dat hier ook toegevoegd worden.
+		unit<uint32> org_domain_list : nrofrows = 15 // Hier worden de paden voor elke org set opgegeven. En wanneer er nieuwe bij komen dat hier ook toegevoegd worden.
 		{
 			unit<uint32> Elements  := Range(uint32, 0, nrAttr*#.)
 			{
@@ -50,12 +52,13 @@
 				'Buurt_perProvincie'                  ,'SourceData/RegioIndelingen/Buurt/Per_Prov/@REGIO@/sub',
 				'Buurt_perCOROP'                      ,'SourceData/RegioIndelingen/Buurt/Per_COROP/@REGIO@/sub',
 				'Buurt_enkele_buurt'                  ,'SourceData/RegioIndelingen/Buurt/Enkele_buurt',
+				'Buurt_enkele_Prov'                   ,'SourceData/RegioIndelingen/buurt/Enkele_Prov',
 				
-				'Wijk'                                ,'SourceData/RegioIndelingen/Wijk',
+				'Wijk'                                ,'SourceData/RegioIndelingen/Wijk/Centroiden',
 				'Wijk_perProvincie'                   ,'SourceData/RegioIndelingen/Wijk/Per_Prov/@REGIO@/sub',
 				'Wijk_perCOROP'                       ,'SourceData/RegioIndelingen/Wijk/Per_COROP/@REGIO@/sub',
 				
-				'Gemeente'                           ,'SourceData/RegioIndelingen/Gemeente',
+				'Gemeente'                           ,'SourceData/RegioIndelingen/Gemeente/Centroiden',
 				'Gemeente_perProvincie'              ,'SourceData/RegioIndelingen/Gemeente/Per_Prov/@REGIO@/sub',
 				'Gemeente_perCOROP'                  ,'SourceData/RegioIndelingen/Gemeente/Per_COROP/@REGIO@/sub',
 				
@@ -178,7 +181,8 @@
 		parameter<float32>  ConnectSearchDist                 := 100f^2f;                                 //Zoek gebied voor connect_info operaties, zoals linken NDW aan NWB en NWB aan OSM, en FietsTelWeek aan OSM.
 		parameter<string>   fileNamePrefix                    :=  '%LocalDataDir%/NetworkModel/Output/';  //Locatie waar output files moeten worden opgeslagen.
 		parameter<float32>  WegingWachttijdThuisVoortransport := 0f;                                      //Wil je dat de wachttijd thuis wordt meegenomen in de totale reisduur, bij vertrektijd vanaf bepaald moment?
-		
+		parameter<uint8>    NumberOfItersForNetworkCleanUp    := 10b;
+
 		parameter<string>   PrevDate                          := string(uint32(Analysis_date) - 1);
 		parameter<string>   Date_prefix                       := substr(Analysis_date, 0, 4) + '/' + substr(Analysis_date, 4, 2) + '/' +  substr(Analysis_date, 6, 2);
 		parameter<Weekdays> Today                             := /units/Weekdays/V/tuesday[Weekdays];     //Relevant voor OV-berekening

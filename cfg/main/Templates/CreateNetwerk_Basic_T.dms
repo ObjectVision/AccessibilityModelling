@@ -1,36 +1,40 @@
-container OrgToDest: FreeData = "false", using = "geometries"
-{ 
+Template CreateNetwerk_Basic_T : Using = "units;classifications;geometries"
+{
+	// begin case parameters
+	unit<uint32>      orgDomain;
+	unit<uint32>      destDomain;
+	unit<uint32>      roadDomain;
+	// end case parameters
+	
 	unit<uint32> Locations := union_unit(orgDomain, destDomain)
-	,	DialogData  = "Values"
-	,	DialogType  = "Map"
 	{
-		attribute<geometries/rdc> Values := union_data(.,orgLocations, destLocations),Label = "Unieke Locations origins en destinations";
+		attribute<rdc>  geometry := values;
+		attribute<rdc>  Values   := union_data(.,orgDomain/geometry, destDomain/geometry),Label = "Unieke Locations origins en destinations";
 	}
 	unit<uint32> UniqueLocation := unique(Locations/values);
 
-	// unit<uint32> RoadsWithLocations := ='connect(roads, OrgToDest/UniqueLocation/values)'
-	unit<uint32> RoadsWithLocations := ='connect_eq(roads, roadDomain/Connectiveness/IsVerbonden[uint32], OrgToDest/UniqueLocation/values, const(1,OrgToDest/UniqueLocation))'
-	,	DialogData = "UnionData"
-	,	DialogType = "Map"
+	unit<uint32> RoadsWithLocations := ='connect_eq(roadDomain/geometry, roadDomain/Connectable[uint32], UniqueLocation/values, const(1,UniqueLocation))'
 	{
-		attribute<geometries/rdc>              UnionData(arc);
+		attribute<rdc>              UnionData (arc);
+		attribute<rdc>              geometry  (arc) := UnionData;
 		attribute<classifications/OSM/wegtype> wegtype                  := ='MakeDefined(RoadDomain/wegtype[nr_OrgEntity], value(69,classifications/OSM/wegtype))';
 		
-		attribute<km_hr>                       MaxCar_speed             := MakeDefined(RoadDomain/freeflow_speed_car[nr_OrgEntity], ModelParameters/Advanced/CarDefaultSpeed_low);
-		attribute<km_hr>                       MaxBike_speed            := roadDomain/freeflow_speed_bike[nr_OrgEntity];
-		attribute<km_hr>                       ActualBike_speed         := roadDomain/congestion_speed_bike[nr_OrgEntity];
-		attribute<km_hr>                       MorningRush_speed        := roadDomain/congestion_speed_morningrush[nr_OrgEntity];
-		attribute<float32>                     MorningRush_flow         := roadDomain/congestion_flow_morningrush[nr_OrgEntity];
-		attribute<km_hr>                       NoonRush_speed           := roadDomain/congestion_speed_noonrush[nr_OrgEntity];
-		attribute<float32>                     NoonRush_flow            := roadDomain/congestion_flow_noonrush[nr_OrgEntity];
-		attribute<km_hr>                       LateEveningRush_speed    := roadDomain/congestion_speed_lateeveningrush[nr_OrgEntity];
-		attribute<float32>                     LateEveningRush_flow     := roadDomain/congestion_flow_lateeveningrush[nr_OrgEntity];
+		attribute<km_hr>                       MaxCar_speed             := MakeDefined(RoadDomain/speed_max_car[nr_OrgEntity], ModelParameters/Advanced/CarDefaultSpeed_low);
+		attribute<km_hr>                       MaxBike_speed            := roadDomain/speed_max_bike[nr_OrgEntity];
+		attribute<km_hr>                       ActualBike_speed         := roadDomain/speed_congested_bike[nr_OrgEntity];
+		
+		attribute<km_hr>                       MorningRush_speed        := roadDomain/speed_congested_morningrush[nr_OrgEntity];
+		attribute<km_hr>                       NoonRush_speed           := roadDomain/speed_congested_noonrush[nr_OrgEntity];
+		attribute<km_hr>                       LateEveningRush_speed    := roadDomain/speed_congested_lateeveningrush[nr_OrgEntity];
+		
+		attribute<float32>                     MorningRush_flow         := roadDomain/flow_congested_morningrush[nr_OrgEntity];
+		attribute<float32>                     NoonRush_flow            := roadDomain/flow_congested_noonrush[nr_OrgEntity];
+		attribute<float32>                     LateEveningRush_flow     := roadDomain/flow_congested_lateeveningrush[nr_OrgEntity];
 	}
 
 	unit <uint32> LinkSet := arc2segm(RoadsWithLocations/UnionData)
-	,	DialogData = "segments"
-	,	DialogType = "Map"
 	{
+		attribute<rdc>                          geometry (arc)               := segments;
 		attribute<classifications/OSM/wegtype>  wegtype                      := RoadsWithLocations/wegtype[SequenceNr];
 		attribute<bool>                         IsHighway                    := wegtype == classifications/OSM/wegtype/V/motorway || wegtype == classifications/OSM/wegtype/V/motorway_link;
 		
@@ -42,20 +46,16 @@ container OrgToDest: FreeData = "false", using = "geometries"
 		attribute<km_hr>                        ActualBike_speed_org        := RoadsWithLocations/ActualBike_speed[SequenceNr];
 		attribute<km_hr>                        ActualBike_speed            := ActualBike_speed_org == 0[km_hr] ? ModelParameters/Advanced/BikingSpeed_kmhr : ActualBike_speed_org;
 		attribute<km_hr>                        MorningRush_speed_org       := RoadsWithLocations/MorningRush_speed[SequenceNr];
-		// attribute<km_hr>                        MorningRush_speed           := MaxCar_speed < MorningRush_speed_org ? MaxCar_speed : IsHighway ? MakeDefined(MorningRush_speed_org, ModelParameters/Advanced/MaxCarSpeed_limit) : MorningRush_speed_org;
 		attribute<km_hr>                        MorningRush_speed           := MaxCar_speed < MorningRush_speed_org ? MaxCar_speed : MorningRush_speed_org;
 		attribute<float32>                      MorningRush_flow            := RoadsWithLocations/MorningRush_flow[SequenceNr];
 		
 		attribute<km_hr>                        NoonRush_speed_org         := RoadsWithLocations/NoonRush_speed[SequenceNr];
-		// attribute<km_hr>                        NoonRush_speed             := MaxCar_speed < NoonRush_speed_org ? MaxCar_speed : IsHighway ? MakeDefined(NoonRush_speed_org, ModelParameters/Advanced/MaxCarSpeed_limit) : NoonRush_speed_org;
 		attribute<km_hr>                        NoonRush_speed             := MaxCar_speed < NoonRush_speed_org ? MaxCar_speed : NoonRush_speed_org;
 		attribute<float32>                      NoonRush_flow              := RoadsWithLocations/NoonRush_flow[SequenceNr];
 		
 		attribute<km_hr>                        LateEveningRush_speed_org  := RoadsWithLocations/LateEveningRush_speed[SequenceNr];
-		// attribute<km_hr>                        LateEveningRush_speed      := MaxCar_speed < LateEveningRush_speed_org ? MaxCar_speed : IsHighway ? MakeDefined(LateEveningRush_speed_org, ModelParameters/Advanced/MaxCarSpeed) : LateEveningRush_speed_org;
 		attribute<km_hr>                        LateEveningRush_speed      := MaxCar_speed < LateEveningRush_speed_org ? MaxCar_speed : LateEveningRush_speed_org;
 		attribute<float32>                      LateEveningRush_flow       := RoadsWithLocations/LateEveningRush_flow[SequenceNr];
-	
 	
 		attribute<s_f>                          impedance_max_Pedestrian   := lengte / (ModelParameters/Advanced/WalkingSpeed_kmhr / 3600[s_f / hr_f] * 1000[m / km]);
 		attribute<s_f>                          impedance_max_Bike         := lengte / (ModelParameters/Advanced/BikingSpeed_kmhr / 3600[s_f / hr_f] * 1000[m / km]);
@@ -65,7 +65,6 @@ container OrgToDest: FreeData = "false", using = "geometries"
 		attribute<s_f>                          impedance_NoonRush         := lengte / (NoonRush_speed  [km_hr] / 3600[s_f / hr_f] * 1000[m / km]);
 		attribute<s_f>                          impedance_LateEveningRush  := lengte / (LateEveningRush_speed  [km_hr] / 3600[s_f / hr_f] * 1000[m / km]);
 		attribute<s_f>                          impedance_ActualBike       := lengte / (MakeDefined(ActualBike_speed[km_hr],ModelParameters/Advanced/BikingSpeed_kmhr) / 3600[s_f / hr_f] * 1000[m / km]);
-		
 		
 		unit<uint32> pointset := Union_Unit(LinkSet, LinkSet)
 		{
@@ -83,10 +82,9 @@ container OrgToDest: FreeData = "false", using = "geometries"
 	,	DialogData = "Values"
 	,	DialogType = "Map"
 	{
-		attribute<uint32>          NrConnectedLinksOrg := pcount(LinkSet/F1) + pcount(LinkSet/F2);
-		attribute<uint32>          NrConnectedLinks    := pcount(unique_Link/F1) + pcount(unique_Link/F2);
-		
-		attribute<NL_grid/domain>  NL_grid_domain_rel  := values[NL_grid/domain];
+		attribute<uint32>    NrConnectedLinksOrg := pcount(LinkSet/F1) + pcount(LinkSet/F2);
+		attribute<uint32>    NrConnectedLinks    := pcount(unique_Link/F1) + pcount(unique_Link/F2);
+		attribute<rdc_100m>  per_rdc_100m        := values[rdc_100m];
 	}
 	
 	unit<uint64> NodeSet2 := combine_unit_uint64(NodeSet, NodeSet);
@@ -99,25 +97,6 @@ container OrgToDest: FreeData = "false", using = "geometries"
 		attribute<NodeSet> F1 := value(values / UInt64(#NodeSet), NodeSet);
 		attribute<NodeSet> F2 := value(values % UInt64(#NodeSet), NodeSet);
 	}
-
-	// container per_snelheid
-	// {
-		// unit<uint32> uniquespeed := unique(LinkSet/maxspeed)
-		// {
-			// attribute<string> name := 'sp_' + string(values);
-		// }
-		// container F1_sel := for_each_nedv(
-			  // uniquespeed/name
-			// , 'LinkSet/maxspeed > ' + string(uniquespeed/values)  + '[km_hr] ? F1 : 0 / 0'
-			// , LinkSet
-			// , uint32);
-
-		// container F2_sel := for_each_nedv(
-			  // uniquespeed/name
-			// , 'LinkSet/maxspeed > ' + string(uniquespeed/values)  + '[km_hr] ? F2 : 0 / 0'
-			// , LinkSet
-			// , uint32);
-	// }
 
 	container ConnectingLinks 
 	// hiermee wordt voor ieder begin en eind node het aantal geconnecte links bepaald
@@ -165,6 +144,6 @@ container OrgToDest: FreeData = "false", using = "geometries"
 	
 	attribute<m>   distance  (LinkSet)           := linkset/lengte;
 	
-	attribute<NodeSet> nr_orgNode  (orgDomain)   := rlookup(orgLocations, NodeSet/Values);
-	attribute<NodeSet> nr_destNode (destDomain)  := rlookup(destLocations, NodeSet/Values);
+	attribute<NodeSet> nr_orgNode  (orgDomain)   := rlookup(orgDomain/geometry, NodeSet/Values);
+	attribute<NodeSet> nr_destNode (destDomain)  := rlookup(destDomain/geometry, NodeSet/Values);
 }
