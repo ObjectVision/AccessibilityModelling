@@ -2,7 +2,7 @@ container RegressieTest
 {
 	container Generate_new_output
 	{
-		parameter<string> OUTPUT_Generate_PublicTransport_fullOD_long_CSVFiles  := NetworkSetup/ConfigurationPerRegio/all/PublicTransport/At_07h00m00s/CreateODs/CreateExports/W_OV_W_with_WW/LongFormat/File_fullOD;
+		parameter<string> OUTPUT_Generate_OV_fullOD_long_CSVFiles               := NetworkSetup/ConfigurationPerRegio/all/PublicTransport/At_07h00m00s/CreateODs/CreateExports/W_OV_W_with_WW/LongFormat/File_fullOD;
 		parameter<string> OUTPUT_Generate_Car_traveltimes_CSVFiles              := NetworkSetup/ConfigurationPerRegio/all/PrivateTransport/Export_Car_Traveltimes;
 		parameter<string> OUTPUT_Generate_Bike_traveltimes_CSVFiles             := NetworkSetup/ConfigurationPerRegio/all/PrivateTransport/Export_Bike_Traveltimes;
 		parameter<string> OUTPUT_Generate_Pedestrian_traveltimes_CSVFiles       := NetworkSetup/ConfigurationPerRegio/all/PrivateTransport/Export_Pedestrian_Traveltimes;

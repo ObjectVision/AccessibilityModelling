@@ -98,20 +98,20 @@ container OSM
 					attribute<bool>                        isMajor                                    (..) := wegtype == classifications/OSM/wegtype/v/primary_link || wegtype == classifications/OSM/wegtype/v/secondary_link || wegtype == classifications/OSM/wegtype/v/primary; 
 					attribute<bool>                        isStreet                                   (..) := !isMotorWay && !isMajor;
 					
-					attribute<km_hr>                       congestion_speed_motorways_MorningRush     (..) := rjoin(id(..), Motorways/nr_OrgEntity, Motorways/congestion_speed_MorningRush);
-					attribute<km_hr>                       congestion_speed_majorways_MorningRush     (..) := rjoin(id(..), Majorways/nr_OrgEntity, Majorways/congestion_speed_MorningRush);
-					attribute<float32>                     congestion_flow_motorways_MorningRush      (..) := rjoin(id(..), Motorways/nr_OrgEntity, Motorways/congestion_flow_MorningRush);
-					attribute<float32>                     congestion_flow_majorways_MorningRush      (..) := rjoin(id(..), Majorways/nr_OrgEntity, Majorways/congestion_flow_MorningRush);
+					attribute<km_hr>                       congestion_speed_motorways_MorningRush     (..) := recollect_by_cond(isMotorWay, Motorways/congestion_speed_MorningRush);
+					attribute<km_hr>                       congestion_speed_majorways_MorningRush     (..) := recollect_by_cond(isMajor, Majorways/congestion_speed_MorningRush);
+					attribute<float32>                     congestion_flow_motorways_MorningRush      (..) := recollect_by_cond(isMotorWay, Motorways/congestion_flow_MorningRush);
+					attribute<float32>                     congestion_flow_majorways_MorningRush      (..) := recollect_by_cond(isMajor, Majorways/congestion_flow_MorningRush);
 					
-					attribute<km_hr>                       congestion_speed_motorways_NoonRush        (..) := rjoin(id(..), Motorways/nr_OrgEntity, Motorways/congestion_speed_NoonRush);
-					attribute<km_hr>                       congestion_speed_majorways_NoonRush        (..) := rjoin(id(..), Majorways/nr_OrgEntity, Majorways/congestion_speed_NoonRush);
-					attribute<float32>                     congestion_flow_motorways_NoonRush         (..) := rjoin(id(..), Motorways/nr_OrgEntity, Motorways/congestion_flow_NoonRush);
-					attribute<float32>                     congestion_flow_majorways_NoonRush         (..) := rjoin(id(..), Majorways/nr_OrgEntity, Majorways/congestion_flow_NoonRush);
+					attribute<km_hr>                       congestion_speed_motorways_NoonRush        (..) := recollect_by_cond(isMotorWay, Motorways/congestion_speed_NoonRush);
+					attribute<km_hr>                       congestion_speed_majorways_NoonRush        (..) := recollect_by_cond(isMajor, Majorways/congestion_speed_NoonRush);
+					attribute<float32>                     congestion_flow_motorways_NoonRush         (..) := recollect_by_cond(isMotorWay, Motorways/congestion_flow_NoonRush);
+					attribute<float32>                     congestion_flow_majorways_NoonRush         (..) := recollect_by_cond(isMajor, Majorways/congestion_flow_NoonRush);
 					
-					attribute<km_hr>                       congestion_speed_motorways_LateEveningRush (..) := rjoin(id(..), Motorways/nr_OrgEntity, Motorways/congestion_speed_LateEveningRush);
-					attribute<km_hr>                       congestion_speed_majorways_LateEveningRush (..) := rjoin(id(..), Majorways/nr_OrgEntity, Majorways/congestion_speed_LateEveningRush);
-					attribute<float32>                     congestion_flow_motorways_LateEveningRush  (..) := rjoin(id(..), Motorways/nr_OrgEntity, Motorways/congestion_flow_LateEveningRush);
-					attribute<float32>                     congestion_flow_majorways_LateEveningRush  (..) := rjoin(id(..), Majorways/nr_OrgEntity, Majorways/congestion_flow_LateEveningRush);
+					attribute<km_hr>                       congestion_speed_motorways_LateEveningRush (..) := recollect_by_cond(isMotorWay, Motorways/congestion_speed_LateEveningRush);
+					attribute<km_hr>                       congestion_speed_majorways_LateEveningRush (..) := recollect_by_cond(isMajor, Majorways/congestion_speed_LateEveningRush);
+					attribute<float32>                     congestion_flow_motorways_LateEveningRush  (..) := recollect_by_cond(isMotorWay, Motorways/congestion_flow_LateEveningRush);
+					attribute<float32>                     congestion_flow_majorways_LateEveningRush  (..) := recollect_by_cond(isMajor, Majorways/congestion_flow_LateEveningRush);
 				
 					attribute<km_hr>                       congestion_speed_MorningRush (..) := IsDefined(congestion_speed_motorways_MorningRush) && congestion_speed_motorways_MorningRush != 0[km_hr]
 																							? congestion_speed_motorways_MorningRush 
@@ -146,8 +146,6 @@ container OSM
 																								? congestion_flow_majorways_LateEveningRush
 																								: (0/0)[float32];
 					unit<uint32> Motorways := select_with_org_rel(isMotorWay)
-					,	DialogType = "Map"
-					,	DialogData = "geometry"	
 					{
 						attribute<geometries/rdc>              geometry (arc)                   := .../geometry[org_rel]; 
 						attribute<km_hr>                       congestion_speed_MorningRush     := ='rjoin(id(.), RoadPointSet/ArcID_motorways_MorningRush, RoadPointSet/mean_speed_MorningRush)';
@@ -158,8 +156,6 @@ container OSM
 						attribute<float32>                     congestion_flow_LateEveningRush  := ='rjoin(id(.), RoadPointSet/ArcID_motorways_LateEveningRush, RoadPointSet/mean_flow_LateEveningRush)';
 					}
 					unit<uint32> Majorways := select_with_org_rel(isMajor)
-					,	DialogType = "Map"
-					,	DialogData = "geometry"	
 					{
 						attribute<geometries/rdc>              geometry (arc)                   := .../geometry[org_rel];
 						attribute<km_hr>                       congestion_speed_MorningRush     := ='rjoin(id(.), RoadPointSet/ArcID_majorways_MorningRush, RoadPointSet/mean_speed_MorningRush)';
@@ -170,7 +166,7 @@ container OSM
 						attribute<float32>                     congestion_flow_LateEveningRush  := ='rjoin(id(.), RoadPointSet/ArcID_majorways_LateEveningRush, RoadPointSet/mean_flow_LateEveningRush)';
 					}
 					
-					unit<uint32> RoadPointSet := SourceData/NWB/RoadPointSet
+					unit<uint32> RoadPointSet := NWB/RoadPointSet
 					{
 						attribute<km_hr>   mean_speed_MorningRush          (NWB/RoadPointSet) := IsDefined(Link_OSM_Motorways_to_NWB/mean_speed_MorningRush)     ? Link_OSM_Motorways_to_NWB/mean_speed_MorningRush : Link_OSM_Majorways_to_NWB/mean_speed_MorningRush;
 						attribute<km_hr>   mean_speed_NoonRush             (NWB/RoadPointSet) := IsDefined(Link_OSM_Motorways_to_NWB/mean_speed_NoonRush)        ? Link_OSM_Motorways_to_NWB/mean_speed_NoonRush : Link_OSM_Majorways_to_NWB/mean_speed_NoonRush;
@@ -178,15 +174,15 @@ container OSM
 						attribute<float32> mean_flow_MorningRush           (NWB/RoadPointSet) := IsDefined(Link_OSM_Motorways_to_NWB/mean_speed_MorningRush)     ? Link_OSM_Motorways_to_NWB/mean_flow_MorningRush  : Link_OSM_Majorways_to_NWB/mean_flow_MorningRush;
 						attribute<float32> mean_flow_NoonRush              (NWB/RoadPointSet) := IsDefined(Link_OSM_Motorways_to_NWB/mean_speed_NoonRush)        ? Link_OSM_Motorways_to_NWB/mean_flow_NoonRush  : Link_OSM_Majorways_to_NWB/mean_flow_NoonRush;
 						attribute<float32> mean_flow_LateEveningRush       (NWB/RoadPointSet) := IsDefined(Link_OSM_Motorways_to_NWB/mean_speed_LateEveningRush) ? Link_OSM_Motorways_to_NWB/mean_flow_LateEveningRush  : Link_OSM_Majorways_to_NWB/mean_flow_LateEveningRush;
-						attribute<uint32>  ArcID_motorways_MorningRush     (NWB/RoadPointSet) := IsDefined(Link_OSM_Motorways_to_NWB/mean_speed_MorningRush)     ? Link_OSM_Motorways_to_NWB/ArcID : (0/0);
-						attribute<uint32>  ArcID_motorways_NoonRush        (NWB/RoadPointSet) := IsDefined(Link_OSM_Motorways_to_NWB/mean_speed_NoonRush)        ? Link_OSM_Motorways_to_NWB/ArcID : (0/0);
-						attribute<uint32>  ArcID_motorways_LateEveningRush (NWB/RoadPointSet) := IsDefined(Link_OSM_Motorways_to_NWB/mean_speed_LateEveningRush) ? Link_OSM_Motorways_to_NWB/ArcID : (0/0);
-						attribute<uint32>  ArcID_majorways_MorningRush     (NWB/RoadPointSet) := IsDefined(Link_OSM_Motorways_to_NWB/mean_speed_MorningRush)     ? (0/0) : Link_OSM_Majorways_to_NWB/ArcID;
-						attribute<uint32>  ArcID_majorways_NoonRush        (NWB/RoadPointSet) := IsDefined(Link_OSM_Motorways_to_NWB/mean_speed_NoonRush)        ? (0/0) : Link_OSM_Majorways_to_NWB/ArcID;
-						attribute<uint32>  ArcID_majorways_LateEveningRush (NWB/RoadPointSet) := IsDefined(Link_OSM_Motorways_to_NWB/mean_speed_LateEveningRush) ? (0/0) : Link_OSM_Majorways_to_NWB/ArcID;
+						attribute<Motorways>  ArcID_motorways_MorningRush     (NWB/RoadPointSet) := IsDefined(Link_OSM_Motorways_to_NWB/mean_speed_MorningRush)     ? Link_OSM_Motorways_to_NWB/ArcID : (0/0)[Motorways];
+						attribute<Motorways>  ArcID_motorways_NoonRush        (NWB/RoadPointSet) := IsDefined(Link_OSM_Motorways_to_NWB/mean_speed_NoonRush)        ? Link_OSM_Motorways_to_NWB/ArcID : (0/0)[Motorways];
+						attribute<Motorways>  ArcID_motorways_LateEveningRush (NWB/RoadPointSet) := IsDefined(Link_OSM_Motorways_to_NWB/mean_speed_LateEveningRush) ? Link_OSM_Motorways_to_NWB/ArcID : (0/0)[Motorways];
+						attribute<Majorways>  ArcID_majorways_MorningRush     (NWB/RoadPointSet) := IsDefined(Link_OSM_Motorways_to_NWB/mean_speed_MorningRush)     ? (0/0)[Majorways] : Link_OSM_Majorways_to_NWB/ArcID;
+						attribute<Majorways>  ArcID_majorways_NoonRush        (NWB/RoadPointSet) := IsDefined(Link_OSM_Motorways_to_NWB/mean_speed_NoonRush)        ? (0/0)[Majorways] : Link_OSM_Majorways_to_NWB/ArcID;
+						attribute<Majorways>  ArcID_majorways_LateEveningRush (NWB/RoadPointSet) := IsDefined(Link_OSM_Motorways_to_NWB/mean_speed_LateEveningRush) ? (0/0)[Majorways] : Link_OSM_Majorways_to_NWB/ArcID;
 					}
 					
-					container Link_OSM_Motorways_to_NWB := connect_info(Motorways/geometry, SourceData/NWB/RoadPointSet/Point, ModelParameters/Advanced/ConnectSearchDist)
+					container Link_OSM_Motorways_to_NWB := connect_info(Motorways/geometry, NWB/RoadPointSet/Point, ModelParameters/Advanced/ConnectSearchDist)
 					{
 						attribute<km_hr>   mean_speed_MorningRush      (NWB/RoadPointSet) := ='dist[uint32] < 10 ? NWB/RoadPointSet/Mean_Speed/'+ModelParameters/CongestionSpeed_DaygroupSelection+'_MorningRush : (0/0)[km_hr]';
 						attribute<km_hr>   mean_speed_NoonRush         (NWB/RoadPointSet) := ='dist[uint32] < 10 ? NWB/RoadPointSet/Mean_Speed/'+ModelParameters/CongestionSpeed_DaygroupSelection+'_NoonRush : (0/0)[km_hr]';
@@ -196,7 +192,7 @@ container OSM
 						attribute<float32> mean_flow_LateEveningRush   (NWB/RoadPointSet) := ='dist[uint32] < 10 ? NWB/RoadPointSet/Mean_Flow/'+ModelParameters/CongestionSpeed_DaygroupSelection+'_LateEveningRush : (0/0)[float32]';
 					}
 					
-					container Link_OSM_Majorways_to_NWB := connect_info(Majorways/geometry, SourceData/NWB/RoadPointSet/Point, ModelParameters/Advanced/ConnectSearchDist)
+					container Link_OSM_Majorways_to_NWB := connect_info(Majorways/geometry, NWB/RoadPointSet/Point, ModelParameters/Advanced/ConnectSearchDist)
 					{
 						attribute<km_hr>   mean_speed_MorningRush      (NWB/RoadPointSet) := ='dist[uint32] < 10 ? NWB/RoadPointSet/Mean_Speed/'+ModelParameters/CongestionSpeed_DaygroupSelection+'_MorningRush : (0/0)[km_hr]';
 						attribute<km_hr>   mean_speed_NoonRush         (NWB/RoadPointSet) := ='dist[uint32] < 10 ? NWB/RoadPointSet/Mean_Speed/'+ModelParameters/CongestionSpeed_DaygroupSelection+'_NoonRush : (0/0)[km_hr]';

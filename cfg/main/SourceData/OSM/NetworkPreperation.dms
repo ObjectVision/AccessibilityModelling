@@ -93,40 +93,31 @@ container NetworkPreperation
 			attribute<geometries/rdc> point := NodeSet/Values[Nr_OrgEntity];
 		}
 		
-		unit<uint32> Make_Complete_verbonden := Subset(isVerbonden) // het resulterende verbonden wegennetwerk
+		unit<uint32> ConnectedNetwork := select_with_attr_by_cond(., isVerbonden) // het resulterende verbonden wegennetwerk
 		{
-			attribute<geometries/rdc>               geometry (arc)            := ../geometry[nr_OrgEntity];
-			attribute<classifications/OSM/wegtype>  wegtype                   := ../wegtype[nr_OrgEntity];
-			attribute<km_hr>                        maxspeed                  := ../maxspeed[nr_OrgEntity];
-			attribute<string>                       OSM_id                    := ../OSM_id[nr_OrgEntity];
-
-			attribute<km_hr>                        congestion_speed_MorningRush     := ../congestion_speed_MorningRush[nr_OrgEntity];
-			attribute<km_hr>                        congestion_speed_NoonRush        := ../congestion_speed_NoonRush[nr_OrgEntity];
-			attribute<km_hr>                        congestion_speed_LateEveningRush := ../congestion_speed_LateEveningRush[nr_OrgEntity];
-			attribute<float32>                      congestion_flow_MorningRush      := ../congestion_flow_MorningRush[nr_OrgEntity];
-			attribute<float32>                      congestion_flow_NoonRush         := ../congestion_flow_NoonRush[nr_OrgEntity];
-			attribute<float32>                      congestion_flow_LateEveningRush  := ../congestion_flow_LateEveningRush[nr_OrgEntity];
 		}
-		unit<uint32> Make_Final_Network := unique(Make_Complete_verbonden/geometry)
+		unit<uint32> Make_Final_Network := unique(ConnectedNetwork/geometry)
 		,   StorageName = "='%LocalDataDir%/NetworkModel/OSM/Final_Network_'+file_date+'_CongestionGroup-'+ModelParameters/CongestionSpeed_DaygroupSelection+'.fss'"
 		{
+			attribute<ConnectedNetwork>             ConnectedNetwork_rel    := rlookup(geometry, ConnectedNetwork/geometry);
 			attribute<rdc>                          geometry (arc):= values;
-			attribute<classifications/OSM/wegtype>  wegtype       := rjoin(values, Make_Complete_verbonden/geometry, Make_Complete_verbonden/wegtype);
-			attribute<km_hr>                        maxspeed      := rjoin(values, Make_Complete_verbonden/geometry, Make_Complete_verbonden/maxspeed);
-			attribute<string>                       OSM_id        := rjoin(values, Make_Complete_verbonden/geometry, Make_Complete_verbonden/OSM_id);
+			attribute<rdc>                          values   (arc): DisableStorage = "true";
+			attribute<classifications/OSM/wegtype>  wegtype       := ConnectedNetwork/wegtype[ConnectedNetwork_rel];
+			attribute<km_hr>                        maxspeed      := ConnectedNetwork/maxspeed[ConnectedNetwork_rel];
+			attribute<string>                       OSM_id        := ConnectedNetwork/OSM_id[ConnectedNetwork_rel];
 			
-			attribute<km_hr>                        congestion_speed_bike            := rjoin(OSM_id, AddBikeCongestionSpeeds/OSM_id, AddBikeCongestionSpeeds/Impl/bike_speed_OSM);
-			attribute<km_hr>                        congestion_speed_MorningRush     := rjoin(values, Make_Complete_verbonden/geometry, Make_Complete_verbonden/congestion_speed_MorningRush);
-			attribute<km_hr>                        congestion_speed_NoonRush        := rjoin(values, Make_Complete_verbonden/geometry, Make_Complete_verbonden/congestion_speed_NoonRush);
-			attribute<km_hr>                        congestion_speed_LateEveningRush := rjoin(values, Make_Complete_verbonden/geometry, Make_Complete_verbonden/congestion_speed_LateEveningRush);
-			attribute<float32>                      congestion_flow_MorningRush      := rjoin(values, Make_Complete_verbonden/geometry, Make_Complete_verbonden/congestion_flow_MorningRush);
-			attribute<float32>                      congestion_flow_NoonRush         := rjoin(values, Make_Complete_verbonden/geometry, Make_Complete_verbonden/congestion_flow_NoonRush);
-			attribute<float32>                      congestion_flow_LateEveningRush  := rjoin(values, Make_Complete_verbonden/geometry, Make_Complete_verbonden/congestion_flow_LateEveningRush);
+			attribute<km_hr>                        congestion_speed_bike            := recollect_by_cond(classifications/OSM/wegtype/isPartOfBikeNetwork[wegtype], AddBikeCongestionSpeeds/Impl/bike_speed_OSM);
+			attribute<km_hr>                        congestion_speed_MorningRush     := ConnectedNetwork/congestion_speed_MorningRush[ConnectedNetwork_rel];
+			attribute<km_hr>                        congestion_speed_NoonRush        := ConnectedNetwork/congestion_speed_NoonRush[ConnectedNetwork_rel];
+			attribute<km_hr>                        congestion_speed_LateEveningRush := ConnectedNetwork/congestion_speed_LateEveningRush[ConnectedNetwork_rel];
+			attribute<float32>                      congestion_flow_MorningRush      := ConnectedNetwork/congestion_flow_MorningRush[ConnectedNetwork_rel];
+			attribute<float32>                      congestion_flow_NoonRush         := ConnectedNetwork/congestion_flow_NoonRush[ConnectedNetwork_rel];
+			attribute<float32>                      congestion_flow_LateEveningRush  := ConnectedNetwork/congestion_flow_LateEveningRush[ConnectedNetwork_rel];
 			
-			unit<uint32> AddBikeCongestionSpeeds := subset(classifications/OSM/wegtype/isPartOfBikeNetwork[wegtype])
+			unit<uint32> AddBikeCongestionSpeeds := select_with_org_rel(classifications/OSM/wegtype/isPartOfBikeNetwork[wegtype])
 			{
-				attribute<rdc>                          geometry (arc)                   := ../geometry[nr_OrgEntity];
-				attribute<string>                       OSM_id                           := ../OSM_id[nr_OrgEntity];
+				attribute<rdc>                          geometry (arc)                   := ../geometry[org_rel];
+				attribute<string>                       OSM_id                           := ../OSM_id[org_rel];
 				
 				parameter<float32> ConnectSearchDist := 8f^2f;
 				
@@ -136,48 +127,10 @@ container NetworkPreperation
 					attribute<km_hr> bike_speed_OSM        (AddBikeCongestionSpeeds)       := mean(bike_speed_dynapoint, ArcID);
 				}
 			}
-			
-			// container Connectiveness
-			// {
-				// unit<uint32> src := ..;
-				// attribute<geometries/rdc>               point (src)           := first_point(src/geometry);
-				// attribute<geometries/rdc>               nextpoint (src)       := last_point(src/geometry);
-				
-				// unit<uint32> pointset : = union_unit(src,src)
-				// {
-					// attribute<geometries/rdc>       point       := union_data(., ../point, ../nextpoint);
-					// attribute<bool>                 isVerbonden := isNull(rlookup(point, NodesNotConnected/point));
-					// attribute<src>                   ArcNr       := value(ID(.) % #(src), src);
-				// }
-				
-				// unit<uint32> NodeSet := unique(pointset/point)
-				// ,	DialogData = "Values"
-				// ,	DialogType = "Map"
-				// {
-					// attribute<geometries/rdc> values;
-				// }
-
-				// attribute<NodeSet> F1 (src) := rlookup(point,     NodeSet/Values);
-				// attribute<NodeSet> F2 (src) := rlookup(nextpoint, NodeSet/Values);
-			
-				// unit<uint32> networks:= connected_parts(F1, F2) // Verzameling van alle netwerken, inclusief de subnetwerken.
-				// {
-					// attribute<uint32>   nr_nodes   := sum(const(1, NodeSet, uint32), partnr);
-					// parameter<uint32>   MaxNrNodes := max(networks/nr_nodes);
-					// parameter<networks> main       := rlookup(MaxNrNodes, nr_nodes); // uitgangspunt: het netwerk met de meeste nodes is het relevante netwerk
-				// }
-
-				// unit<uint32> NodesNotConnected := Subset(networks/partnr <> networks/main)
-				// {
-					// attribute<geometries/rdc> point := NodeSet/Values[Nr_OrgEntity];
-				// }
-				// attribute<bool> isVerbonden (src) := all(pointset/isVerbonden, pointset/ArcNr);
-			// }
-			
 		}
 		
-		unit<uint32>      Attributes := SubItem_PropValues(Make_Final_Network,'name');
-		parameter<string> Generate := 'Ready', ExplicitSuppliers = "=AsList('Make_Final_Network/'+Attributes/name, ';')";
-		parameter<string> Generate_nonCongested := 'Ready', ExplicitSuppliers = "Make_Final_Network/geometry;Make_Final_Network/wegtype;Make_Final_Network/maxspeed;Make_Final_Network/OSM_id";
+		// unit<uint32>      Attributes := SubItem_PropValues(Make_Final_Network,'name');
+		// parameter<string> Generate := 'Ready', ExplicitSuppliers = "=AsList('Make_Final_Network/'+Attributes/name, ';')";
+		// parameter<string> Generate_nonCongested := 'Ready', ExplicitSuppliers = "Make_Final_Network/geometry;Make_Final_Network/wegtype;Make_Final_Network/maxspeed;Make_Final_Network/OSM_id";
 	}
 }

@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<DocType name="GeoDmsMetaInfo">
+<DefaultInfo>
+	<FullName>/NetworkSetup/ConfigurationPerRegio/all/PrivateTransport/Car/Determine_CongestedSpeeds/Make_CongestionSpeeds_FSS/LateEveningRush_flow_observed
+	</FullName>
+	<GeoDmsVersion>GeoDms 11.5.0 [Jul 12 2023 13:02:51]
+	</GeoDmsVersion>
+	<SessionStartTime>07/24/23-09:21:31
+	</SessionStartTime>
+	<CurrentTime>07/24/23-11:09:42
+	</CurrentTime>
+	<StatusFlags>0x65bf = AdminMode SuspendForGUI ShowStateColors TraceLogFile TreeViewVisible DetailsVisible ToolBarVisible MultiThreading1 MultiThreading2 
+	</StatusFlags>
+</DefaultInfo>
+<Software>
+	<GeoDmsVersion>11.05
+	</GeoDmsVersion>
+</Software>
+<Config>
+	<FullName>/NetworkSetup/ConfigurationPerRegio/all/PrivateTransport/Car/Determine_CongestedSpeeds/Make_CongestionSpeeds_FSS/LateEveningRush_flow_observed
+	</FullName>
+	<Expr>NetwerkSpec/LinkSet/LateEveningRush_flow
+	</Expr>
+</Config>
+<Environment>
+	<Processor>AMD64 Family 25 Model 33 Stepping 0, AuthenticAMD
+	</Processor>
+	<User>Jip Claassens
+	</User>
+	<ComputerName>OVSRV06
+	</ComputerName>
+</Environment>
+<Parameters>
+	<GTFS_file_date>20211001
+	</GTFS_file_date>
+	<OSM_file_date>20211221
+	</OSM_file_date>
+	<NWB_file_date>20211001
+	</NWB_file_date>
+	<NDW_file_date>20210928
+	</NDW_file_date>
+	<LISA_jaar>2018
+	</LISA_jaar>
+	<RegioIndelingen_jaar>2022
+	</RegioIndelingen_jaar>
+	<CarCongestionSpeed_date>20211221
+	</CarCongestionSpeed_date>
+	<Analysis_date>20211003
+	</Analysis_date>
+	<CongestionSpeed_DaygroupSelection>MonTue
+	</CongestionSpeed_DaygroupSelection>
+	<Orgset>Buurt_enkele_Prov
+	</Orgset>
+	<Destset>Ziekenhuizen_y2021_sub
+	</Destset>
+	<Dests_geclusterd>False
+	</Dests_geclusterd>
+	<Orgset_EnkeleBuurt_selectie>Martenshoek_en_Industriegebied_Martenshoek
+	</Orgset_EnkeleBuurt_selectie>
+	<Orgset_EnkeleProv_selectie>Flevoland
+	</Orgset_EnkeleProv_selectie>
+	<Arrival_or_Departure_at_time>Departure
+	</Arrival_or_Departure_at_time>
+	<MaxTransferDistKm>500
+	</MaxTransferDistKm>
+	<MaxODconn>25
+	</MaxODconn>
+	<MaxWalkingTime_Org2Stop>10
+	</MaxWalkingTime_Org2Stop>
+	<MaxWalkingTime_Stop2Dest>10
+	</MaxWalkingTime_Stop2Dest>
+	<MaxBikingTime_Org2Stop>10
+	</MaxBikingTime_Org2Stop>
+	<MaxBikingTime_Stop2Dest>10
+	</MaxBikingTime_Stop2Dest>
+	<MaxPedestrianTime_Org2Dest>15
+	</MaxPedestrianTime_Org2Dest>
+	<MaxBikeTime_Org2Dest>30
+	</MaxBikeTime_Org2Dest>
+	<MaxOVTime>60
+	</MaxOVTime>
+	<MaxCarTime>120
+	</MaxCarTime>
+	<OngelijkvloersPenalty>2
+	</OngelijkvloersPenalty>
+	<UseActualBikeSpeeds>True
+	</UseActualBikeSpeeds>
+	<Fietstel_OSM_link_dist>8
+	</Fietstel_OSM_link_dist>
+	<Dest_location_scale>100m
+	</Dest_location_scale>
+	<TransferEffectiveSpeed>0.925926
+	</TransferEffectiveSpeed>
+	<ConnectSearchDist>10000
+	</ConnectSearchDist>
+	<WegingWachttijdThuisVoortransport>0
+	</WegingWachttijdThuisVoortransport>
+	<NumberOfItersForNetworkCleanUp>10
+	</NumberOfItersForNetworkCleanUp>
+	<WalkingSpeed_kmhr>4
+	</WalkingSpeed_kmhr>
+	<BikingSpeed_kmhr>16
+	</BikingSpeed_kmhr>
+	<E_BikingSpeed_kmhr>25
+	</E_BikingSpeed_kmhr>
+	<E_BikingSpeed_actualspeed_addition_kmhr>10
+	</E_BikingSpeed_actualspeed_addition_kmhr>
+	<MaxCarSpeed>130
+	</MaxCarSpeed>
+	<MaxCarSpeed_limit>100
+	</MaxCarSpeed_limit>
+	<CarDefaultSpeed>50
+	</CarDefaultSpeed>
+	<CarDefaultSpeed_low>30
+	</CarDefaultSpeed_low>
+	<Ferry_Speed>10
+	</Ferry_Speed>
+	<PrivateTransport_nr_balancing_iter>5
+	</PrivateTransport_nr_balancing_iter>
+	<PrivateTransport_nr_imp_iter>5
+	</PrivateTransport_nr_imp_iter>
+	<PrivateTransport_imp_margin>1.2
+	</PrivateTransport_imp_margin>
+	<PrivateTransport_imp_step>1.1
+	</PrivateTransport_imp_step>
+	<Distance_decay_car_a>-8.65786
+	</Distance_decay_car_a>
+	<Distance_decay_car_b>2.4921
+	</Distance_decay_car_b>
+	<Distance_decay_car_c>0.011641
+	</Distance_decay_car_c>
+	<Distance_decay_bike_a>-7.95686
+	</Distance_decay_bike_a>
+	<Distance_decay_bike_b>2.67506
+	</Distance_decay_bike_b>
+	<Distance_decay_bike_c>0.011981
+	</Distance_decay_bike_c>
+	<Distance_decay_ov_a>-12.3301
+	</Distance_decay_ov_a>
+	<Distance_decay_ov_b>2.90762
+	</Distance_decay_ov_b>
+	<Distance_decay_ov_c>0.012824
+	</Distance_decay_ov_c>
+	<NDW_meetmomenten>20210911,20210912,20210913,20210914,20210915,20210916,20210917,20211002,20211003,20211004,20211005,20211006,20211007,20211008,20211009,20211010,20211011,20211012,20211013,20211014,20211015
+	</NDW_meetmomenten>
+</Parameters>
+</DocType>

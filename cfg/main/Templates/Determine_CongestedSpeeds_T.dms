@@ -47,7 +47,7 @@ Template Determine_CongestedSpeeds_T
 	container CALC_OD_LateEveningRush := linkflow_congested(LinkSet, LinkSet/impedance_min_LateEveningRush, 'LateEveningRush');
 	
 	
-	unit<uint32> Make_CongestionSpeeds_FSS := LinkSet
+	unit<uint32> Make_CongestionSpeeds_FSS := LinkSet //1:47h op 2023 07 24 op OVSRV6
 	, StorageName = "='%ProjDir%/UnlinkedData/CongestionSpeeds'+Settings/fileNameSuffix_MakeCongestionSpeeds+'.fss'"
 	{ 
 		attribute<geometries/rdc>               geometry (arc)                      := LinkSet/geometry;
