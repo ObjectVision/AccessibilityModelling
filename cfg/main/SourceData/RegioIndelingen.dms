@@ -42,6 +42,31 @@ container RegioIndelingen : using = "geometries"
 		attribute<rdc>          centroid             := SourceData/BAG/Adres/buurt/geometry;
 		attribute<centroiden>   centroiden_rel       := rlookup(centroid, centroiden/geometry);
 		
+		unit<uint32> CalcPopCentroids := .
+		{
+			attribute<float32> W          := sum(Population/pop, Population/regio_rel);
+			
+			attribute<float32> Weighted_X := sum(Population/x * Population/pop, Population/regio_rel);
+			attribute<float32> Weighted_Y := sum(Population/y * Population/pop, Population/regio_rel);
+			
+			attribute<float32> mean_X     := Weighted_X / W;
+			attribute<float32> mean_Y     := Weighted_y / W;
+			 
+			attribute<rdc>  weighted_centroid0            := point(mean_X, mean_Y, rdc);
+			attribute<bool> IsWeighted_centroid_in_regio  := IsDefined(point_in_polygon(weighted_centroid0, ../geometry));
+			attribute<rdc>  weighted_centroid             := IsWeighted_centroid_in_regio ? weighted_centroid0 : centroid_or_mid(../geometry);
+			attribute<rdc>  geometry                      := weighted_centroid;
+			
+			unit<uint32> Population := SourceData/Locaties/Inwoners
+			{
+				attribute<...>     regio_rel := point_in_polygon(centroid, .../geometry);
+				attribute<float32> x         := pointcol(centroid);
+				attribute<float32> y         := pointrow(centroid);
+				attribute<float32> pop       := nr_inwoners[float32];
+				
+			}
+		}
+		
 		unit<uint32> centroiden := unique(centroid)
 		{
 			attribute<geometries/rdc>   geometry     := values;
