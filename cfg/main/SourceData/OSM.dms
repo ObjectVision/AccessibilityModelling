@@ -226,7 +226,7 @@ container OSM
 	#include <NetworkPreperation.dms>
 
 	unit<uint32> Read_Final_Network
-	:   StorageName = "='%LocalDataDir%/NetworkModel/OSM/Final_Network_'+file_date+'_CongestionGroup-'+ModelParameters/CongestionSpeed_DaygroupSelection+'.fss'"
+	:   StorageName = "='%LocalDataDir%/AccessibilityModelling/OSM/Final_Network_'+file_date+'_CongestionGroup-'+ModelParameters/CongestionSpeed_DaygroupSelection+'.fss'"
 	,   StorageReadOnly = "true"
 	{
 		attribute<rdc>                          geometry (arc);

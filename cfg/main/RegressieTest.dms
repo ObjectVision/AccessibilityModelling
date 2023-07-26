@@ -1,36 +1,99 @@
 container RegressieTest
 {
+	parameter<string> Output_DateTime              := '20230725';
+	parameter<string> Benchmark_DateTime           := '20230725';
+	
+	parameter<string> fileNamePrefix               := '%LocalDataDir%/AccessibilityModelling/Output/'+Output_DateTime+'/';  //Locatie waar output files moeten worden opgeslagen.
+	parameter<string> fileNamePrefix_benchmark     := '%LocalDataDir%/AccessibilityModelling/Benchmark/'+Benchmark_DateTime+'/';  //Locatie waar benchmark files moeten worden opgeslagen.
+	
 	container Generate_new_output
 	{
-		parameter<string> OUTPUT_Generate_OV_fullOD_long_CSVFiles               := NetworkSetup/ConfigurationPerRegio/all/PublicTransport/At_07h00m00s/CreateODs/CreateExports/W_OV_W_with_WW/LongFormat/File_fullOD;
-		parameter<string> OUTPUT_Generate_Car_traveltimes_CSVFiles              := NetworkSetup/ConfigurationPerRegio/all/PrivateTransport/Export_Car_Traveltimes;
-		parameter<string> OUTPUT_Generate_Bike_traveltimes_CSVFiles             := NetworkSetup/ConfigurationPerRegio/all/PrivateTransport/Export_Bike_Traveltimes;
-		parameter<string> OUTPUT_Generate_Pedestrian_traveltimes_CSVFiles       := NetworkSetup/ConfigurationPerRegio/all/PrivateTransport/Export_Pedestrian_Traveltimes;
+		parameter<string> OV               := 'OrgName;DestName;Traveltime_m_At_07h00m00s;ModeUsed_At_07h00m00s\n'++AsList(/NetworkSetup/ConfigurationPerRegio/all/PublicTransport/At_07h00m00s/CreateODs/CreateExports/W_OV_W_with_WW/LongFormat/BodyLines_fullOD, '\n'), StorageName = "=fileNamePrefix+'W_OV_W_with_WW.csv'", StorageType = "str";
+		parameter<string> Car              := 'Org;Dst;MaxSpeed;MorningRush;NoonRush;LateEveningRush\n'++AsList(/NetworkSetup/ConfigurationPerRegio/all/PrivateTransport/Car/ExportTable_Traveltimes/BodyLines, '\n'), StorageName = "=fileNamePrefix+'Car.csv'", StorageType = "str";
+		parameter<string> Bike             := 'Org;Dst;Freeflow;Freeflow_ebike;ActualBike;ActualE_Bike_Adj\n'++AsList(/NetworkSetup/ConfigurationPerRegio/all/PrivateTransport/Bike/ExportTable_Traveltimes/BodyLines_ActualBike, '\n'), StorageName = "=fileNamePrefix+'Bike.csv'", StorageType = "str";
+		parameter<string> Pedestrian       := 'Org;Dst;Freeflow\n'++AsList(/NetworkSetup/ConfigurationPerRegio/all/PrivateTransport/Pedestrian/ExportTable_Traveltimes/BodyLines, '\n'), StorageName = "=fileNamePrefix+'Pedestrian.csv'", StorageType = "str";
 	}
+
 	
 	container Read_new_output
 	{
 		unit<uint32> OV 
-		: StorageName     = "=ModelParameters_base/Advanced/fileNamePrefix+'Traveltime_Long_'+NetworkSetup/ConfigurationPerRegio/all/PublicTransport/At_07h00m00s/CreateODs/CreateExports/W_OV_W_with_WW/TypeName+''+NetworkSetup/ConfigurationPerRegio/all/PublicTransport/At_07h00m00s/CreateODs/CreateExports/W_OV_W_with_WW/fileNameSuffix+'.csv'"
+		: StorageName     = "=fileNamePrefix+'W_OV_W_with_WW.csv'"
 		, StorageType     = "gdal.vect"
 		, StorageReadOnly = "true";
 		unit<uint32> Pedestrian 
-		: StorageName     = "=NetworkSetup/ConfigurationPerRegio/all/PrivateTransport/impl/fileNamePrefix+'Traveltimes'+replace(NetworkSetup/ConfigurationPerRegio/all/PrivateTransport/impl/fileNameSuffix, '@@', 'Pedestrian') +'.csv'"
+		: StorageName     = "=fileNamePrefix+'Pedestrian.csv'"
 		, StorageType     = "gdal.vect"
 		, StorageReadOnly = "true";
 		unit<uint32> Bike 
-		: StorageName     = "=NetworkSetup/ConfigurationPerRegio/all/PrivateTransport/impl/fileNamePrefix+'Traveltimes'+replace(NetworkSetup/ConfigurationPerRegio/all/PrivateTransport/impl/fileNameSuffix, '@@', 'Bike') +'.csv'"
+		: StorageName     = "=fileNamePrefix+'Bike.csv'"
 		, StorageType     = "gdal.vect"
 		, StorageReadOnly = "true";
 		unit<uint32> Car 
-		: StorageName     = "=NetworkSetup/ConfigurationPerRegio/all/PrivateTransport/Car/Settings/fileNamePrefix+'Traveltimes'+NetworkSetup/ConfigurationPerRegio/all/PrivateTransport/Car/Settings/fileNameSuffix+'.csv'"
+		: StorageName     = "=fileNamePrefix+'Car.csv'"
 		, StorageType     = "gdal.vect"
 		, StorageReadOnly = "true";
 	}
 	
-	container Benchmark_output
+	container Read_benchmark_output
 	{
+		unit<uint32> OV 
+		: StorageName     = "=fileNamePrefix_benchmark+'W_OV_W_with_WW.csv'"
+		, StorageType     = "gdal.vect"
+		, StorageReadOnly = "true";
+		unit<uint32> Pedestrian 
+		: StorageName     = "=fileNamePrefix_benchmark+'Pedestrian.csv'"
+		, StorageType     = "gdal.vect"
+		, StorageReadOnly = "true";
+		unit<uint32> Bike 
+		: StorageName     = "=fileNamePrefix_benchmark+'Bike.csv'"
+		, StorageType     = "gdal.vect"
+		, StorageReadOnly = "true";
+		unit<uint32> Car 
+		: StorageName     = "=fileNamePrefix_benchmark+'Car.csv'"
+		, StorageType     = "gdal.vect"
+		, StorageReadOnly = "true";
+	}
 	
+	container Compare
+	{
+		parameter<bool>     All_OV_same     := OV/All_same;
+		parameter<bool>     All_Car_same    := Car/All_same;
+		
+		container OV  := Indicators_T(Read_benchmark_output/OV,Read_new_output/OV,'Traveltime_m_At_07h00m00s');
+		container Car := Indicators_T(Read_benchmark_output/Car,Read_new_output/Car,'morningrush ');
+		
+		Template Indicators_T
+		{
+			unit<uint32>      Benchmark_dom;
+			unit<uint32>      Output_dom;
+			parameter<string> Item_name;
+			///
+			attribute<float32>  Benchmark     (Benchmark_dom) := ='float32(Benchmark_dom/'+Item_name+')';
+			attribute<float32>  Output           (Output_dom) := ='float32(Output_dom/'+Item_name+')';
+			
+			parameter<uint32>   benchmark_count               := count(uint32(Benchmark));
+			parameter<uint32>   output_count                  := count(uint32(Output));
+			parameter<bool>     IsCountSame                   := benchmark_count == output_count;
+			
+			parameter<float32>  benchmark_mean                := mean(Benchmark);
+			parameter<float32>  output_mean                   := mean(Output);
+			parameter<bool>     IsMeanSame                    := benchmark_mean == output_mean;
+			
+			parameter<float32>  benchmark_max                 := max(Benchmark);
+			parameter<float32>  output_max                    := max(Output);
+			parameter<bool>     IsMaxSame                     := benchmark_max == output_max;
+		
+			parameter<float32>  benchmark_min                 := min(Benchmark);
+			parameter<float32>  output_min                    := min(Output);
+			parameter<bool>     IsMinSame                     := benchmark_min == output_min;
+		
+			parameter<uint32>   benchmark_modus               := modus(uint32(Benchmark));
+			parameter<uint32>   output_modus                  := modus(uint32(Output));
+			parameter<bool>     IsModusSame                   := benchmark_modus == output_modus;
+			
+			parameter<bool>     All_same    := IsCountSame && IsMeanSame && IsMaxSame && IsMinSame && IsModusSame;
+		}
 	}
 	
 	
