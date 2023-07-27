@@ -366,8 +366,8 @@ container NetworkSetup : using = "units;geometries;SourceData;Classifications"
 					attribute<min_f> DefaultSpeed_imp    := Impedance;
 					
 					attribute<string> BodyLines :=
-						dest/name[Dst_rel] + ';' +
 						org/name[Org_rel] + ';' + 
+						dest/name[Dst_rel] + ';' +
 						string(DefaultSpeed_imp);
 					parameter<string> File := 'Org;Dst;Freeflow\n'++AsList(BodyLines, '\n'), StorageName = "=impl/fileNamePrefix+'Traveltimes'+replace(impl/fileNameSuffix, '@@', 'Pedestrian') +'.csv'", StorageType = "str";
 				}
@@ -384,21 +384,7 @@ container NetworkSetup : using = "units;geometries;SourceData;Classifications"
 			{
 				container Create_Optimised_Network_Bike    := Templates/CreateNetwork_Efficient_T(org, dest, SourceData/Infrastructuur/OSM/Network_Bike/IsVerbonden, 'Bike');
 				container Create_Optimised_Network_EBike   := Templates/CreateNetwork_Efficient_T(org, dest, SourceData/Infrastructuur/OSM/Network_Bike/IsVerbonden, 'E_Bike');
-				// container NetwerkSpec :=
-					// Templates/CreateNetwork_Pedestrian_Bike_T(
-						  // org
-						// , dest
-						// , SourceData/Infrastructuur/OSM/Network_Bike/IsVerbonden
-						// , 'Bike' //Pedestrian Bike MorningRush NoonRush LateEveningRush
-					// );
-					
-				// container NetwerkSpec_ebike :=
-					// Templates/CreateNetwork_Pedestrian_Bike_T(
-						  // org
-						// , dest
-						// , SourceData/Infrastructuur/OSM/Network_Bike/IsVerbonden
-						// , 'E_Bike' //Pedestrian Bike MorningRush NoonRush LateEveningRush
-					// );
+
 				unit<uint32> LinkSet_bike := Create_Optimised_Network_Bike/CreateMoreEfficientNetwork/FinalLinkSet;
 				unit<uint32> NodeSet_bike := Create_Optimised_Network_Bike/CreateMoreEfficientNetwork/FinalNodeSet;
 				container Calc_Traveltimes_maxspeed_bike  := Calc_Traveltimes_T(LinkSet_bike, NodeSet_bike, LinkSet_bike/Impedance_per_ImpedanceType/max_bike, ModelParameters/MaxBikeTime_Org2Dest);
@@ -422,8 +408,8 @@ container NetworkSetup : using = "units;geometries;SourceData;Classifications"
 					attribute<bool>  IsCorrect_ActualBike     := ActualBike_imp >= DefaultSpeed_imp;
 					
 					attribute<string> BodyLines_ActualBike :=
-						dest/name[Dst_rel] + ';' +
 						org/name[Org_rel] + ';' + 
+						dest/name[Dst_rel] + ';' +
 						string(DefaultSpeed_imp) + ';' +
 						string(E_Bike_imp) + ';' +
 						string(ActualBike_imp) + ';' +
@@ -431,8 +417,8 @@ container NetworkSetup : using = "units;geometries;SourceData;Classifications"
 					parameter<string> File_ActualBike := 'Org;Dst;Freeflow;Freeflow_ebike;ActualBike;ActualE_Bike_Adj\n'++AsList(BodyLines_ActualBike, '\n'), StorageName = "=impl/fileNamePrefix+'Traveltimes'+replace(impl/fileNameSuffix, '@@', 'Bike') +'.csv'", StorageType = "str";
 					
 					attribute<string> BodyLines_Freeflow :=
-						dest/name[Dst_rel] + ';' +
 						org/name[Org_rel] + ';' + 
+						dest/name[Dst_rel] + ';' +
 						string(DefaultSpeed_imp) + ';' + 
 						string(E_Bike_imp);
 					parameter<string> File_Freeflow := 'Org;Dst;Freeflow;Freeflow_ebike\n'++AsList(BodyLines_Freeflow, '\n'), StorageName = "=impl/fileNamePrefix+'Traveltimes'+replace(impl/fileNameSuffix, '@@', 'Bike') +'.csv'", StorageType = "str";

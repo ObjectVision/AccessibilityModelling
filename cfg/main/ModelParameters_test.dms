@@ -10,30 +10,30 @@
 	parameter<string>   NWB_file_date                := '20211001';                         //NationaalWegenBestand file date #'20191023' 20211001
 	parameter<string>   NDW_file_date                := '20210928';                         //NDW telpunten versie datum #'20210928' 
 	parameter<string>   LISA_jaar                    := '2018';                             //LISA file date
-	parameter<string>   RegioIndelingen_jaar         := '2022';
+	parameter<string>   RegioIndelingen_jaar         := '2020';
 	parameter<string>   CarCongestionSpeed_date      := '20211221';                         //De congestionspeeds worden gemaakt met een OSM bestand van een bepaalde datum. Geef hier die datum op.
-	parameter<string>   Analysis_date                := '20211003', IntegrityCheck = "uint32(Analysis_date) >= uint32(GTFS_file_date)";                //GTFS model date #'20191008' 20201006 20201004 20211005 20211003 20171003 (=dinsdag) 20171001 (=zondag)
+	parameter<string>   Analysis_date                := '20211005', IntegrityCheck = "uint32(Analysis_date) >= uint32(GTFS_file_date)";                //GTFS model date #'20191008' 20201006 20201004 20211005 20211003 20171003 (=dinsdag) 20171001 (=zondag)
 	
 	parameter<string>   CongestionSpeed_DaygroupSelection := replace_value(expand(., '%env:DAYGROUP%'), 'env:DAYGROUP', 'MonTue');  // 'MonTue' 'WedThuFri' 'SatSun'
 
-	parameter<string>   Orgset                       := 'Buurt_enkele_Prov';           //Welke origin punten worden gebruikt? Opties: 'PC4' 'PC6' 'Buurt_y2020' 'Buurt_y2017_centroiden' 'Buurt_y2020_centroiden'
-	parameter<string>   Destset                      := 'Ziekenhuizen_y2021_sub';           //Welke destination punten worden gebruikt? Opties: Groen_BS2017 'LISA' 'Huisartsenposten' 'Huisartsenposten_geclusterd', 'Ziekenhuizen_y2020', 'Ziekenhuizen_y2020_sub' 'Supermarkten_yokt2018' 'Winkelsdagelijks_yokt2018' 'PC6pnt_y2020' 'Basisscholen_okt2021' 'Scholen_voortgezet_onderwijs_okt2021'
+	parameter<string>   Orgset                       := 'Buurt_enkele_Prov';                            //Welke origin punten worden gebruikt? Opties: 'PC4' 'PC6' 'Buurt_y2020' 'Buurt_y2017_centroiden' 'Buurt_y2020_centroiden'
+	parameter<string>   Destset                      := 'Ziekenhuizen_y2021';           //Welke destination punten worden gebruikt? Opties: Groen_BS2017 'LISA' 'Huisartsenposten' 'Huisartsenposten_geclusterd', 'Ziekenhuizen_y2020', 'Ziekenhuizen_y2020_sub' 'Supermarkten_yokt2018' 'Winkelsdagelijks_yokt2018' 'PC6pnt_y2020' 'Basisscholen_okt2021' 'Scholen_voortgezet_onderwijs_okt2021'
 	parameter<bool>     Dests_geclusterd             := FALSE;                              //Destinations clusteren? aan te raden bij bijv LISA.
 	
 	parameter<string>   Orgset_EnkeleBuurt_selectie  := 'Martenshoek_en_Industriegebied_Martenshoek';
-	parameter<string>   Orgset_EnkeleProv_selectie   := 'Flevoland';
+	parameter<string>   Orgset_EnkeleProv_selectie   := 'Groningen';
 	parameter<string>   items_of_interest            := rjoin(lowercase(DestSet), lowercase(Advanced/dest_domain_list/label), ModelParameters/Advanced/dest_domain_list/items_of_interest);
 	parameter<string>   Arrival_or_Departure_at_time := 'Departure';                        //Zijn de analyse tijdsstippen aankomst- of vertrektijden? Opties: 'Arrival'  'Departure'
 
 	parameter<m>        MaxTransferDistKm            := 500[m];                             //Maximale euclidische loopafstand tussen OV-haltes voor overstappen, in meters.
 	parameter<float32>  MaxODconn                    := 25f;                                //Maximum aantal haltes dat bij de org of de dest wordt gezocht
-	parameter<min_f>    MaxWalkingTime_Org2Stop      := 10[min_f];                          //Maximum looptijd van org naar eerste halte, in seconden. x  MaxWalkingDistSelection_Org2Stop
-	parameter<min_f>    MaxWalkingTime_Stop2Dest     := 10[min_f];                          //Maximum looptijd van de laatste stop naar dest, in seconden. x
-	parameter<min_f>    MaxBikingTime_Org2Stop       := 10[min_f];                          //Maximum fietstijd van org naar eerste halte, in seconden. x
-	parameter<min_f>    MaxBikingTime_Stop2Dest      := 10[min_f];                          //Maximum fietstijd van laatste halte naar dest, in seconden. x
-	parameter<min_f>    MaxPedestrianTime_Org2Dest   := 15[min_f];                          //Maximale looptijd wanneer er direct van org naar dest locatie wordt gelopen, in seconden.
-	parameter<min_f>    MaxBikeTime_Org2Dest         := 30[min_f];                          //Maximale fietstijd wanneer er direct van org naar dest locatie wordt gefietst, in seconden.
-	parameter<min_f>    MaxOVTime                    := 60[min_f];                          //Maximale reistijd met OV. Te gebruiken om de rekentijd te verkorten. LET OP: hierdoor worden mogelijk de verste locaties niet bereikt. Wannneer een distance decay wordt gebruikt is niet zo erg. Maar bij een volledige OD wel! 
+	parameter<min_f>    MaxWalkingTime_Org2Stop      := 10[min_f];                          //Maximum looptijd van org naar eerste halte, in minuten. x  
+	parameter<min_f>    MaxWalkingTime_Stop2Dest     := 10[min_f];                          //Maximum looptijd van de laatste stop naar dest, in minuten. x
+	parameter<min_f>    MaxBikingTime_Org2Stop       := 10[min_f];                          //Maximum fietstijd van org naar eerste halte, in minuten. x
+	parameter<min_f>    MaxBikingTime_Stop2Dest      := 10[min_f];                          //Maximum fietstijd van laatste halte naar dest, in minuten. x
+	parameter<min_f>    MaxPedestrianTime_Org2Dest   := 60[min_f];                          //Maximale looptijd wanneer er direct van org naar dest locatie wordt gelopen, in minuten.
+	parameter<min_f>    MaxBikeTime_Org2Dest         := 90[min_f];                          //Maximale fietstijd wanneer er direct van org naar dest locatie wordt gefietst, in minuten.
+	parameter<min_f>    MaxOVTime                    := 120[min_f];                          //Maximale reistijd met OV. Te gebruiken om de rekentijd te verkorten. LET OP: hierdoor worden mogelijk de verste locaties niet bereikt. Wannneer een distance decay wordt gebruikt is niet zo erg. Maar bij een volledige OD wel! 
 	parameter<min_f>    MaxCarTime                   := 120[min_f];                         //Maximale reistijd met lopen/fiets/auto //120
 	parameter<min_f>    OngelijkvloersPenalty        := 2[min_f];                           //Is er sprake van een halte waar je veel verticale afstand moet afleggen? Dan kun je daar een tijd penalty voor geven bij het overstappen, in seconden.
 	
@@ -180,7 +180,7 @@
 		parameter<m_s>      TransferEffectiveSpeed            := value(4[km_hr] / 1.2f, m_s);           //De loopsnelheid tijdens het overstappen. X km/uur / 1.2 (correctie voor Manhattan distances) en dan geconverteerd naar meter/sec.
 		parameter<float32>  ConnectSearchDist                 := 100f^2f;                                 //Zoek gebied voor connect_info operaties, zoals linken NDW aan NWB en NWB aan OSM, en FietsTelWeek aan OSM.
 		parameter<string>   fileNamePrefix                    :=  '%LocalDataDir%/NetworkModel/Output/';  //Locatie waar output files moeten worden opgeslagen.
-		parameter<float32>  WegingWachttijdThuisVoortransport := 0f;                                      //Wil je dat de wachttijd thuis wordt meegenomen in de totale reisduur, bij vertrektijd vanaf bepaald moment?
+		parameter<float32>  WegingWachttijdThuisVoortransport := 1f;                                      //Wil je dat de wachttijd thuis wordt meegenomen in de totale reisduur, bij vertrektijd vanaf bepaald moment?
 		parameter<uint8>    NumberOfItersForNetworkCleanUp    := 10b;
 
 		parameter<string>   PrevDate                          := string(uint32(Analysis_date) - 1);
@@ -279,13 +279,13 @@
 			attribute<bool>    ChosenMoments   := =AsList(HoursMinutes/str,' || ');
 			attribute<Time>    Time_rel        := org_rel;
 			
-			unit<uint8> ChosenHours : nrofrows = 1
+			unit<uint8> ChosenHours : nrofrows = 6
 			{
-				attribute<uint32> values : [7];
+				attribute<uint32> values : [7,8,12,13,21,22];
 			}
-			unit<uint8> ChosenMinutes : nrofrows = 4
+			unit<uint8> ChosenMinutes : nrofrows = 6 
 			{
-				attribute<uint32> values : [0,3,7,16];
+				attribute<uint32> values : [0,10,20,30,40,50];
 			}
 			unit<uint8> HoursMinutes := combine_uint8(ChosenHours, ChosenMinutes)
 			{
