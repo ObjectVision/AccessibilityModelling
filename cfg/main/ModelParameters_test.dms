@@ -279,13 +279,15 @@
 			attribute<bool>    ChosenMoments   := =AsList(HoursMinutes/str,' || ');
 			attribute<Time>    Time_rel        := org_rel;
 			
-			unit<uint8> ChosenHours : nrofrows = 6
+			unit<uint8> ChosenHours : nrofrows = 1 //6
 			{
-				attribute<uint32> values : [7,8,12,13,21,22];
+				// attribute<uint32> values : [7,8,12,13,21,22];
+				attribute<uint32> values : [7];
 			}
-			unit<uint8> ChosenMinutes : nrofrows = 6 
+			unit<uint8> ChosenMinutes : nrofrows = 1 //6
 			{
-				attribute<uint32> values : [0,10,20,30,40,50];
+				// attribute<uint32> values : [0,10,20,30,40,50];
+				attribute<uint32> values : [0];
 			}
 			unit<uint8> HoursMinutes := combine_uint8(ChosenHours, ChosenMinutes)
 			{
