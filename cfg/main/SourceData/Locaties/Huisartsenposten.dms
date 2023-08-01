@@ -19,10 +19,13 @@ unit<uint32> Huisartsenposten
 	
 	parameter<string>                Gridsize                        := ModelParameters/Advanced/Dest_location_scale;
 	
-	unit<uint32> HeeftHuisartsenposten := select_with_attr_by_cond(.,Count_IsPositive > 0)
+	unit<uint32> HeeftHuisartsenposten := select_with_attr_by_org_rel(.,Count_IsPositive > 0)
 	{
+		attribute<rdc>    geometry            := domain/point[org_rel];
 		attribute<uint32> identificatie       := id(.);
 		attribute<string> id_name             := 'dest' + string(identificatie);
 		attribute<string> label               := id_name;
+		attribute<string> name                := id_name;
+		attribute<uint32> nr_huisartsenposten := Count_per_domain;
 	} 
 }	

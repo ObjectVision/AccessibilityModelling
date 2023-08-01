@@ -17,8 +17,10 @@ container Classifications: Using = "Units"
 	
 	unit<uint32> Agencies := unique(SourceData/Infrastructuur/GTFS/LoadFeeds/ReadFSS/Agency/data/agency_name)
 	{
-		attribute<string> name  := values;
+		attribute<string> name  := AsItemName(values);
 		attribute<string> label := values;
+		
+		container V := for_each_nedv(Name, string(id(.)), void, .);
 	}
 	
 	unit<uint8> ImpedanceTypes : nrofrows = 10

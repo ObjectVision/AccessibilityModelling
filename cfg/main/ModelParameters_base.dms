@@ -17,7 +17,7 @@
 	parameter<string>   CongestionSpeed_DaygroupSelection := replace_value(expand(., '%env:DAYGROUP%'), 'env:DAYGROUP', 'MonTue');  // 'MonTue' 'WedThuFri' 'SatSun'
 
 	parameter<string>   Orgset                       := 'Buurt_enkele_buurt';           //Welke origin punten worden gebruikt? Opties: 'PC4' 'PC6' 'Buurt_y2020' 'Buurt_y2017_centroiden' 'Buurt_y2020_centroiden'
-	parameter<string>   Destset                      := 'Ziekenhuizen_y2021_sub';           //Welke destination punten worden gebruikt? Opties: Groen_BS2017 'LISA' 'Huisartsenposten' 'Huisartsenposten_geclusterd', 'Ziekenhuizen_y2020', 'Ziekenhuizen_y2020_sub' 'Supermarkten_yokt2018' 'Winkelsdagelijks_yokt2018' 'PC6pnt_y2020' 'Basisscholen_okt2021' 'Scholen_voortgezet_onderwijs_okt2021'
+	parameter<string>   Destset                      := 'Huisartsenposten_geclusterd';           //Welke destination punten worden gebruikt? Opties: Groen_BS2017 'LISA' 'Huisartsenposten' 'Huisartsenposten_geclusterd', 'Ziekenhuizen_y2020', 'Ziekenhuizen_y2020_sub' 'Supermarkten_yokt2018' 'Winkelsdagelijks_yokt2018' 'PC6pnt_y2020' 'Basisscholen_okt2021' 'Scholen_voortgezet_onderwijs_okt2021'
 	parameter<bool>     Dests_geclusterd             := FALSE;                              //Destinations clusteren? aan te raden bij bijv LISA.
 	
 	parameter<string>   Orgset_EnkeleBuurt_selectie  := 'Martenshoek_en_Industriegebied_Martenshoek';
@@ -281,9 +281,10 @@
 			{
 				attribute<uint32> values : [7];
 			}
-			unit<uint8> ChosenMinutes : nrofrows = 4
+			unit<uint8> ChosenMinutes : nrofrows = 1
 			{
-				attribute<uint32> values : [0,3,7,16];
+				// attribute<uint32> values : [0,3,7,16];
+				attribute<uint32> values : [0];
 			}
 			unit<uint8> HoursMinutes := combine_uint8(ChosenHours, ChosenMinutes)
 			{
