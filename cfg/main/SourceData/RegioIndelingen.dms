@@ -304,9 +304,132 @@ container RegioIndelingen : using = "geometries"
 			}
 		}
 	}
-	
-	
-	
+	container Buurt_centroiden
+	{
+		unit<uint32> y2022_centroiden
+		:	StorageName     = "%ProjDir%/UnlinkedData/RegioIndelingen/buurt_centroiden_2022.fss"
+		,	StorageReadOnly = "True"
+		{
+			attribute<geometries/rdc>   geometry;
+			attribute<geometries/rdc>   point := geometry;
+			
+			attribute<string>           BU_CODE;
+			attribute<string>           BU_NAAM;
+			attribute<string>           name         := BU_CODE;
+			attribute<string>           label        := BU_NAAM;
+
+			attribute<uint32>           nr_Inwoners  := rjoin(BU_CODE, Buurt/stat_CODE, Buurt/nr_Inwoners);
+			attribute<uint32>           nr_banen     := rjoin(BU_CODE, Buurt/stat_CODE, Buurt/nr_banen);
+			
+			attribute<Provincie>       prov_rel         := point_in_polygon(point, Provincie/geometry);
+			attribute<Corop>            corop_rel        := point_in_polygon(point, Corop/geometry);
+			
+			container Per_Prov := 
+				for_each_ne(
+					provincie/name
+					, 'Per_Prov_T('+string(id(provincie))+', ..)'
+				);
+				
+			container Per_Corop := 
+				for_each_ne(
+					COROP/name
+					, 'Per_Corop_T('+string(id(COROP))+', ..)'
+				);
+				
+		}
+
+		unit<uint32> y2021_centroiden
+		:	StorageName     = "%ProjDir%/UnlinkedData/RegioIndelingen/buurt_centroiden_2021.fss"
+		,	StorageReadOnly = "True"
+		{
+			attribute<geometries/rdc>   geometry;
+			attribute<geometries/rdc>   point := geometry;
+			attribute<string>           BU_CODE;
+			attribute<string>           BU_NAAM;
+			attribute<string>           name         := BU_CODE;
+			attribute<string>           label        := BU_NAAM;
+			
+			attribute<uint32>           nr_Inwoners  := rjoin(BU_CODE, y2021/BU_CODE, y2021/nr_Inwoners);
+			attribute<uint32>           nr_banen     := rjoin(BU_CODE, y2021/BU_CODE, y2021/nr_banen);
+			
+			attribute<provincie>       prov_rel         := point_in_polygon(point, provincie/geometry);
+			attribute<Corop>            corop_rel        := point_in_polygon(point, Corop/geometry);
+			
+			container Per_Prov := 
+				for_each_ne(
+					provincie/name
+					, 'Per_Prov_T('+string(id(provincie))+', ..)'
+				);
+				
+			container Per_Corop := 
+				for_each_ne(
+					COROP/name
+					, 'Per_Corop_T('+string(id(COROP))+', ..)'
+				);
+		}
+
+		unit<uint32> y2020_centroiden
+		:	StorageName     = "%ProjDir%/UnlinkedData/RegioIndelingen/buurt_centroiden_2020.fss"
+		,	StorageReadOnly = "True"
+		{
+			attribute<geometries/rdc>   geometry;
+			attribute<geometries/rdc>   point := geometry;
+			attribute<string>           BU_CODE;
+			attribute<string>           BU_NAAM;
+			attribute<uint32> 			identificatie       := id(.);
+			attribute<string>           name         := BU_CODE;
+			attribute<string>           label        := BU_NAAM;
+			
+			attribute<uint32>           nr_Inwoners  := rjoin(BU_CODE, y2020/BU_CODE, y2020/nr_Inwoners);
+			attribute<uint32>           Nr_items_of_interest  := nr_Inwoners;
+			attribute<uint32>           nr_banen     := rjoin(BU_CODE, y2020/BU_CODE, y2020/nr_banen);
+			
+			attribute<provincie>                prov_rel         := point_in_polygon(point, provincie/geometry);
+			attribute<Corop>                corop_rel        := point_in_polygon(point, Corop/geometry);
+			
+			container Per_Prov := 
+				for_each_ne(
+					provincie/name
+					, 'Per_Prov_T('+string(id(provincie))+', ..)'
+				);
+				
+			container Per_Corop := 
+				for_each_ne(
+					COROP/name
+					, 'Per_Corop_T('+string(id(COROP))+', ..)'
+				);
+		}
+		
+		unit<uint32> y2017_centroiden
+		:	StorageName     = "%ProjDir%/UnlinkedData/RegioIndelingen/buurt_centroiden_2017.fss"
+		,	StorageReadOnly = "True"
+		{
+			attribute<geometries/rdc>   geometry;
+			attribute<geometries/rdc>   point := geometry;
+			attribute<string>           BU_CODE;
+			attribute<string>           BU_NAAM;
+			attribute<string>           name         := BU_CODE;
+			attribute<string>           label        := BU_NAAM;
+			
+			attribute<uint32>           nr_Inwoners  := rjoin(BU_CODE, y2017/BU_CODE, y2017/nr_Inwoners);
+			attribute<uint32>           nr_banen     := rjoin(BU_CODE, y2017/BU_CODE, y2017/nr_banen);
+			
+			attribute<.>                prov_rel         := point_in_polygon(point, provincie/geometry);
+			attribute<.>                corop_rel        := point_in_polygon(point, Corop/geometry);
+
+			container Per_Prov := 
+				for_each_ne(
+					provincie/name
+					, 'Per_Prov_T('+string(id(provincie))+', ..)'
+				);
+				
+			container Per_Corop := 
+				for_each_ne(
+					COROP/name
+					, 'Per_Corop_T('+string(id(COROP))+', ..)'
+				);
+		}
+	}
 	Template Per_Prov_T
 	{
 		parameter<uint32> prov_id;

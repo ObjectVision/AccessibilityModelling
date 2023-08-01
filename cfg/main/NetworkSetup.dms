@@ -26,7 +26,7 @@ container NetworkSetup : using = "units;geometries;SourceData;Classifications"
 
 		unit<uint32> org := =impl/Org_domain
 		{
-			attribute<rdc>                   geometry          := =impl/Org_domain+'/geometry';
+			attribute<rdc>                   geometry       := =impl/Org_domain+'/geometry';
 			attribute<string>                name           := =impl/Org_domain+'/name';
 			attribute<float32>               nr_inwoners    := =impl/Org_domain+'/nr_inwoners[float32]';
 		}

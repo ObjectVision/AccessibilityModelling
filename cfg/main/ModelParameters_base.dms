@@ -16,7 +16,7 @@
 	
 	parameter<string>   CongestionSpeed_DaygroupSelection := replace_value(expand(., '%env:DAYGROUP%'), 'env:DAYGROUP', 'MonTue');  // 'MonTue' 'WedThuFri' 'SatSun'
 
-	parameter<string>   Orgset                       := 'Buurt_enkele_buurt';           //Welke origin punten worden gebruikt? Opties: 'PC4' 'PC6' 'Buurt_y2020' 'Buurt_y2017_centroiden' 'Buurt_y2020_centroiden'
+	parameter<string>   Orgset                       := 'LMS_gm4_2022_centroiden_NL_src';           //Welke origin punten worden gebruikt? Opties: 'PC4' 'PC6' 'Buurt_y2020' 'Buurt_y2017_centroiden' 'Buurt_y2020_centroiden'
 	parameter<string>   Destset                      := 'Huisartsenposten_geclusterd';           //Welke destination punten worden gebruikt? Opties: Groen_BS2017 'LISA' 'Huisartsenposten' 'Huisartsenposten_geclusterd', 'Ziekenhuizen_y2020', 'Ziekenhuizen_y2020_sub' 'Supermarkten_yokt2018' 'Winkelsdagelijks_yokt2018' 'PC6pnt_y2020' 'Basisscholen_okt2021' 'Scholen_voortgezet_onderwijs_okt2021'
 	parameter<bool>     Dests_geclusterd             := FALSE;                              //Destinations clusteren? aan te raden bij bijv LISA.
 	
@@ -41,7 +41,7 @@
 	
 	container Advanced   
 	{
-		unit<uint32> org_domain_list : nrofrows = 15 // Hier worden de paden voor elke org set opgegeven. En wanneer er nieuwe bij komen dat hier ook toegevoegd worden.
+		unit<uint32> org_domain_list : nrofrows = 20 // Hier worden de paden voor elke org set opgegeven. En wanneer er nieuwe bij komen dat hier ook toegevoegd worden.
 		{
 			unit<uint32> Elements  := Range(uint32, 0, nrAttr*#.)
 			{
@@ -66,7 +66,14 @@
 				'PC4_sub'                             ,'SourceData/RegioIndelingen/PC4_punten/sub',
 				
 				'PC6'                                 ,'SourceData/RegioIndelingen/PC6_punten',
-				'PC6_sub'                             ,'SourceData/RegioIndelingen/PC6_punten/sub'
+				'PC6_sub'                             ,'SourceData/RegioIndelingen/PC6_punten/sub',
+				
+				'LMS_gm4_2022_centroiden_NL_src'      ,'/SourceData/RegioIndelingen/LMS_gm4_2022_centroiden',
+				
+				'Buurt_y2022_centroiden'              ,'SourceData/RegioIndelingen/Buurt_centroiden/y2022_centroiden',
+				'Buurt_y2021_centroiden'              ,'SourceData/RegioIndelingen/Buurt_centroiden/y2021_centroiden',
+				'Buurt_y2020_centroiden'              ,'SourceData/RegioIndelingen/Buurt_centroiden/y2020_centroiden',
+				'Buurt_y2027_centroiden'              ,'SourceData/RegioIndelingen/Buurt_centroiden/y2027_centroiden'
 				]; 
 			}
 			
