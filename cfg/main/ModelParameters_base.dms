@@ -54,11 +54,11 @@
 				'Buurt_enkele_buurt'                  ,'SourceData/RegioIndelingen/Buurt/Enkele_buurt',
 				'Buurt_enkele_Prov'                   ,'SourceData/RegioIndelingen/buurt/Enkele_Prov',
 				
-				'Wijk'                                ,'SourceData/RegioIndelingen/Wijk',
+				'Wijk'                                ,'SourceData/RegioIndelingen/Wijk/Centroiden',
 				'Wijk_perProvincie'                   ,'SourceData/RegioIndelingen/Wijk/Per_Prov/@REGIO@/sub',
 				'Wijk_perCOROP'                       ,'SourceData/RegioIndelingen/Wijk/Per_COROP/@REGIO@/sub',
 				
-				'Gemeente'                           ,'SourceData/RegioIndelingen/Gemeente',
+				'Gemeente'                           ,'SourceData/RegioIndelingen/Gemeente/Centroiden',
 				'Gemeente_perProvincie'              ,'SourceData/RegioIndelingen/Gemeente/Per_Prov/@REGIO@/sub',
 				'Gemeente_perCOROP'                  ,'SourceData/RegioIndelingen/Gemeente/Per_COROP/@REGIO@/sub',
 				

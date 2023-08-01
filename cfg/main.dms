@@ -1,6 +1,6 @@
-container NetworkModel : IntegrityCheck = "GeoDmsVersion() >= 7.311 && Strlen('This model needs a GeoDMS version 7.311 or later') >= 0"
+container NetworkModel 
 { 
-	parameter<bool> IsTestOmgeving := FALSE;
+	parameter<bool> IsTestOmgeving := FALSE; //TRUE als je wilt vergelijken met een benchmark. FALSE, gewoon voor normaal gebruik.
 	
 	container MaakOntkoppeldeData
 	{
@@ -8,7 +8,7 @@ container NetworkModel : IntegrityCheck = "GeoDmsVersion() >= 7.311 && Strlen('T
 		container OSM
 		{   
 			parameter<String> Step1_Generate_roads_shp2fss                   := 'Ready', ExplicitSuppliers = "SourceData/Infrastructuur/OSM/Prepare_SourceData/Generate";
-			parameter<String> Step2_Generate_roads_Final_Network             := 'Ready', ExplicitSuppliers = "SourceData/Infrastructuur/OSM/NetworkPreperation/Network_with_extraverbindingen/Generate";
+			parameter<String> Step2_Generate_roads_Final_Network             := 'Ready', ExplicitSuppliers = "SourceData/Infrastructuur/OSM/NetworkPreperation/Network_with_extraverbindingen/Make_Final_Network";
 			
 			parameter<String> Export_Networks_toShapefile                    := 'Ready', ExplicitSuppliers = "SourceData/Infrastructuur/OSM/OSM_Netwerken_Export/Generate";
 		}
@@ -20,13 +20,8 @@ container NetworkModel : IntegrityCheck = "GeoDmsVersion() >= 7.311 && Strlen('T
 		}
 		container LISA
 		{
-			parameter<String> Generate_Y2018 := 'Ready',
-				ExplicitSuppliers = "SourceData/Locaties/LISA/MakeFSS/y2018/PerYear";
-		}
-		container Infrastructuur
-		{
-			parameter<String> Generate_IC_stations := 'Ready',
-				ExplicitSuppliers = "SourceData/Infrastructuur/Infrastructuur/impl/Make_IC_Stations_FSS";
+			// parameter<String> Generate_Y2018 := 'Ready',
+				// ExplicitSuppliers = "SourceData/Locaties/LISA/MakeFSS/y2018/PerYear";
 		}
 		
 		container CongestionSpeed_network_ATTENTION_DUURT_ZEER_LANG

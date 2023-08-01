@@ -131,6 +131,7 @@ container NetworkPreperation
 		
 		// unit<uint32>      Attributes := SubItem_PropValues(Make_Final_Network,'name');
 		// parameter<string> Generate := 'Ready', ExplicitSuppliers = "=AsList('Make_Final_Network/'+Attributes/name, ';')";
+		// parameter<string> Generate := 'Ready', ExplicitSuppliers = "Make_Final_Network";
 		// parameter<string> Generate_nonCongested := 'Ready', ExplicitSuppliers = "Make_Final_Network/geometry;Make_Final_Network/wegtype;Make_Final_Network/maxspeed;Make_Final_Network/OSM_id";
 	}
 }

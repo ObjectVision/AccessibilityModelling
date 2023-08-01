@@ -489,13 +489,13 @@ container OSM
 				attribute<string>                       OSM_id              := domain/OSM_id;
 				attribute<classifications/OSM/wegtype>  wegtype             := domain/wegtype;
 				attribute<string>                       wegtype_label       := domain/wegtype_label;
-				attribute<km_hr>                        car_freeflow        := domain/freeflow_speed_car;
-				attribute<km_hr>                        bike_freeflow       := domain/freeflow_speed_bike;
-				attribute<km_hr>                        pedestrian_freeflow := domain/freeflow_speed_pedestrian;
-				attribute<km_hr>                        cs_bike             := domain/congestion_speed_bike;
-				attribute<km_hr>                        cs_morning          := domain/congestion_speed_MorningRush;
-				attribute<km_hr>                        cs_noon             := domain/congestion_speed_NoonRush;
-				attribute<km_hr>                        cs_evening          := domain/congestion_speed_LateEveningRush;
+				attribute<km_hr>                        car_freeflow        := domain/speed_max_car;
+				attribute<km_hr>                        bike_freeflow       := domain/speed_max_bike;
+				attribute<km_hr>                        pedestrian_freeflow := domain/speed_max_pedestrian;
+				attribute<km_hr>                        cs_bike             := domain/speed_congested_bike;
+				attribute<km_hr>                        cs_morning          := domain/speed_congested_MorningRush;  
+				attribute<km_hr>                        cs_noon             := domain/speed_congested_NoonRush;
+				attribute<km_hr>                        cs_evening          := domain/speed_congested_LateEveningRush;
 			}
 			
 			unit<uint32> Attributes := Subtree_PropValues(Dbf, 'name');
