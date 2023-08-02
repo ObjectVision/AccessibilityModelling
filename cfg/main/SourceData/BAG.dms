@@ -32,29 +32,35 @@ container BAG
 		
 		unit<uint32> buurt := RegioUnit_Buurt
 		{
-			attribute<float32>  x_mean := mean(pointcol(../geometry), buurt_rel);
-			attribute<float32>  y_mean := mean(pointrow(../geometry), buurt_rel);
-			attribute<rdc>      geometry := point(x_mean, y_mean, rdc);
+			attribute<float32>  x_mean    := mean(pointcol(../geometry), buurt_rel);
+			attribute<float32>  y_mean    := mean(pointrow(../geometry), buurt_rel);
+			attribute<rdc>      centroid0 := point(x_mean, y_mean, rdc);
+			attribute<bool>     IsCentroid_in_regio  := IsDefined(point_in_polygon(centroid0, ./geometry));
+			attribute<rdc>      centroid             := IsCentroid_in_regio ? centroid0 : centroid_or_mid(./geometry);
 		}
 		
 		unit<uint32> wijk := RegioUnit_Wijk
 		{
 			attribute<float32>  x_mean := mean(pointcol(../geometry), wijk_rel);
 			attribute<float32>  y_mean := mean(pointrow(../geometry), wijk_rel);
-			attribute<rdc>      geometry := point(x_mean, y_mean, rdc);
+			attribute<rdc>      centroid0 := point(x_mean, y_mean, rdc);
+			attribute<bool>     IsCentroid_in_regio  := IsDefined(point_in_polygon(centroid0, ./geometry));
+			attribute<rdc>      centroid             := IsCentroid_in_regio ? centroid0 : centroid_or_mid(./geometry);
 		}
 		
 		unit<uint32> gemeente := RegioUnit_Gemeente
 		{
 			attribute<float32>  x_mean := mean(pointcol(../geometry), gemeente_rel);
 			attribute<float32>  y_mean := mean(pointrow(../geometry), gemeente_rel);
-			attribute<rdc>      geometry := point(x_mean, y_mean, rdc);
+			attribute<rdc>      centroid0 := point(x_mean, y_mean, rdc);
+			attribute<bool>     IsCentroid_in_regio  := IsDefined(point_in_polygon(centroid0, ./geometry));
+			attribute<rdc>      centroid             := IsCentroid_in_regio ? centroid0 : centroid_or_mid(./geometry);
 		}
 		
 		unit<uint32> pc6_uq := unique(postcode)
 		{
-			attribute<float32>  x_mean := mean(pointcol(../geometry), uq_rel);
-			attribute<float32>  y_mean := mean(pointrow(../geometry), uq_rel);
+			attribute<float32>  x_mean   := mean(pointcol(../geometry), uq_rel);
+			attribute<float32>  y_mean   := mean(pointrow(../geometry), uq_rel);
 			attribute<rdc>      geometry := point(x_mean, y_mean, rdc);
 			attribute<string>   PC6      := values;
 		}
@@ -65,8 +71,8 @@ container BAG
 			attribute<rdc>      point    := geometry;
 			attribute<string>   PC6      := pc6_uq/PC6[nr_OrgEntity];
 			attribute<string>   name     := PC6;
-			attribute<string>   city     := /SourceData/RegioIndelingen/Gemeenten/GM_NAAM[point_in_polygon(geometry, /SourceData/RegioIndelingen/Gemeenten/geometry)];
-			attribute<string>   prov     := /SourceData/RegioIndelingen/Provincies/name[point_in_polygon(geometry, /SourceData/RegioIndelingen/Provincies/geometry)];
+			// attribute<string>   city     := /SourceData/RegioIndelingen/Gemeenten/GM_NAAM[point_in_polygon(geometry, /SourceData/RegioIndelingen/Gemeenten/geometry)];
+			// attribute<string>   prov     := /SourceData/RegioIndelingen/Provincies/name[point_in_polygon(geometry, /SourceData/RegioIndelingen/Provincies/geometry)];
 		}
 	}
 }

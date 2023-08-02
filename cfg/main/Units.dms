@@ -22,33 +22,16 @@ container Units
 	unit<float32> ratio;
 	unit<int32>   Job_diff : cdf = "classifications/Job_diff/Classes";
 
-	unit<uint32> test := range(uint32, 0, 60)
-	{
-		attribute<.>      Hour_value      := id(.);
-		attribute<Hours>  Hour_rel        := rlookup(Hour_value, Hours/value);
-		
-		unit<uint32> Hours : NrOfRows = 24 
-		{
-			attribute<.> value      := id(.);
-		}
-	}
 	
 	
 	unit<uint32> time := range(uint32, 0, (48 * 60 * 60))
 	{
 		attribute<uint32> Day             := id(.) / (24 * 60 * 60);
-		attribute<uint32> Hour      := id(.) / (60 * 60);
-		// attribute<uint32> Hour            := rlookup(Hours/value, Hour_value);
+		attribute<uint32> Hour            := id(.) / (60 * 60);
 		attribute<uint32> Minute          := mod(id(.) / 60, 60);
 		attribute<uint32> Second          := mod(id(.), 60);
 		attribute<string> Label           := (Hour < 10 ? '0' : '') + string(Hour) + ':' + (Minute < 10 ? '0' : '') + string(Minute) + ':' + (Second < 10 ? '0' : '') + string(Second);
 		attribute<string> TemplatableText := 'At_'+(Hour < 10 ? '0' : '') + string(Hour) + 'h' + (Minute < 10 ? '0' : '') + string(Minute) + 'm' + (Second < 10 ? '0' : '') + string(Second) + 's';
-		
-		// unit<uint32> Hours : NrOfRows = 24 
-		// {
-			// attribute<uint32> value      := id(.);
-			// attribute<string> Label     := string(value) + 'h';
-		// }
 	}
 	
 	unit<uint32> Weekdays: NrOfRows = 7 
