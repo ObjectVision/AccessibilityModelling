@@ -315,16 +315,16 @@ container RegioIndelingen : using = "geometries"
 			attribute<geometries/rdc>   geometry;
 			attribute<geometries/rdc>   point := geometry;
 			
-			attribute<string>           BU_CODE;
-			attribute<string>           BU_NAAM;
+			attribute<string>           BU_CODE      := BU2022CODE;
+			attribute<string>           BU_NAAM      := BU2022NAAM;
 			attribute<string>           name         := BU_CODE;
 			attribute<string>           label        := BU_NAAM;
 
 			attribute<uint32>           nr_Inwoners  := rjoin(BU_CODE, Buurt/statcode, Buurt/nr_Inwoners);
 			attribute<uint32>           nr_banen     := rjoin(BU_CODE, Buurt/statcode, Buurt/nr_banen);
-			
-			attribute<Provincie>       prov_rel         := point_in_polygon(point, Provincie/geometry);
-			attribute<Corop>            corop_rel        := point_in_polygon(point, Corop/geometry);
+			 
+			attribute<Provincie>        prov_rel     := point_in_polygon(point, Provincie/geometry);
+			attribute<Corop>            corop_rel    := point_in_polygon(point, Corop/geometry);
 			
 			container Per_Prov := 
 				for_each_ne(
@@ -348,16 +348,16 @@ container RegioIndelingen : using = "geometries"
 		{
 			attribute<geometries/rdc>   geometry;
 			attribute<geometries/rdc>   point := geometry;
-			attribute<string>           BU_CODE;
-			attribute<string>           BU_NAAM;
+			attribute<string>           BU_CODE      := BU2021CODE;
+			attribute<string>           BU_NAAM      := BU2021NAAM;
 			attribute<string>           name         := BU_CODE;
 			attribute<string>           label        := BU_NAAM;
 			
 			attribute<uint32>           nr_Inwoners  := rjoin(BU_CODE, buurt/statcode, buurt/nr_Inwoners);
 			attribute<uint32>           nr_banen     := rjoin(BU_CODE, buurt/statcode, buurt/nr_banen);
 			
-			attribute<provincie>       prov_rel         := point_in_polygon(point, provincie/geometry);
-			attribute<Corop>            corop_rel        := point_in_polygon(point, Corop/geometry);
+			attribute<provincie>       prov_rel      := point_in_polygon(point, provincie/geometry);
+			attribute<Corop>           corop_rel     := point_in_polygon(point, Corop/geometry);
 			
 			container Per_Prov := 
 				for_each_ne(
@@ -380,18 +380,16 @@ container RegioIndelingen : using = "geometries"
 		{
 			attribute<geometries/rdc>   geometry;
 			attribute<geometries/rdc>   point := geometry;
-			attribute<string>           BU_CODE;
-			attribute<string>           BU_NAAM;
-			attribute<uint32> 			identificatie       := id(.);
+			attribute<string>           BU_CODE      := BU2020CODE;
+			attribute<string>           BU_NAAM      := BU2020NAAM;
 			attribute<string>           name         := BU_CODE;
 			attribute<string>           label        := BU_NAAM;
 			
 			attribute<uint32>           nr_Inwoners  := rjoin(BU_CODE, buurt/statcode, buurt/nr_Inwoners);
-			attribute<uint32>           Nr_items_of_interest  := nr_Inwoners;
 			attribute<uint32>           nr_banen     := rjoin(BU_CODE, buurt/statcode, buurt/nr_banen);
 			
-			attribute<provincie>        prov_rel         := point_in_polygon(point, provincie/geometry);
-			attribute<Corop>            corop_rel        := point_in_polygon(point, Corop/geometry);
+			attribute<provincie>        prov_rel     := point_in_polygon(point, provincie/geometry);
+			attribute<Corop>            corop_rel    := point_in_polygon(point, Corop/geometry);
 			
 			container Per_Prov := 
 				for_each_ne(
@@ -414,8 +412,8 @@ container RegioIndelingen : using = "geometries"
 		{
 			attribute<geometries/rdc>   geometry;
 			attribute<geometries/rdc>   point := geometry;
-			attribute<string>           BU_CODE;
-			attribute<string>           BU_NAAM;
+			attribute<string>           BU_CODE      := BU2017CODE;
+			attribute<string>           BU_NAAM      := BU2017NAAM;
 			attribute<string>           name         := BU_CODE;
 			attribute<string>           label        := BU_NAAM;
 			
