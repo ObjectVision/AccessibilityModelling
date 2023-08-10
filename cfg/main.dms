@@ -1,6 +1,8 @@
 container NetworkModel 
 { 
-	parameter<bool> IsTestOmgeving := FALSE; //TRUE als je wilt vergelijken met een benchmark. FALSE, gewoon voor normaal gebruik.
+	// unit<uint64> OV_test_path := /NetworkSetup/ConfigurationPerRegio/all/PublicTransport/At_07h00m00s/CreateODs/OD_traveltime_W_OV_W/OD;
+	
+	parameter<bool> IsBenchmarkOmgeving := FALSE; //TRUE als je wilt vergelijken met een benchmark. FALSE, gewoon voor normaal gebruik.
 	
 	container MaakOntkoppeldeData
 	{
@@ -32,7 +34,7 @@ container NetworkModel
 	}
 	#include<ModelParameters_base.dms>
 	#include<ModelParameters_test.dms>
-	container ModelParameters := =IsTestOmgeving ? 'ModelParameters_test' : 'ModelParameters_base';
+	container ModelParameters := =IsBenchmarkOmgeving ? 'ModelParameters_test' : 'ModelParameters_base';
 	#include<units.dms>
 	
 	container geometries : using = "units"

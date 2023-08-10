@@ -12,6 +12,12 @@ container StudyAreaFeeds
 		attribute<m>        Dist2_Trainstation       := rjoin(geometry, uq_points/values, Define_Stopgroups_Trainstations/dist);
 		attribute<bool>     IsMetroStation           := ModesServed/Metro > 0;
 		attribute<bool>     IsTramStation            := ModesServed/Tram > 0;
+		attribute<bool>     IsRailStation            := ModesServed/Rail > 0;
+		
+		container Recollect
+		{
+			attribute<SourceData/Infrastructuur/OVprijzen/NS/NS_Stations> NS_Stations_rel (..) := recollect_by_cond(Dist2_Trainstation  < 200[m],Stops_Trainstation/NS_Stations_rel);
+		}
 		
 		unit<uint32> uq_points := unique(geometry)
 		{
@@ -40,7 +46,6 @@ container StudyAreaFeeds
 			attribute<m>                dist (uq_points)            := sqrt(delta_x + delta_y)[m];
 		}
 		
-		
 		container ModesServed := 
 			for_each_nedv(
 				AvailableModes/Name
@@ -58,7 +63,7 @@ container StudyAreaFeeds
 		attribute<upoint>    unique_id    := point(cumu_in_grid, Grid1D, upoint);
 		attribute<uint32>    nTransfers   := StopsGrid/nTransfers[GridId];
 		
-		unit<spoint> StopsGrid := rdc_100m
+		unit<spoint> StopsGrid := ='rdc_'+string(ModelParameters/MaxTransferDistKm)+'m'
 		{
 			attribute<uint32> nStops     := pcount(GridId);
 			attribute<uint32> nTransfers := nTop + nRight + nBottom + nLeft + (nStops - 1);
@@ -75,9 +80,11 @@ container StudyAreaFeeds
 		attribute<uint32>   Stops_rel   := org_rel;
 	}
 	
-	unit<uint32> Stops_Trainstation := select_with_attr_by_org_rel(Stops,Stops/Dist2_Trainstation  < 100[m])
+	unit<uint32> Stops_Trainstation := select_with_attr_by_org_rel(Stops,Stops/Dist2_Trainstation  < 200[m])
 	{
 		attribute<uint32>   Stops_rel   := org_rel;
+		
+		attribute<SourceData/Infrastructuur/OVprijzen/NS/NS_stations> NS_Stations_rel := rlookup(name, /SourceData/Infrastructuur/OVprijzen/NS/NS_stations/label);
 	}
 	
 	unit<uint32> Stops_Metrostation := select_with_attr_by_org_rel(Stops,Stops/IsMetroStation)

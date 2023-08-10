@@ -3,9 +3,9 @@ Template PublicTransport_T
 	parameter<uint32>   inTime;
 	parameter<string>   inTime_string;
 	
-	parameter<string>   OUTPUT_Generate_decay_CSVFiles        := =AsList('CreateODs/CreateExports/'+ModelParameters/Advanced/Export_CombinationTypes/name+'/LongFormat/File_decay',' + ');
-	parameter<string>   OUTPUT_Generate_fullOD_long_CSVFiles  := =AsList('CreateODs/CreateExports/'+ModelParameters/Advanced/Export_CombinationTypes/name+'/LongFormat/File_fullOD',' + ');
-	parameter<string>   OUTPUT_Generate_fullOD_wide_CSVFiles  := =AsList('CreateODs/CreateExports/'+ModelParameters/Advanced/Export_CombinationTypes/name+'/WideFormat/File_fullOD',' + ');
+	// parameter<string>   OUTPUT_Generate_decay_CSVFiles        := =AsList('CreateODs/CreateExports/'+ModelParameters/Advanced/Export_CombinationTypes/name+'/LongFormat/File_decay',' + ');
+	// parameter<string>   OUTPUT_Generate_fullOD_long_CSVFiles  := =AsList('CreateODs/CreateExports/'+ModelParameters/Advanced/Export_CombinationTypes/name+'/LongFormat/File_fullOD',' + ');
+	// parameter<string>   OUTPUT_Generate_fullOD_wide_CSVFiles  := =AsList('CreateODs/CreateExports/'+ModelParameters/Advanced/Export_CombinationTypes/name+'/WideFormat/File_fullOD',' + ');
 
 	container OUTPUT_decayed := 
 		for_each_nedv(
@@ -15,10 +15,15 @@ Template PublicTransport_T
 			, float32
 		);
 	
-	unit<uint32>        Static_net := SourceData/Infrastructuur/GTFS/StaticNets/Static_net;
-	unit<uint32>        Stops      := SourceData/Infrastructuur/GTFS/StaticNets/Stops;
-	unit<uint32>        NodeSet    := SourceData/Infrastructuur/GTFS/StaticNets/Static_net/NodeSet;
-	unit<uint32>        Places     := SourceData/Infrastructuur/GTFS/StaticNets/allLinks/Places;
+	unit<uint32>        Static_net  := SourceData/Infrastructuur/GTFS/StaticNets/Static_net;
+	unit<uint32>        Stops       := SourceData/Infrastructuur/GTFS/StaticNets/Stops;
+	unit<uint32>        NodeSet     := SourceData/Infrastructuur/GTFS/StaticNets/Static_net/NodeSet;
+	unit<uint32>        Places      := SourceData/Infrastructuur/GTFS/StaticNets/allLinks/Places;
+	unit<uint32>        Routes      := SourceData/Infrastructuur/GTFS/StaticNets/Routes;
+	unit<uint32>        NS_Stations := SourceData/Infrastructuur/OVprijzen/NS/NS_Stations;
+	unit<uint32>        Modes       := ModesList/List_selectie;
+	unit<uint8>         PrijsTabel  := SourceData/Infrastructuur/OVprijzen/PrijsTabel;
+	unit<uint32>        Provincie   := SourceData/RegioIndelingen/Provincie;
 	
 	unit<uint32>        Org2Stop_B_Tic  := ODConnections/CreateODconnections/Sparse_uitwerking_Org2StopIC_B/AB;
 	unit<uint32>        Org2Stop_B_T    := ODConnections/CreateODconnections/Sparse_uitwerking_Org2StopT_B/AB;
@@ -199,74 +204,141 @@ Template PublicTransport_T
 				attribute<string>           ModeUsed                                        := const(name,.);
 				
 				attribute<string>           OD_key                                          := Combine_OrgDest/Label[OD_nummer];
+				attribute<string>           Org_name                                        := org/name[OrgZone_rel];
+				attribute<string>           Dest_name                                       := dest/label[DstZone_rel];
 				
+				attribute<Euro>             Prijs_per_reis                                  := sum(AfgelegdeReis/uq_reis_route_sorted/Price_Qbuzz_Bus + AfgelegdeReis/uq_reis_route_sorted/Price_NS_Rail, AfgelegdeReis/uq_reis_route_sorted/Reis_rel);
 				
-				unit<uint32> AfgelegdeRoute := sequence2points(LinkSet)
+				unit<uint32> AfgelegdeReis := sequence2points(LinkSet) //vertaling van LinkSet attribute (afgelegde route in OD), naar onderdelen van de reis
+				, KeepData = "true"
 				{
 					attribute<rdc>                     geometry (arc)          := StaticNet_subset/geometry[point];
+					attribute<string>                  Label                   := FromPlace_name + ' to ' + ToPlace_name;
+					attribute<Places>                  FromPlace               := StaticNet_subset/FromPlace[point];
 					attribute<string>                  FromPlace_name          := StaticNet_subset/FromPlace_name[point];
-					attribute<rdc>                     FromPoint               := StaticNet_subset/FromPoint[point];
-					attribute<rdc>                     ToPoint                 := StaticNet_subset/ToPoint[point];
-					attribute<string>                  Label                   := StaticNet_subset/Label[point];
+					attribute<Places>                  ToPlace                 := StaticNet_subset/ToPlace[point];
+					attribute<string>                  ToPlace_name            := StaticNet_subset/ToPlace_name[point];
+					// attribute<string>                  Segment_Label           := StaticNet_subset/Label[point];
 					attribute<Time>                    FromTime                := StaticNet_subset/FromTime[point];
 					attribute<Time>                    ToTime                  := StaticNet_subset/ToTime[point];
-					attribute<s_f>                     Duration                := StaticNet_subset/Duration[point];
-					attribute<LinkTypes>               LinkType                := StaticNet_subset/LinkType[point];
-					attribute<ModesList/List_selectie> Mode                    := StaticNet_subset/Mode[point];
-					attribute<uint32>                  TripRef                 := StaticNet_subset/TripRef[point];
+					// attribute<s_f>                     Duration                := StaticNet_subset/Duration[point];
+					attribute<LinkTypes>               LinkType_rel            := StaticNet_subset/LinkType[point];
+					attribute<Modes>                   Mode_rel                := StaticNet_subset/Mode[point];
+					// attribute<uint32>                  TripRef                 := StaticNet_subset/TripRef[point];
 					attribute<string>                  RouteName               := StaticNet_subset/RouteName[point];
-					attribute<string>                  RouteName_short         := StaticNet_subset/RouteName_short[point];
+					// attribute<string>                  RouteName_short         := StaticNet_subset/RouteName_short[point];
+					attribute<km>                      Length                  := StaticNet_subset/Length[point]; //nodig tbv variabele prijs bepaling
 					attribute<Agencies>                Agency_rel              := StaticNet_subset/Agency_rel[point];
+					
+					attribute<Stops>                   FromStop_rel            := Places/StopRef[FromPlace];
+					attribute<Stops>                   ToStop_rel              := Places/StopRef[ToPlace];
+					
+					// attribute<string>                  Org_name                := ../Org_name[Sequence_rel];
+					// attribute<string>                  Dest_name               := ../Dest_name[Sequence_rel];
+					
+					attribute<OD>                      Reis_rel                := Sequence_rel;
+					attribute<Routes>                  Route_rel               := StaticNet_subset/Route_rel[point];
+					attribute<upoint>                  Reis_Route_Identifier   := point(Route_rel, uint32(Reis_rel));
+					attribute<uq_reis_route>           uq_reis_route_rel       := rlookup(Reis_Route_Identifier, uq_reis_route/values);
+					
+					attribute<uint64>                  Reis_FromTime_Identifier := Reis_rel * value(1000000000, uint64) + value(FromTime, uint64);
+					attribute<uint64>                  Reis_ToTime_Identifier   := Reis_rel * value(1000000000, uint64) + value(ToTime, uint64);
+					
+					
+					unit<uint32> uq_reis_route := unique(Reis_Route_Identifier) //indikking van reis/route combinaties. Transfers en wachten vallen eruit, net zoals de tussenliggende stations binnen een route.
+					, KeepData = "true"
+					{
+						attribute<Routes>        Route_rel                     := pointcol(values);
+						attribute<OD>            Reis_rel                      := value(pointrow(values),OD);
+						attribute<Agencies>      Agency_rel                    := first(../Agency_rel, ../uq_reis_route_rel);
+						attribute<LinkTypes>     LinkType_rel                  := first(../LinkType_rel, ../uq_reis_route_rel);
+						attribute<Modes>         Mode_rel                      := first(../Mode_rel, ../uq_reis_route_rel);
+						attribute<string>        Label                         := first(../label, ../uq_reis_route_rel);
+						
+						attribute<Time>          First_StopTime_Route          := min(../FromTime, ../uq_reis_route_rel);
+						attribute<Time>          Last_StopTime_Route           := max(../ToTime, ../uq_reis_route_rel);
+						
+						attribute<uint64>        Reis_FirstTime_Identifier     := uint64(Reis_rel) * value(1000000000, uint64) + value(First_StopTime_Route, uint64);
+						// attribute<uint64>        Reis_LastTime_Identifier      := uint64(Reis_rel) * value(1000000000, uint64) + value(Last_StopTime_Route, uint64);
+						
+						attribute<km>            Afgelegde_afstand             := sum(../length, ../uq_reis_route_rel); //nodig tbv variabele prijs bepaling
+						attribute<.>             Reis_Time_Sort_Index          := index(Reis_FirstTime_Identifier);
+					}
+					
+					unit<uint32> uq_reis_route_sorted := unique(uq_reis_route/Reis_Time_Sort_Index) // hack om het domein te sorteren op reis_rel en vertrektijden. Om zo in de prijsbepaling de volgende 'leg' te kunnen bepalen. En dus bus/trein onderbroken door overstappen samen te kunnen voegen.
+					{
+						attribute<uint64>        Reis_Time_Identifier          := (uq_reis_route/Reis_FirstTime_Identifier[uq_reis_route/Reis_Time_Sort_Index])[values];
+						attribute<Routes>        Route_rel                     := (uq_reis_route/Route_rel[uq_reis_route/Reis_Time_Sort_Index])[values];
+						attribute<OD>            Reis_rel                      := (uq_reis_route/Reis_rel[uq_reis_route/Reis_Time_Sort_Index])[values];
+						attribute<Agencies>      Agency_rel                    := (uq_reis_route/Agency_rel[uq_reis_route/Reis_Time_Sort_Index])[values];
+						
+						attribute<Time>          First_StopTime_Route          := (uq_reis_route/First_StopTime_Route[uq_reis_route/Reis_Time_Sort_Index])[values];
+						attribute<Time>          Last_StopTime_Route           := (uq_reis_route/Last_StopTime_Route[uq_reis_route/Reis_Time_Sort_Index])[values];
+						attribute<km>            Afgelegde_afstand             := (uq_reis_route/Afgelegde_afstand[uq_reis_route/Reis_Time_Sort_Index])[values];
+						attribute<string>        Label                         := (uq_reis_route/Label[uq_reis_route/Reis_Time_Sort_Index])[values];
+						attribute<string>        RouteName                     := Routes/route_name[Route_rel];
+						
+						attribute<Stops>         FromStop_rel                  := rjoin(impl/Reis_FirstTime_Identifier, ../Reis_FromTime_Identifier, ../FromStop_rel);
+						attribute<Stops>         ToStop_rel                    := rjoin(impl/Reis_LastTime_Identifier, ../Reis_ToTime_Identifier, ../ToStop_rel);
+						
+						attribute<Euro>          Price_Qbuzz_Bus               := Agency_rel == Agencies/V/Qbuzz && (impl/Start_Provincie_rel == Provincie/V/Groningen || impl/Start_Provincie_rel == Provincie/V/Drenthe)
+																					? impl/IsPrevLegSameAgency
+																						? PrijsTabel/VariabelePrijs[impl/PrijsTabel_rel] * Afgelegde_afstand
+																						: PrijsTabel/VastePrijs[impl/PrijsTabel_rel] + (PrijsTabel/VariabelePrijs[impl/PrijsTabel_rel] * Afgelegde_afstand)
+																					: 0[Euro];
+
+						attribute<Euro>          Price_NS_Rail                 := Agency_rel == Agencies/V/NS
+																					? impl/IsPrevLegSameAgency
+																						? 0[Euro]
+																						: rjoin(impl/NS_OrgDest_identifier
+																								, SourceData/Infrastructuur/OVprijzen/NS/NS_tariefeenheden_matrix/ConnectedNetwork/ODMatrix/OrgDest_identifier
+																								, SourceData/Infrastructuur/OVprijzen/NS/NS_tariefeenheden_matrix/ConnectedNetwork/ODMatrix/Prijs_voltarief
+																							)
+																					: 0[Euro];
+						
+						unit<uint32> impl := uq_reis_route_sorted
+						{
+							attribute<LinkTypes>     LinkType_rel                  := (uq_reis_route/LinkType_rel[uq_reis_route/Reis_Time_Sort_Index])[values];
+							attribute<Modes>         Mode_rel                      := (uq_reis_route/Mode_rel[uq_reis_route/Reis_Time_Sort_Index])[values];
+
+							attribute<uint64>        Reis_FirstTime_Identifier     := uint64(Reis_rel) * value(1000000000, uint64) + value(First_StopTime_Route, uint64);
+							attribute<uint64>        Reis_LastTime_Identifier      := uint64(Reis_rel) * value(1000000000, uint64) + value(Last_StopTime_Route, uint64);
+							attribute<string>        RouteName_short               := Routes/route_short_name[Route_rel];
+							
+							attribute<bool>          IsNextLegSameAgency           := reis_rel == reis_rel[id(.)+1[.]] && agency_rel == agency_rel[id(.)+1[.]];
+							attribute<bool>          IsPrevLegSameAgency           := reis_rel == reis_rel[id(.)-1[.]] && agency_rel == agency_rel[id(.)-1[.]];
+
+							attribute<string>        Mode_Agency_Provincie_Lijn_identifier         := Modes/name[Mode_rel] +'_'+ Agencies/name[Agency_rel] +'_'+ Provincie/name[Start_Provincie_rel] + '_' + RouteName_short;
+							attribute<string>        Mode_Agency_Provincie_Lijn_identifier_wo_lijn := Modes/name[Mode_rel] +'_'+ Agencies/name[Agency_rel] +'_'+ Provincie/name[Start_Provincie_rel] + '_';
+						
+							attribute<NS_Stations>   From_NS_Stations_rel          := Stops/Recollect/NS_Stations_rel[FromStop_rel];
+							attribute<NS_Stations>   To_NS_Stations_rel            := IsNextLegSameAgency 
+																							? Stops/Recollect/NS_Stations_rel[ToStop_rel[id(.)+1[.]]]
+																							: Stops/Recollect/NS_Stations_rel[ToStop_rel];
+							attribute<upoint>        NS_OrgDest_identifier         := point(From_NS_Stations_rel, To_NS_Stations_rel, upoint);
+
+							attribute<PrijsTabel>    PrijsTabel_rel_initial        := rlookup(Mode_Agency_Provincie_Lijn_identifier, PrijsTabel/Mode_Agency_Provincie_Lijn_identifier);
+							attribute<PrijsTabel>    PrijsTabel_rel_augmented      := rlookup(Mode_Agency_Provincie_Lijn_identifier_wo_lijn, PrijsTabel/Mode_Agency_Provincie_Lijn_identifier);
+							attribute<PrijsTabel>    PrijsTabel_rel                := MakeDefined(PrijsTabel_rel_initial, PrijsTabel_rel_augmented);
+						
+							attribute<Provincie>     Start_Provincie_rel           := point_in_polygon(Stops/geometry[FromStop_rel], Provincie/geometry);
+							attribute<Provincie>     End_Provincie_rel             := point_in_polygon(Stops/geometry[ToStop_rel], Provincie/geometry);
+						}
+					}
 					
 					// voor visuaisatie
 					attribute<rdc>         Route (arc) := points2sequence(LinkPoints/Point, LinkPoints/Sequence_rel, LinkPoints/Ordinal);
+					attribute<rdc>         FromPoint   := StaticNet_subset/FromPoint[point];
+					attribute<rdc>         ToPoint     := StaticNet_subset/ToPoint[point];
 
 					unit<uint32> LinkPoints := union_unit(., .)
 					{
 						attribute<rdc>                  Point        := union_data(., FromPoint, ToPoint);
-						// attribute<uint64>               Sequence_rel := union_data(., ../Sequence_rel, ../Sequence_rel);
-						// attribute<uint32>               Ordinal      := union_data(., ../Ordinal, ../Ordinal);
 						attribute<..>                   Sequence_rel := union_data(., id(..), id(..));
 						attribute<uint32>               Ordinal      := union_data(., const(0,..,uint32), const(1,..,uint32));
 					}
 				}
-				
-				
-				
-				
-				
-/* 				container Onderzoek_Reispad //tbv het volledig gevolgde reispad te visualiseren.
-				{
-					unit<uint32> Seq2Point := sequence2points(LinkSet)
-					{
-						attribute<string> OD_key := OD/OD_key[SequenceNr];
-					}
-					
-					parameter<string>    OD_key := 'BU19520105_4108'; //vul hier het te onderzoeken OD-paar key_name in.
-					parameter<OD>        OD_rel := rlookup(OD_key, OD/OD_key);
-					
-					unit<uint32> Route     := subset(Seq2Point/OD_key == OD_key) 
-					{
-						attribute<StaticNet_subset> Edge_rel := nr_OrgEntity -> point;
-						attribute<NodeSet>          F1       := StaticNet_subset/F1[Edge_rel];
-						attribute<NodeSet>          F2       := StaticNet_subset/F2[Edge_rel];
-						
-						// attribute<string>           O2S_name := rjoin(F1, Org2Stop/Transition/NodeRef_O2S, Org2Stop/Transition/LabelText_ext);
-						// attribute<string>           S2D_name := rjoin(F2, Stop2Dest/Transition/NodeRef_S2D, Stop2Dest/Transition/LabelText_ext);
-						
-						// attribute<string>           O2S_name := rjoin(string(F1)+'_'+string(OD_rel), string(Org2Stop/Transition/NodeRef_O2S)+'_'+string(OD_rel), Org2Stop/Transition/LabelText_ext);
-						// attribute<string>           S2D_name := rjoin(string(F2)+'_'+string(OD_rel), string(Stop2Dest/Transition/NodeRef_S2D)+'_'+string(OD_rel), Stop2Dest/Transition/LabelText_ext);
-						
-						parameter<string>           O2S_name := rjoin(point(last(F1),orgzone_rel[OD_rel]) , point(Org2Stop/Transition/NodeRef_O2S , Org2Stop/Transition/org_rel) , Org2Stop/Transition/LabelText_ext);
-						parameter<string>           S2D_name := rjoin(point(first(F2),dstzone_rel[OD_rel]), point(Stop2Dest/Transition/NodeRef_S2D, Stop2Dest/Transition/dest_rel), Stop2Dest/Transition/LabelText_ext);
-					}
-					
-					unit<uint32> Route_volledig := union_unit(void, Route, void)
-					{
-						attribute<string> label := union_data(., Route/S2D_name ,StaticNet_subset/LabelText[Route/edge_rel], Route/O2S_name);
-					}
-				}
- */				
+
 				unit<uint64> UniqueOD := subset(IsDefined(OD_nummer))
 				{
 					attribute<float32>          Best_nr_items_of_interest_decayed   := ../nr_items_of_interest_decayed[nr_OrgEntity];

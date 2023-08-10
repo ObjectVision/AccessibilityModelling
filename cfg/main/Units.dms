@@ -19,6 +19,9 @@ container Units
 	unit<Float32> km2       := km * km;
 	unit<float32> ha        := 10000.0 * m2;
 	
+	unit<float32> Euro      := baseunit('euro', float32);
+	unit<float32> Euro_km   := Euro / km;
+	
 	unit<float32> ratio;
 	unit<int32>   Job_diff : cdf = "classifications/Job_diff/Classes";
 

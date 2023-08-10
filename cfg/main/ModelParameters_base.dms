@@ -7,9 +7,9 @@
 
 	//OV berekening instelling
 	parameter<string>   GTFS_file_date               := '20211001';                         //GTFS file date #'20191007' #20201002 20211001 20120917
-	parameter<string>   Analysis_date                := '20211003', IntegrityCheck = "uint32(Analysis_date) >= uint32(GTFS_file_date)";                //GTFS model date #'20191008' 20201006 20201004 20211005 20211003 20171003 (=dinsdag) 20171001 (=zondag)
+	parameter<string>   Analysis_date                := '20211005', IntegrityCheck = "uint32(Analysis_date) >= uint32(GTFS_file_date)";                //GTFS model date #'20191008' 20201006 20201004 20211005 20211003 20171003 (=dinsdag) 20171001 (=zondag)
 	
-	parameter<string>   AnalyseRoadMoment            := 'Y2013';
+	parameter<string>   AnalyseRoadMoment            := 'Y2021';
 	
 	parameter<string>   OSM_file_date                := rjoin(AnalyseRoadMoment, Advanced/AnalyseRoadMomentPresets/name,Advanced/AnalyseRoadMomentPresets/OSM_file_date);                         //OpenStreetMap file date #'20200117' 20211004 '20211221' 20221201
 	parameter<string>   NWB_file_date                := rjoin(AnalyseRoadMoment, Advanced/AnalyseRoadMomentPresets/name,Advanced/AnalyseRoadMomentPresets/NWB_file_date);                         //NationaalWegenBestand file date #'20191023' 20211001
@@ -20,12 +20,12 @@
 	
 	parameter<string>   CongestionSpeed_DaygroupSelection := replace_value(expand(., '%env:DAYGROUP%'), 'env:DAYGROUP', 'MonTue');  // 'MonTue' 'WedThuFri' 'SatSun'
 
-	parameter<string>   Orgset                       := 'LMS_gm4_2022_centroiden_NL_src';           //Welke origin punten worden gebruikt? Opties: 'PC4' 'PC6' 'Buurt_y2020' 'Buurt_y2017_centroiden' 'Buurt_y2020_centroiden'
-	parameter<string>   Destset                      := 'Huisartsenposten_geclusterd';           //Welke destination punten worden gebruikt? Opties: Groen_BS2017 'LISA' 'Huisartsenposten' 'Huisartsenposten_geclusterd', 'Ziekenhuizen_y2020', 'Ziekenhuizen_y2020_sub' 'Supermarkten_yokt2018' 'Winkelsdagelijks_yokt2018' 'PC6pnt_y2020' 'Basisscholen_okt2021' 'Scholen_voortgezet_onderwijs_okt2021'
+	parameter<string>   Orgset                       := 'Buurt_enkele_buurt';           //Welke origin punten worden gebruikt? Opties: 'PC4' 'PC6' 'Buurt_y2020' 'Buurt_y2017_centroiden' 'Buurt_y2020_centroiden'
+	parameter<string>   Destset                      := 'Ziekenhuizen_y2021_sub_enkel';           //Welke destination punten worden gebruikt? Opties: Groen_BS2017 'LISA' 'Huisartsenposten' 'Huisartsenposten_geclusterd', 'Ziekenhuizen_y2020', 'Ziekenhuizen_y2020_sub' 'Supermarkten_yokt2018' 'Winkelsdagelijks_yokt2018' 'PC6pnt_y2020' 'Basisscholen_okt2021' 'Scholen_voortgezet_onderwijs_okt2021'
 	parameter<bool>     Dests_geclusterd             := FALSE;                              //Destinations clusteren? aan te raden bij bijv LISA.
 	
-	parameter<string>   Orgset_EnkeleBuurt_selectie  := 'Martenshoek_en_Industriegebied_Martenshoek';
-	parameter<string>   Orgset_EnkeleProv_selectie   := 'Flevoland';
+	parameter<string>   Orgset_EnkeleBuurt_selectie  := 'Laanhuizen'; //BU00140107  
+	parameter<string>   Orgset_EnkeleProv_selectie   := 'Groningen'; 
 	parameter<string>   items_of_interest            := rjoin(lowercase(DestSet), lowercase(Advanced/dest_domain_list/label), Advanced/dest_domain_list/items_of_interest);
 	parameter<string>   Arrival_or_Departure_at_time := 'Departure';                        //Zijn de analyse tijdsstippen aankomst- of vertrektijden? Opties: 'Arrival'  'Departure'
 	parameter<string>   CentroidWeightType           := 'Population';                       // Population Addresses
@@ -36,13 +36,13 @@
 	parameter<min_f>    MaxWalkingTime_Stop2Dest     := 10[min_f];                          //Maximum looptijd van de laatste stop naar dest, in seconden. x
 	parameter<min_f>    MaxBikingTime_Org2Stop       := 10[min_f];                          //Maximum fietstijd van org naar eerste halte, in seconden. x
 	parameter<min_f>    MaxBikingTime_Stop2Dest      := 10[min_f];                          //Maximum fietstijd van laatste halte naar dest, in seconden. x
-	parameter<min_f>    MaxPedestrianTime_Org2Dest   := 15[min_f];                          //Maximale looptijd wanneer er direct van org naar dest locatie wordt gelopen, in seconden.
-	parameter<min_f>    MaxBikeTime_Org2Dest         := 30[min_f];                          //Maximale fietstijd wanneer er direct van org naar dest locatie wordt gefietst, in seconden.
-	parameter<min_f>    MaxOVTime                    := 60[min_f];                          //Maximale reistijd met OV. Te gebruiken om de rekentijd te verkorten. LET OP: hierdoor worden mogelijk de verste locaties niet bereikt. Wannneer een distance decay wordt gebruikt is niet zo erg. Maar bij een volledige OD wel! 
+	parameter<min_f>    MaxPedestrianTime_Org2Dest   := 60[min_f];                          //Maximale looptijd wanneer er direct van org naar dest locatie wordt gelopen, in seconden.
+	parameter<min_f>    MaxBikeTime_Org2Dest         := 90[min_f];                          //Maximale fietstijd wanneer er direct van org naar dest locatie wordt gefietst, in seconden.
+	parameter<min_f>    MaxOVTime                    := 120[min_f];                          //Maximale reistijd met OV. Te gebruiken om de rekentijd te verkorten. LET OP: hierdoor worden mogelijk de verste locaties niet bereikt. Wannneer een distance decay wordt gebruikt is niet zo erg. Maar bij een volledige OD wel! 
 	parameter<min_f>    MaxCarTime                   := 120[min_f];                         //Maximale reistijd met lopen/fiets/auto //120
 	parameter<min_f>    OngelijkvloersPenalty        := 2[min_f];                           //Is er sprake van een halte waar je veel verticale afstand moet afleggen? Dan kun je daar een tijd penalty voor geven bij het overstappen, in seconden.
 	
-	parameter<bool>     UseActualBikeSpeeds          := TRUE;                              //Gebruik van actualbike speeds in OV berekening voor voor- en natransport. TRUE: Gebruik FietsTelWeek data fietssnelheden. FALSE: Gebruik default waarde, hieronder gedefinieerd.
+	parameter<bool>     UseActualBikeSpeeds          := FALSE;                              //Gebruik van actualbike speeds in OV berekening voor voor- en natransport. TRUE: Gebruik FietsTelWeek data fietssnelheden. FALSE: Gebruik default waarde, hieronder gedefinieerd.
 	
 	container Advanced   
 	{
@@ -113,7 +113,7 @@
 			parameter<uint32> nrAttr := 2;
 		}
 		
-		unit<uint32> dest_domain_list : nrofrows = 25 // Hier worden de paden voor elke dest set opgegeven. En wanneer er nieuwe bij komen dat hier ook toegevoegd worden.
+		unit<uint32> dest_domain_list : nrofrows = 26 // Hier worden de paden voor elke dest set opgegeven. En wanneer er nieuwe bij komen dat hier ook toegevoegd worden.
 		{ 
 			unit<uint32> Elements  := Range(uint32, 0, nrAttr*#.)
 			{
@@ -134,6 +134,7 @@
 				'Ziekenhuizen_y2020_sub'                                         ,'SourceData/locaties/Ziekenhuizen/y2020/Ziekenhuizen_dec2019_xy/sub'                                               , 'nr_ziekenhuizen',
 				'Ziekenhuizen_y2021'                                             ,'SourceData/locaties/Ziekenhuizen/y2021/Ziekenhuizen_mrt2021_xy'                                                   , 'nr_ziekenhuizen',
 				'Ziekenhuizen_y2021_sub'                                         ,'SourceData/locaties/Ziekenhuizen/y2021/Ziekenhuizen_mrt2021_xy/sub'                                               , 'nr_ziekenhuizen',
+				'Ziekenhuizen_y2021_sub_enkel'                                   ,'SourceData/locaties/Ziekenhuizen/y2021/Ziekenhuizen_mrt2021_xy/sub_enkel'                                               , 'nr_ziekenhuizen',
 				'Huisartsenpraktijken_y2022_sub'                                 ,'SourceData/locaties/Huisartsenpraktijken/y2022/Huisartsenpraktijken_jan2022_xy/sub'                               , 'nr_huisartspraktijken',
 				'Basisscholen_okt2021'                                           ,'SourceData/locaties/Scholen/Basisscholen/y2021/basisscholen_okt_2021_xy'                                          , 'nr_scholen',
 				'Scholen_voortgezet_onderwijs_okt2021'                           ,'SourceData/locaties/Scholen/Voortgezet_onderwijs/y2021/scholen_voortgezet_onderwijs_okt2021'                      , 'nr_scholen',
@@ -217,7 +218,7 @@
 		parameter<m_s>      TransferEffectiveSpeed            := value(4[km_hr] / 1.2f, m_s);           //De loopsnelheid tijdens het overstappen. X km/uur / 1.2 (correctie voor Manhattan distances) en dan geconverteerd naar meter/sec.
 		parameter<float32>  ConnectSearchDist                 := 100f^2f;                                 //Zoek gebied voor connect_info operaties, zoals linken NDW aan NWB en NWB aan OSM, en FietsTelWeek aan OSM.
 		parameter<string>   fileNamePrefix                    :=  '%LocalDataDir%/NetworkModel/Output/';  //Locatie waar output files moeten worden opgeslagen.
-		parameter<float32>  WegingWachttijdThuisVoortransport := 0f;                                      //Wil je dat de wachttijd thuis wordt meegenomen in de totale reisduur, bij vertrektijd vanaf bepaald moment?
+		parameter<float32>  WegingWachttijdThuisVoortransport := 1f;                                      //Wil je dat de wachttijd thuis wordt meegenomen in de totale reisduur, bij vertrektijd vanaf bepaald moment?
 		parameter<uint8>    NumberOfItersForNetworkCleanUp    := 10b;
 		parameter<string>   PrevDate                          := string(uint32(Analysis_date) - 1);
 		parameter<string>   Date_prefix                       := substr(Analysis_date, 0, 4) + '/' + substr(Analysis_date, 4, 2) + '/' +  substr(Analysis_date, 6, 2);

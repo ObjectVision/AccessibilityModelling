@@ -58,7 +58,8 @@ container Ziekenhuizen
 			attribute<string>               buurtcode            := RegioUnit_Buurt/statcode[buurt_rel];
 			attribute<string>               buurtnaam            := RegioUnit_Buurt/statnaam[buurt_rel];
 			
-			unit<uint32> sub:= select_with_attr_by_cond(.,Type_code == 1i || Type_code == 2i || Type_code == 4i);
+			unit<uint32> sub       := select_with_attr_by_cond(.,Type_code == 1i || Type_code == 2i || Type_code == 4i);
+			unit<uint32> sub_enkel := select_with_attr_by_cond(.,Name == '91');
 		}
 	}
 

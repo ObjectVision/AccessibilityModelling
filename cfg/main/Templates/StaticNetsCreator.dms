@@ -3,6 +3,7 @@ Template StaticNetsCreator : using = "geometries"
 	unit<uint32> inStops;
 	unit<uint32> inLinks;
 	
+	unit<uint32> Routes := /SourceData/Infrastructuur/GTFS/LoadFeeds/Routes;
 	unit<uint32> Stops := inStops
 	{
 		attribute<Time>       FirstEvent            :  = min(ScheduledSpaceTimeEvents/TimeRef, ScheduledSpaceTimeEvents/StopRef);
@@ -111,7 +112,14 @@ Template StaticNetsCreator : using = "geometries"
 			attribute<upoint>             to_unique_id       := point(seq2, to_Grid1d, upoint);
 			attribute<inStops>            to_StopRef         := rlookup(to_unique_id, inStops/unique_id);
 				
-			attribute<uint32>             seq1               := id(.) - switch(case(quad = 0, first_trans), case(quad = 1, first_trans + nTop), case(quad = 2, first_trans + nTop + nRight), case(quad = 3, first_trans + nTop + nRight + nBottom), first_trans + nTop + nRight + nBottom + nLeft);
+			attribute<uint32>             seq1               := id(.) 
+																	- switch(
+																		case(quad = 0, first_trans)
+																		, case(quad = 1, first_trans + nTop)
+																		, case(quad = 2, first_trans + nTop + nRight)
+																		, case(quad = 3, first_trans + nTop + nRight + nBottom)
+																		, first_trans + nTop + nRight + nBottom + nLeft
+																	);
 			attribute<uint32>             seq2               := quad = 4 && seq1 >= inStops/cumu_in_grid[from_StopRef] ? seq1 + 1 : seq1;
 			
 			attribute<string>             Label              := 'Transfer from ' + inStops/Label[from_StopRef] + ' to ' + inStops/Label[to_StopRef];
@@ -151,6 +159,7 @@ Template StaticNetsCreator : using = "geometries"
 		attribute<s_f>                     Duration        := union_data(., ScheduledLinks/Duration, CreateTransfersSet/TransfersByStart/Duration); 
 		attribute<string>                  Label           := union_data(., ScheduledLinks/Label, CreateTransfersSet/TransfersByStart/Label), DialogType = "LabelText";
 		attribute<uint32>                  TripRef         := union_data(., ScheduledLinks/TripRef, const(0/0,CreateTransfersSet/TransfersByStart));
+		attribute<Routes>                  Route_rel       := union_data(., ScheduledLinks/Route_rel, const((0/0)[Routes],CreateTransfersSet/TransfersByStart));
 		attribute<string>                  RouteName       := union_data(., ScheduledLinks/RouteName, const('Walking',CreateTransfersSet/TransfersByStart));
 		attribute<string>                  RouteName_short := union_data(., ScheduledLinks/RouteName_short, const('Walking',CreateTransfersSet/TransfersByStart));
 		attribute<Agencies>                Agency_rel      := union_data(., ScheduledLinks/Agency_rel, const(0/0,CreateTransfersSet/TransfersByStart));
@@ -161,6 +170,7 @@ Template StaticNetsCreator : using = "geometries"
 		attribute<Places>                  FromPlace       := rlookup(fromPoint, Places/Values);
 		attribute<string>                  FromPlace_name  := Places/Stop_name[FromPlace];
 		attribute<Places>                  ToPlace         := rlookup(toPoint, Places/Values);
+		attribute<string>                  ToPlace_name    := Places/Stop_name[ToPlace];
 		
 		unit<uint32> doubledLinks := union_unit(allLinks, allLinks)
 		{
@@ -172,10 +182,11 @@ Template StaticNetsCreator : using = "geometries"
 			attribute<upoint>   MomentxStop    := point(Moment, StopRef, upoint);
 		}
 		
-		unit<uint32> Places := unique(doubledLinks/Coords), DialogData = "Values", DialogType = "map"
+		unit<uint32> Places := unique(doubledLinks/Coords)
 		{
 			attribute<Stops>   StopRef     := rlookup(Values, Stops/geometry);
 			attribute<string>  Stop_name   := Stops/Name[StopRef];
+			attribute<rdc>     geometry    := values;
 		}
 		
 		unit<uint32> UniqueTimeEvents   := unique(doubledLinks/Moment);
@@ -202,6 +213,7 @@ Template StaticNetsCreator : using = "geometries"
 			attribute<Stops>        ToStop         := StopRef[NextMoment];
 			attribute<AllPlaces>    FromPlace      := Stops/PlaceRef[FromStop];
 			attribute<string>       FromPlace_name := Stops/name[FromStop];
+			attribute<string>       ToPlace_name   := Stops/name[ToStop];
 			attribute<AllPlaces>    ToPlace        := Stops/PlaceRef[ToStop];
 			attribute<rdc>          FromPoint      := Stops/geometry[FromStop];
 			attribute<rdc>          ToPoint        := Stops/geometry[ToStop];
@@ -223,6 +235,7 @@ Template StaticNetsCreator : using = "geometries"
 		attribute<rdc>                     geometry (arc)          := union_data(., allLinks/geometry, allLinks/WaitingAtStop/geometry);
 		attribute<AllPlaces>               FromPlace               := union_data(., allLinks/FromPlace, allLinks/WaitingAtStop/FromPlace);
 		attribute<string>                  FromPlace_name          := union_data(., allLinks/FromPlace_name, allLinks/WaitingAtStop/FromPlace_name);
+		attribute<string>                  ToPlace_name            := union_data(., allLinks/ToPlace_name, allLinks/WaitingAtStop/ToPlace_name);
 		attribute<AllPlaces>               ToPlace                 := union_data(., allLinks/ToPlace, allLinks/WaitingAtStop/ToPlace);
 		attribute<rdc>                     FromPoint               := union_data(., allLinks/FromPoint, allLinks/WaitingAtStop/FromPoint);
 		attribute<rdc>                     ToPoint                 := union_data(., allLinks/ToPoint, allLinks/WaitingAtStop/ToPoint);
@@ -233,10 +246,11 @@ Template StaticNetsCreator : using = "geometries"
 		attribute<LinkTypes>               LinkType                := union_data(., allLinks/LinkType, const(LinkTypes/Values/Waiting_at_Stop,allLinks/WaitingAtStop,LinkTypes));
 		attribute<NodeSet>                 F1                      := rlookup(point(FromTime, FromPlace), NodeSet/Values);
 		attribute<NodeSet>                 F2                      := rlookup(point(ToTime, ToPlace), NodeSet/Values);
-		
+		attribute<km>                      Length                  := arc_length(geometry, m)[km];
 		attribute<ModesList/List_selectie> Mode                    := union_data(., allLinks/Mode, const(ModesList/List_selectie/V/Waiting, allLinks/WaitingAtStop, ModesList/List_selectie));
 		attribute<uint32>                  TripRef                 := union_data(., allLinks/TripRef, const(0/0, allLinks/WaitingAtStop));
 		attribute<Agencies>                Agency_rel              := union_data(., allLinks/Agency_rel, const(0/0, allLinks/WaitingAtStop));
+		attribute<Routes>                  Route_rel               := union_data(., allLinks/Route_rel, const((0/0)[Routes], allLinks/WaitingAtStop));
 		attribute<string>                  RouteName               := union_data(., allLinks/RouteName, const('Waiting', allLinks/WaitingAtStop));
 		attribute<string>                  RouteName_short         := union_data(., allLinks/RouteName_short, const('Waiting', allLinks/WaitingAtStop));
 

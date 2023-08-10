@@ -5,15 +5,19 @@
 	parameter<bool>     Getiled_berekenen            := FALSE;                               //Als je getiled wilt rekenen, om het rekenproces sneller te maken. En opsplitst om het effect van crashes te verkleinen
 	parameter<string>   Regio_voor_Tiling            := 'corop';                       //Deze indeling bepaald hoe je wilt tilen. Opties: 'corop', 'provincies'
 
+	//OV berekening instelling
 	parameter<string>   GTFS_file_date               := '20211001';                         //GTFS file date #'20191007' #20201002 20211001 20120917
+	parameter<string>   Analysis_date                := '20211005', IntegrityCheck = "uint32(Analysis_date) >= uint32(GTFS_file_date)";                //GTFS model date #'20191008' 20201006 20201004 20211005 20211003 20171003 (=dinsdag) 20171001 (=zondag)
+	
+	// parameter<string>   AnalyseRoadMoment            := 'Y2013';
+	
 	parameter<string>   OSM_file_date                := '20211221';                         //OpenStreetMap file date #'20200117' 20211004 '20211221'
 	parameter<string>   NWB_file_date                := '20211001';                         //NationaalWegenBestand file date #'20191023' 20211001
 	parameter<string>   NDW_file_date                := '20210928';                         //NDW telpunten versie datum #'20210928' 
-	parameter<string>   LISA_jaar                    := '2018';                             //LISA file date
 	parameter<string>   RegioIndelingen_jaar         := '2020';
+	parameter<string>   LISA_jaar                    := '2018';                             //LISA file date
 	parameter<string>   CarCongestionSpeed_date      := '20211221';                         //De congestionspeeds worden gemaakt met een OSM bestand van een bepaalde datum. Geef hier die datum op.
-	parameter<string>   Analysis_date                := '20211005', IntegrityCheck = "uint32(Analysis_date) >= uint32(GTFS_file_date)";                //GTFS model date #'20191008' 20201006 20201004 20211005 20211003 20171003 (=dinsdag) 20171001 (=zondag)
-	
+
 	parameter<string>   CongestionSpeed_DaygroupSelection := replace_value(expand(., '%env:DAYGROUP%'), 'env:DAYGROUP', 'MonTue');  // 'MonTue' 'WedThuFri' 'SatSun'
 
 	parameter<string>   Orgset                       := 'Buurt_enkele_Prov';                            //Welke origin punten worden gebruikt? Opties: 'PC4' 'PC6' 'Buurt_y2020' 'Buurt_y2017_centroiden' 'Buurt_y2020_centroiden'
@@ -24,6 +28,7 @@
 	parameter<string>   Orgset_EnkeleProv_selectie   := 'Groningen';
 	parameter<string>   items_of_interest            := rjoin(lowercase(DestSet), lowercase(Advanced/dest_domain_list/label), ModelParameters/Advanced/dest_domain_list/items_of_interest);
 	parameter<string>   Arrival_or_Departure_at_time := 'Departure';                        //Zijn de analyse tijdsstippen aankomst- of vertrektijden? Opties: 'Arrival'  'Departure'
+	parameter<string>   CentroidWeightType           := 'Population';                       // Population Addresses
 
 	parameter<m>        MaxTransferDistKm            := 500[m];                             //Maximale euclidische loopafstand tussen OV-haltes voor overstappen, in meters.
 	parameter<float32>  MaxODconn                    := 25f;                                //Maximum aantal haltes dat bij de org of de dest wordt gezocht
