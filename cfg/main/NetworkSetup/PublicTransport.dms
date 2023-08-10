@@ -3,9 +3,9 @@ Template PublicTransport_T
 	parameter<uint32>   inTime;
 	parameter<string>   inTime_string;
 	
-	// parameter<string>   OUTPUT_Generate_decay_CSVFiles        := =AsList('CreateODs/CreateExports/'+ModelParameters/Advanced/Export_CombinationTypes/name+'/LongFormat/File_decay',' + ');
-	// parameter<string>   OUTPUT_Generate_fullOD_long_CSVFiles  := =AsList('CreateODs/CreateExports/'+ModelParameters/Advanced/Export_CombinationTypes/name+'/LongFormat/File_fullOD',' + ');
-	// parameter<string>   OUTPUT_Generate_fullOD_wide_CSVFiles  := =AsList('CreateODs/CreateExports/'+ModelParameters/Advanced/Export_CombinationTypes/name+'/WideFormat/File_fullOD',' + ');
+	parameter<string>   OUTPUT_Generate_decay_CSVFiles        := =AsList('CreateODs/CreateExports/'+ModelParameters/Advanced/Export_CombinationTypes/name+'/LongFormat/File_decay',' + ');
+	parameter<string>   OUTPUT_Generate_fullOD_long_CSVFiles  := =AsList('CreateODs/CreateExports/'+ModelParameters/Advanced/Export_CombinationTypes/name+'/LongFormat/File_fullOD',' + ');
+	parameter<string>   OUTPUT_Generate_fullOD_wide_CSVFiles  := =AsList('CreateODs/CreateExports/'+ModelParameters/Advanced/Export_CombinationTypes/name+'/WideFormat/File_fullOD',' + ');
 
 	container OUTPUT_decayed := 
 		for_each_nedv(
