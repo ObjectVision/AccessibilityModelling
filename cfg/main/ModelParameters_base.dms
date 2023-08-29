@@ -7,7 +7,7 @@
 
 	//OV berekening instelling
 	parameter<string>   GTFS_file_date               := '20120917';                         //GTFS file date #'20191007' #20201002 20211001 20120917
-	parameter<string>   Analysis_date                := '20211005', IntegrityCheck = "uint32(Analysis_date) >= uint32(GTFS_file_date)";                //GTFS model date #'20191008' 20201006 20201004 20211005 20211003 20171003 (=dinsdag) 20171001 (=zondag)
+	parameter<string>   Analysis_date                := '20120918', IntegrityCheck = "uint32(Analysis_date) >= uint32(GTFS_file_date)";                //GTFS model date #'20191008' 20201006 20201004 20211005 20211003 20171003 (=dinsdag) 20171001 (=zondag)
 	
 	parameter<string>   AnalyseRoadMoment            := 'Y2013';
 	
@@ -20,8 +20,8 @@
 	
 	parameter<string>   CongestionSpeed_DaygroupSelection := replace_value(expand(., '%env:DAYGROUP%'), 'env:DAYGROUP', 'MonTue');  // 'MonTue' 'WedThuFri' 'SatSun'
 
-	parameter<string>   Orgset                       := 'Buurt_enkele_buurt';           //Welke origin punten worden gebruikt? Opties: 'PC4' 'PC6' 'Buurt_y2020' 'Buurt_y2017_centroiden' 'Buurt_y2020_centroiden'
-	parameter<string>   Destset                      := 'Ziekenhuizen_y2021_sub_enkel';           //Welke destination punten worden gebruikt? Opties: Groen_BS2017 'LISA' 'Huisartsenposten' 'Huisartsenposten_geclusterd', 'Ziekenhuizen_y2020', 'Ziekenhuizen_y2020_sub' 'Supermarkten_yokt2018' 'Winkelsdagelijks_yokt2018' 'PC6pnt_y2020' 'Basisscholen_okt2021' 'Scholen_voortgezet_onderwijs_okt2021'
+	parameter<string>   Orgset                       := 'Buurt';           //Welke origin punten worden gebruikt? Opties: 'PC4' 'PC6' 'Buurt_y2020' 'Buurt_y2017_centroiden' 'Buurt_y2020_centroiden'
+	parameter<string>   Destset                      := 'Ziekenhuizen_y2021_sub';           //Welke destination punten worden gebruikt? Opties: Groen_BS2017 'LISA' 'Huisartsenposten' 'Huisartsenposten_geclusterd', 'Ziekenhuizen_y2020', 'Ziekenhuizen_y2020_sub' 'Supermarkten_yokt2018' 'Winkelsdagelijks_yokt2018' 'PC6pnt_y2020' 'Basisscholen_okt2021' 'Scholen_voortgezet_onderwijs_okt2021'
 	parameter<bool>     Dests_geclusterd             := FALSE;                              //Destinations clusteren? aan te raden bij bijv LISA.
 	
 	parameter<string>   Orgset_EnkeleBuurt_selectie  := 'Laanhuizen'; //BU00140107  
@@ -319,10 +319,10 @@
 			{
 				attribute<uint32> values : [7];
 			}
-			unit<uint8> ChosenMinutes : nrofrows = 1
+			unit<uint8> ChosenMinutes : nrofrows = 4
 			{
-				// attribute<uint32> values : [0,3,7,16];
-				attribute<uint32> values : [0];
+				attribute<uint32> values : [0,3,7,16];
+				// attribute<uint32> values : [0];
 			}
 			unit<uint8> HoursMinutes := combine_uint8(ChosenHours, ChosenMinutes)
 			{
