@@ -7,7 +7,7 @@
 
 	//OV berekening instelling
 	parameter<string>   GTFS_file_date               := '20220928';                         //GTFS file date #'20191007' #20201002 20211001 20120917
-	parameter<string>   Analysis_date                := '20221003', IntegrityCheck = "uint32(Analysis_date) >= uint32(GTFS_file_date)";                //GTFS model date #'20191008' 20201006 20201004 20211005 20211003 20171003 (=dinsdag) 20171001 (=zondag)
+	parameter<string>   Analysis_date                := '20221004', IntegrityCheck = "uint32(Analysis_date) >= uint32(GTFS_file_date)";                //GTFS model date #'20191008' 20201006 20201004 20211005 20211003 20171003 (=dinsdag) 20171001 (=zondag)
 	
 	parameter<string>   AnalyseRoadMoment            := 'Y2022';
 	
@@ -42,7 +42,7 @@
 	parameter<min_f>    MaxCarTime                   := 120[min_f];                         //Maximale reistijd met lopen/fiets/auto //120
 	parameter<min_f>    OngelijkvloersPenalty        := 2[min_f];                           //Is er sprake van een halte waar je veel verticale afstand moet afleggen? Dan kun je daar een tijd penalty voor geven bij het overstappen, in seconden.
 	
-	parameter<bool>     UseActualBikeSpeeds          := FALSE;                              //Gebruik van actualbike speeds in OV berekening voor voor- en natransport. TRUE: Gebruik FietsTelWeek data fietssnelheden. FALSE: Gebruik default waarde, hieronder gedefinieerd.
+	parameter<bool>     UseActualBikeSpeeds          := TRUE;                              //Gebruik van actualbike speeds in OV berekening voor voor- en natransport. TRUE: Gebruik FietsTelWeek data fietssnelheden. FALSE: Gebruik default waarde, hieronder gedefinieerd.
 	
 	container Advanced   
 	{
@@ -220,7 +220,7 @@
 		parameter<m_s>      TransferEffectiveSpeed            := value(4[km_hr] / 1.2f, m_s);           //De loopsnelheid tijdens het overstappen. X km/uur / 1.2 (correctie voor Manhattan distances) en dan geconverteerd naar meter/sec.
 		parameter<float32>  ConnectSearchDist                 := 100f^2f;                                 //Zoek gebied voor connect_info operaties, zoals linken NDW aan NWB en NWB aan OSM, en FietsTelWeek aan OSM.
 		parameter<string>   fileNamePrefix                    :=  '%LocalDataDir%/NetworkModel/Output/';  //Locatie waar output files moeten worden opgeslagen.
-		parameter<float32>  WegingWachttijdThuisVoortransport := 1f;                                      //Wil je dat de wachttijd thuis wordt meegenomen in de totale reisduur, bij vertrektijd vanaf bepaald moment?
+		parameter<float32>  WegingWachttijdThuisVoortransport := 0f;                                      //Wil je dat de wachttijd thuis wordt meegenomen in de totale reisduur, bij vertrektijd vanaf bepaald moment?
 		parameter<uint8>    NumberOfItersForNetworkCleanUp    := 10b;
 		parameter<string>   PrevDate                          := string(uint32(Analysis_date) - 1);
 		parameter<string>   Date_prefix                       := substr(Analysis_date, 0, 4) + '/' + substr(Analysis_date, 4, 2) + '/' +  substr(Analysis_date, 6, 2);
@@ -317,13 +317,13 @@
 			attribute<bool>    ChosenMoments   := =AsList(HoursMinutes/str,' || ');
 			attribute<Time>    Time_rel        := org_rel;
 			
-			unit<uint8> ChosenHours : nrofrows = 1
+			unit<uint8> ChosenHours : nrofrows = 6
 			{
-				attribute<uint32> values : [7];
+				attribute<uint32> values : [7,8,12,13,21,22];
 			}
-			unit<uint8> ChosenMinutes : nrofrows = 4
+			unit<uint8> ChosenMinutes : nrofrows = 12
 			{
-				attribute<uint32> values : [0,3,7,16];
+				attribute<uint32> values : [0,5,10,15,20,25,30,35,40,45,50,55]; //[0,3,7,16];
 				// attribute<uint32> values : [0];
 			}
 			unit<uint8> HoursMinutes := combine_uint8(ChosenHours, ChosenMinutes)
