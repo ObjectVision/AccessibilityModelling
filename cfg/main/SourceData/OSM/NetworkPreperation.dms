@@ -97,7 +97,7 @@ container NetworkPreperation
 		{
 		}
 		unit<uint32> Make_Final_Network := unique(ConnectedNetwork/geometry)
-		,   StorageName = "='%LocalDataDir%/NetworkModel/OSM/Final_Network_'+file_date+'_CongestionGroup-'+ModelParameters/CongestionSpeed_DaygroupSelection+'.fss'"
+		,   StorageName = "='%LocalDataProjDir%/OSM/Final_Network_'+file_date+'_CongestionGroup-'+ModelParameters/CongestionSpeed_DaygroupSelection+'.fss'"
 		{
 			attribute<ConnectedNetwork>             ConnectedNetwork_rel    := rlookup(geometry, ConnectedNetwork/geometry);
 			attribute<rdc>                          geometry (arc):= values;

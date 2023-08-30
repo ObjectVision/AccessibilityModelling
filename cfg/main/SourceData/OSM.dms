@@ -2,7 +2,7 @@ container OSM
 {  
 	parameter<string> file_date := ModelParameters/OSM_file_date;
 	parameter<string> dir       := '%SourceDataDir%/NetworkModel/Infrastructuur/OSM/'+file_date;
-	parameter<string> date      := 'latest';
+	parameter<string> date      := file_date == '20221201' ? '-221201' : '-latest';
 	unit<uint32>      Regios    := ModelParameters/Advanced/OSM_Regios;
 
 	container Prepare_SourceData :=
@@ -20,7 +20,7 @@ container OSM
 		parameter<string> Country;
 		///
 		unit<uint32> Read_Roads_shp 
-		:	StorageName     = "= dir + '/'+Regio+'-'+date+'-free.shp/gis_osm_roads_free_1.shp'"
+		:	StorageName     = "= dir + '/'+Regio+''+date+'-free.shp/gis_osm_roads_free_1.shp'"
 		,	StorageType     = "gdal.vect"
 		,	StorageReadOnly = "True"
 		,	DialogType = "Map"
@@ -35,7 +35,7 @@ container OSM
 		}
 		
 		unit<uint32> Make_Roads_fss := Read_Roads_shp
-		,   StorageName = "='%LocalDataDir%/NetworkModel/OSM/RegionFiles/'+Regio+'/Roads_'+file_date+'.fss'"
+		,   StorageName = "='%LocalDataProjDir%/OSM/RegionFiles/'+Regio+'/Roads_'+file_date+'.fss'"
 		{
 			attribute<rdc>                         geometry (arc) := Read_Roads_shp/geometry_rd;
 			attribute<string>                      fclass         := Read_Roads_shp/fclass;
@@ -44,7 +44,7 @@ container OSM
 		}
 		
 		unit<uint32> Read_Roads_fss 
-		:   StorageName = "='%LocalDataDir%/NetworkModel/OSM/RegionFiles/'+Regio+'/Roads_'+file_date+'.fss'"
+		:   StorageName = "='%LocalDataProjDir%/OSM/RegionFiles/'+Regio+'/Roads_'+file_date+'.fss'"
 		,	StorageReadOnly = "True"
 		{
 			attribute<rdc>                         geometry (arc);
@@ -226,7 +226,7 @@ container OSM
 	#include <NetworkPreperation.dms>
 
 	unit<uint32> Read_Final_Network
-	:   StorageName = "='%LocalDataDir%/AccessibilityModelling/OSM/Final_Network_'+file_date+'_CongestionGroup-'+ModelParameters/CongestionSpeed_DaygroupSelection+'.fss'"
+	:   StorageName = "='%LocalDataProjDir%/OSM/Final_Network_'+file_date+'_CongestionGroup-'+ModelParameters/CongestionSpeed_DaygroupSelection+'.fss'"
 	,   StorageReadOnly = "true"
 	{
 		attribute<rdc>                          geometry (arc);
@@ -483,9 +483,9 @@ container OSM
 			parameter<string> Mode;
 			
 			unit<uint32> Dbf := domain
-			, StorageName = "='%LocalDataDir%/NetworkModel/OSM/'+Mode+'_network_'+file_date+'.dbf'"
+			, StorageName = "='%LocalDataProjDir%/OSM/'+Mode+'_network_'+file_date+'.dbf'"
 			{
-				attribute<geometries/rdc>               geometry (arc)      := domain/geometry, StorageName = "='%LocalDataDir%/NetworkModel/OSM/'+Mode+'_network_'+file_date+'.shp'";
+				attribute<geometries/rdc>               geometry (arc)      := domain/geometry, StorageName = "='%LocalDataProjDir%/OSM/'+Mode+'_network_'+file_date+'.shp'";
 				attribute<string>                       OSM_id              := domain/OSM_id;
 				attribute<classifications/OSM/wegtype>  wegtype             := domain/wegtype;
 				attribute<string>                       wegtype_label       := domain/wegtype_label;
