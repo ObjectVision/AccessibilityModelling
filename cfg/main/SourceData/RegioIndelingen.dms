@@ -303,6 +303,8 @@ container RegioIndelingen : using = "geometries"
 		attribute<string>               label        := name;
 		
 	}
+
+
 	
 	unit<uint32> PC6pnt2020 
 	:	StorageName     = "%SourceDataDir%/NetworkModel/Voorzieningen/PC6_punten/pc6_xy_tm2020.shp"
@@ -364,6 +366,42 @@ container RegioIndelingen : using = "geometries"
 	}
 	container Buurt_centroiden
 	{
+		
+		unit<uint32> Buurt2022_won_adr_centr_inside
+		:	StorageName     = "%NetworkModel_dir%/RegioIndelingen/Buurt2022_won_adr_centr_inside.shp"
+		,	StorageType     = "gdal.vect"
+		,	StorageReadOnly = "True"
+		{
+			attribute<geometries/rdc>       geometry;
+			attribute<geometries/rdc>       point     := geometry;
+			attribute<string>           BU_CODE      := BU2022CODE;
+			attribute<string>           BU_NAAM      := BU2022NAAM;
+			attribute<string>           name         := BU_CODE;
+			attribute<string>           label        := BU_NAAM;
+
+			attribute<uint32>           nr_Inwoners  := rjoin(BU_CODE, Buurt/statcode, Buurt/nr_Inwoners);
+			attribute<uint32>           nr_banen     := rjoin(BU_CODE, Buurt/statcode, Buurt/nr_banen);
+			 
+			attribute<Provincie>        prov_rel     := point_in_polygon(point, Provincie/geometry);
+			attribute<Corop>            corop_rel    := point_in_polygon(point, Corop/geometry);
+			
+			container Per_Prov := 
+				for_each_ne(
+					provincie/name
+					, 'Per_Prov_T('+string(id(provincie))+', ..)'
+				);
+				
+			container Per_Corop := 
+				for_each_ne(
+					COROP/name
+					, 'Per_Corop_T('+string(id(COROP))+', ..)'
+				);
+				
+			
+		}
+		
+		
+		
 		unit<uint32> y2022_centroiden
 		:	StorageName     = "%NetworkModel_dir%/RegioIndelingen/Buurt2022_xy.gdb"
 		,	StorageType     = "gdal.vect"
