@@ -3,8 +3,8 @@ container RegressieTest
 	parameter<string> Output_DateTime              := '20230727';
 	parameter<string> Benchmark_DateTime           := '20220701';
 	
-	parameter<string> fileNamePrefix               := '%LocalDataDir%/AccessibilityModelling/Output/'+Output_DateTime+'/';  //Locatie waar output files moeten worden opgeslagen.
-	parameter<string> fileNamePrefix_benchmark     := '%LocalDataDir%/AccessibilityModelling/Benchmark/'+Benchmark_DateTime+'/';  //Locatie waar benchmark files moeten worden opgeslagen.
+	parameter<string> fileNamePrefix               := '%LocalDataProjDir%/Output/'+Output_DateTime+'/';  //Locatie waar output files moeten worden opgeslagen.
+	parameter<string> fileNamePrefix_benchmark     := '%LocalDataProjDir%/Benchmark/'+Benchmark_DateTime+'/';  //Locatie waar benchmark files moeten worden opgeslagen.
 	
 	unit<uint32>      orgs        := /NetworkSetup/ConfigurationPerRegio/all/org;
 	unit<uint32>      dests       := /NetworkSetup/ConfigurationPerRegio/all/dest;

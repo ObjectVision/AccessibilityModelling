@@ -130,7 +130,7 @@ Template MakeNetwerkType_T
 	unit <uint32> Make_FSS  := ='union_unit(preperation/road_segments_with_extra_nodes, preperation/extra_links, Abroad/Main_RegionsCombined/'+NetwerkType+')'
 	,	DialogData  = "line"
 	,	DialogType  = "Map"
-	,	StorageName = "= '%LocalDataDir%/NetworkModel/OSM/'+NetwerkType+'_network_'+file_date+'.fss'"
+	,	StorageName = "= '%LocalDataProjDir%/OSM/'+NetwerkType+'_network_'+file_date+'.fss'"
 	{
 		attribute<geometries/rdc>               line (arc)       := ='union_data(., preperation/road_segments_with_extra_nodes/UnionData, preperation/extra_links/line,    Abroad/Main_RegionsCombined/'+NetwerkType+'/line)';
 		attribute<classifications/OSM/wegtype>  wegtype          := ='union_data(., preperation/road_segments_with_extra_nodes/wegtype,   preperation/extra_links/wegtype, Abroad/Main_RegionsCombined/'+NetwerkType+'/wegtype)';
@@ -153,7 +153,7 @@ Template MakeNetwerkType_T
 	unit<uint32> Read_FSS 
 	:	DialogData  = "line"
 	,	DialogType  = "Map"
-	,	StorageName = "= '%LocalDataDir%/NetworkModel/OSM/'+NetwerkType+'_network_'+file_date+'.fss'"
+	,	StorageName = "= '%LocalDataProjDir%/OSM/'+NetwerkType+'_network_'+file_date+'.fss'"
 	,	StorageReadOnly = "true"
 	{
 		attribute<geometries/rdc>               line (arc);

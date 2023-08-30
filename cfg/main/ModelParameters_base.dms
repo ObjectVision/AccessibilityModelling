@@ -16,7 +16,7 @@
 	parameter<string>   NDW_file_date                := rjoin(AnalyseRoadMoment, Advanced/AnalyseRoadMomentPresets/name, Advanced/AnalyseRoadMomentPresets/NDW_file_date);                         //NDW telpunten meetvakken versie datum #'20210928' 
 	parameter<string>   RegioIndelingen_jaar         := rjoin(AnalyseRoadMoment, Advanced/AnalyseRoadMomentPresets/name, Advanced/AnalyseRoadMomentPresets/RegioIndelingen_jaar);
 	parameter<string>   LISA_jaar                    := '2018';                             //LISA file date
-	parameter<string>   CarCongestionSpeed_date      := '20211221';                         //De congestionspeeds worden gemaakt met een OSM bestand van een bepaalde datum. Geef hier die datum op.
+	parameter<string>   CarCongestionSpeed_date      := rjoin(AnalyseRoadMoment, Advanced/AnalyseRoadMomentPresets/name, Advanced/AnalyseRoadMomentPresets/CarCongestionSpeed_date);               //De congestionspeeds worden gemaakt met een OSM bestand van een bepaalde datum. Geef hier die datum op.
 	
 	parameter<string>   CongestionSpeed_DaygroupSelection := replace_value(expand(., '%env:DAYGROUP%'), 'env:DAYGROUP', 'MonTue');  // 'MonTue' 'WedThuFri' 'SatSun'
 
@@ -51,23 +51,24 @@
 			unit<uint32> Elements  := Range(uint32, 0, nrAttr*#.)
 			{
 				attribute<String> Text:
-				// name, OSM date , NWB date  , NDW date  , Regios, OSM_perProv
+				// name, OSM date , NWB date  , NDW date  , Regios, OSM_perProv, CarCongestionSpeed_date
 				[
-				'Y2013','20140101', '20191023', '20210928', '2013', 'FALSE',
-				'Y2020','20200117', '20191023', '20210928', '2020', 'FALSE',
-				'Y2021','20211221', '20211001', '20210928', '2021', 'TRUE',
-				'Y2022','20221201', '20221201', '20210928', '2022', 'TRUE'
+				'Y2013','20140101', '20191023', '20210928', '2013', 'FALSE', '20140101',
+				'Y2020','20200117', '20191023', '20210928', '2020', 'FALSE', '20200117',
+				'Y2021','20211221', '20211001', '20210928', '2021', 'TRUE',  '20211221',
+				'Y2022','20221201', '20221201', '20210928', '2022', 'TRUE',  '20221201'
 				];
 			}
 			
-			attribute<string>        name                 := Elements/Text[value(UInt32(ID(.))* nrAttr + 0, Elements)];
-			attribute<string>        OSM_file_date        := Elements/Text[value(UInt32(ID(.))* nrAttr + 1, Elements)];
-			attribute<string>        NWB_file_date        := Elements/Text[value(UInt32(ID(.))* nrAttr + 2, Elements)];
-			attribute<string>        NDW_file_date        := Elements/Text[value(UInt32(ID(.))* nrAttr + 3, Elements)];
-			attribute<string>        RegioIndelingen_jaar := Elements/Text[value(UInt32(ID(.))* nrAttr + 4, Elements)];
-			attribute<bool>          OSM_NL_prov          := Elements/Text[value(UInt32(ID(.))* nrAttr + 5, Elements)][bool];
+			attribute<string>        name                    := Elements/Text[value(UInt32(ID(.))* nrAttr + 0, Elements)];
+			attribute<string>        OSM_file_date           := Elements/Text[value(UInt32(ID(.))* nrAttr + 1, Elements)];
+			attribute<string>        NWB_file_date           := Elements/Text[value(UInt32(ID(.))* nrAttr + 2, Elements)];
+			attribute<string>        NDW_file_date           := Elements/Text[value(UInt32(ID(.))* nrAttr + 3, Elements)];
+			attribute<string>        RegioIndelingen_jaar    := Elements/Text[value(UInt32(ID(.))* nrAttr + 4, Elements)];
+			attribute<bool>          OSM_NL_prov             := Elements/Text[value(UInt32(ID(.))* nrAttr + 5, Elements)][bool];
+			attribute<string>        CarCongestionSpeed_date := Elements/Text[value(UInt32(ID(.))* nrAttr + 6, Elements)];
 			
-			parameter<uint32> nrAttr := 6;
+			parameter<uint32> nrAttr := 7;
 		}
 	
 		unit<uint32> org_domain_list : nrofrows = 21 // Hier worden de paden voor elke org set opgegeven. En wanneer er nieuwe bij komen dat hier ook toegevoegd worden.
@@ -219,7 +220,7 @@
 		parameter<string>   Dest_location_scale               := '100m';                                  //Het schaalniveau om destination op te clusteren. Opties: '100m', '500m', '1000m', '5000m', '10000m', '50000m'
 		parameter<m_s>      TransferEffectiveSpeed            := value(4[km_hr] / 1.2f, m_s);           //De loopsnelheid tijdens het overstappen. X km/uur / 1.2 (correctie voor Manhattan distances) en dan geconverteerd naar meter/sec.
 		parameter<float32>  ConnectSearchDist                 := 100f^2f;                                 //Zoek gebied voor connect_info operaties, zoals linken NDW aan NWB en NWB aan OSM, en FietsTelWeek aan OSM.
-		parameter<string>   fileNamePrefix                    :=  '%LocalDataDir%/NetworkModel/Output/';  //Locatie waar output files moeten worden opgeslagen.
+		parameter<string>   fileNamePrefix                    :=  '%LocalDataProjDir%/Output/';  //Locatie waar output files moeten worden opgeslagen.
 		parameter<float32>  WegingWachttijdThuisVoortransport := 0f;                                      //Wil je dat de wachttijd thuis wordt meegenomen in de totale reisduur, bij vertrektijd vanaf bepaald moment?
 		parameter<uint8>    NumberOfItersForNetworkCleanUp    := 10b;
 		parameter<string>   PrevDate                          := string(uint32(Analysis_date) - 1);

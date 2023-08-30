@@ -206,7 +206,6 @@ container OSM
 		}
 
 		unit<uint32>  Merge_Country_Roads := ='union_unit('+AsList('Merge_Roads_perCountry/'+Regios/Countries/name+'/Merge_CountryRegion_Roads', ',')+')'
-		// ,   StorageName = "='%LocalDataDir%/NetworkModel/OSM/Merged_Roads_'+file_date+'_CongestionGroup-'+ModelParameters/CongestionSpeed_DaygroupSelection+'.fss'"
 		{
 			attribute<rdc>                          geometry (arc)     := ='union_data(., '+AsList('Merge_Roads_perCountry/'+Regios/Countries/name+'/Merge_CountryRegion_Roads/geometry', ',')+')';
 			attribute<km_hr>                        maxspeed           := ='union_data(., '+AsList('Merge_Roads_perCountry/'+Regios/Countries/name+'/Merge_CountryRegion_Roads/maxspeed_edit', ',')+')';

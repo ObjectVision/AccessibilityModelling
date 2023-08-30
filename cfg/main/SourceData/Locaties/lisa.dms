@@ -72,23 +72,12 @@ container LISA : using = "geometries"
 		unit<uint32> domain := =path;
 		
 		unit<uint32> PerYear := ='domain/LISA'+string(year)+'nw_pnt'
-		, StorageName = "='%LocalDataDir%/NetworkModel/Banen/LISA'+string(year)+'.fss'"
+		, StorageName = "='%LocalDataProjDir%/Banen/LISA'+string(year)+'.fss'"
 		{
 			attribute<rdc>                            geometry    := ='domain/LISA'+string(year)+'nw_pnt/geometry'; 
 			attribute<float64>                        banen       := ='domain/LISA'+string(year)+'nw_pnt/BANEN';
 			attribute<string>                         LISAnr      := ='domain/LISA'+string(year)+'nw_pnt/LISANR';
 			attribute<string>                         naam        := ='domain/LISA'+string(year)+'nw_pnt/NAAM';
-			// attribute<string>                         SECTIE      := ='domain/LISA'+string(year)+'nw_pnt/SECTIE';
-			
-			// attribute<classifications/LISA/SBI2008_sectie> sectie_rel  := rlookup(SECTIE, classifications/LISA/SBI2008_sectie/Sectie_code); 
-			
-			// attribute<string>                         postcode       := ='domain/LISA'+string(year)+'nw_pnt/postcode';
-			// attribute<uint32>                         huisnummer     := ='domain/LISA'+string(year)+'nw_pnt/huisnr[uint32]';
-			// attribute<string>                         plaats         := ='domain/LISA'+string(year)+'nw_pnt/plaats';
-			// attribute<string>                         GRTKLAS        := ='domain/LISA'+string(year)+'nw_pnt/GRTKLAS';
-			// attribute<string>                         BAGGDVO        := ='domain/LISA'+string(year)+'nw_pnt/BAGGDVO';
-			// attribute<float32>                        BAG_opp        := ='domain/LISA'+string(year)+'nw_pnt/BAGOPPERVL[float32]';
-			// attribute<string>                         sbi08          := ='domain/LISA'+string(year)+'nw_pnt/sbi08';
 		}
 	}
 	
@@ -97,7 +86,7 @@ container LISA : using = "geometries"
 		parameter<uint32> year;
 		
 		unit<uint32> PerYear
-		: StorageName = "='%LocalDataDir%/NetworkModel/Banen/LISA'+string(year)+'.fss'"
+		: StorageName = "='%LocalDataProjDir%/Banen/LISA'+string(year)+'.fss'"
 		, StorageReadOnly = "true"
 		{
 			attribute<rdc>                                  geometry;
