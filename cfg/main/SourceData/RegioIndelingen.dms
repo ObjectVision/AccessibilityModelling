@@ -30,7 +30,7 @@ container RegioIndelingen : using = "geometries"
 	}
 	
 	
-	unit<uint32>  Buurt := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/cbs_buurt_'+Regio_jaar+''+gegeneraliseerd_str+'' 
+	unit<uint32>  Buurt := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/cbs_buurt_'+Regio_jaar+gegeneraliseerd_str
 	{
 		attribute<rdc>       geometry (poly)         := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/cbs_buurt_'+Regio_jaar+''+gegeneraliseerd_str+'/geometry';
 		attribute<string>    statcode                := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/cbs_buurt_'+Regio_jaar+''+gegeneraliseerd_str+'/statcode';
@@ -43,7 +43,7 @@ container RegioIndelingen : using = "geometries"
 		
 		container V := for_each_nedv(name, 'value('+string(id(.))+', ..)', void, .);
 		
-		attribute<rdc>          address_weighted_centroid    := SourceData/BAG/Adres/buurt/centroid;
+		attribute<rdc>          address_weighted_centroid    := SourceData/BAG/Adressen/Woon_Voorraad/Buurt/centroid;
 		attribute<rdc>          population_weighted_centroid := CalcPopCentroids/geometry;
 		attribute<rdc>          centroid                     := =ModelParameters/CentroidWeightType == 'Population' ? 'population_weighted_centroid' : 'address_weighted_centroid';
 		attribute<centroiden>   centroiden_rel               := rlookup(centroid, centroiden/geometry);
@@ -121,7 +121,7 @@ container RegioIndelingen : using = "geometries"
 		
 		container V := for_each_nedv(name, 'value('+string(id(.))+', ..)', void, .);
 		
-		attribute<rdc>          address_weighted_centroid    := SourceData/BAG/Adres/wijk/centroid;
+		attribute<rdc>          address_weighted_centroid    := SourceData/BAG/Adressen/Woon_Voorraad/wijk/centroid;
 		attribute<rdc>          population_weighted_centroid := CalcPopCentroids/geometry;
 		attribute<rdc>          centroid                     := =ModelParameters/CentroidWeightType == 'Population' ? 'population_weighted_centroid' : 'address_weighted_centroid';
 		attribute<centroiden>   centroiden_rel               := rlookup(centroid, centroiden/geometry);
@@ -188,7 +188,7 @@ container RegioIndelingen : using = "geometries"
 
 		container V := for_each_nedv(name, 'value('+string(id(.))+', ..)', void, .);
 		
-		attribute<rdc>          address_weighted_centroid    := SourceData/BAG/Adres/gemeente/centroid;
+		attribute<rdc>          address_weighted_centroid    := SourceData/BAG/Adressen/Woon_Voorraad/gemeente/centroid;
 		attribute<rdc>          population_weighted_centroid := CalcPopCentroids/geometry;
 		attribute<rdc>          centroid                     := =ModelParameters/CentroidWeightType == 'Population' ? 'population_weighted_centroid' : 'address_weighted_centroid';
 		attribute<centroiden>   centroiden_rel               := rlookup(centroid, centroiden/geometry);
