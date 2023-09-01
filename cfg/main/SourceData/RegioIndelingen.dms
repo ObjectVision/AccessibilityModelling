@@ -44,20 +44,47 @@ container RegioIndelingen : using = "geometries"
 		attribute<rdc>          centroid                     := =ModelParameters/CentroidWeightType == 'Population' ? 'population_weighted_centroid' : 'address_weighted_centroid';
 		attribute<centroiden>   centroiden_rel               := rlookup(centroid, centroiden/geometry);
 		
+		unit<uint32> CheckValiditeit := .
+		{
+			attribute<uint32> Poly_rel := point_in_polygon(centroid, geometry);
+			attribute<string> statcode_poly := ./statcode;
+			attribute<string> statcode_centr := statcode_poly[Poly_rel];
+			attribute<bool>   stats_gelijk   := statcode_poly == statcode_centr;
+		
+		}
+		
+		unit<uint32> CentroidsMarnix
+		: StorageName = "%LocalDataProjDir%/buurt2022centr_woninggewogen/SourceData_RegioIndelingen_Buurt_centroiden_woninggewogen_geodms_spatialjoin.shp"
+		, StorageType = "gdal.vect"
+		, StorageReadOnly = "true"
+		, DialogData = "rdc"
+		{
+		
+		
+		}
+		
 		unit<uint32> CalcPopCentroids := .
 		{
-			attribute<float32> W          := sum(Population/pop, Population/regio_rel);
+			attribute<float32> W                   := sum(Population/pop, Population/regio_rel);
 			
-			attribute<float32> Weighted_X := sum(Population/x * Population/pop, Population/regio_rel);
-			attribute<float32> Weighted_Y := sum(Population/y * Population/pop, Population/regio_rel);
+			attribute<float32> Weighted_X          := sum(Population/x * Population/pop, Population/regio_rel);
+			attribute<float32> Weighted_Y          := sum(Population/y * Population/pop, Population/regio_rel);
 			
-			attribute<float32> mean_X     := Weighted_X / W;
-			attribute<float32> mean_Y     := Weighted_y / W;
+			attribute<float32> mean_X              := Weighted_X / W;
+			attribute<float32> mean_Y              := Weighted_y / W;
 			 
-			attribute<rdc>  weighted_centroid0            := point(mean_X, mean_Y, rdc);
-			attribute<bool> IsWeighted_centroid_in_regio  := IsDefined(point_in_polygon(weighted_centroid0, ../geometry));
-			attribute<rdc>  weighted_centroid             := IsWeighted_centroid_in_regio ? weighted_centroid0 : centroid_or_mid(../geometry);
-			attribute<rdc>  geometry                      := weighted_centroid;
+			attribute<rdc>     weighted_centroid0  := point(mean_X, mean_Y, rdc);
+			
+			//controles
+			attribute<.>        poly_rel           := point_in_polygon(weighted_centroid0, ../geometry);
+			attribute<string>   statcode_poly      := ./statcode;
+			attribute<string>   statcode_centr     := statcode_poly[Poly_rel];
+			attribute<bool>     IsStatcode_gelijk  := statcode_poly == statcode_centr;
+			attribute<rdc>      centroid_or_mid    := centroid_or_mid(../geometry);
+			attribute<rdc>      weighted_centroid  := IsStatcode_gelijk ? weighted_centroid0 : centroid_or_mid;
+			
+			
+			attribute<rdc>      geometry           := weighted_centroid;
 			
 			unit<uint32> Population := SourceData/Locaties/Inwoners
 			{
