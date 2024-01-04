@@ -1,0 +1,311 @@
+container Infrastructure : using = "geometries;units"
+{  
+	container OSM
+	{  
+		parameter<string> file_date := ModelParameters/OSM_file_date;
+		parameter<string> dir       := ModelParameters/OSM_dir;
+		parameter<string> date      := ModelParameters/OSM_dir_date;
+		unit<uint32>      Regios    := ModelParameters/Advanced/OSM_Regios;
+	
+		container Per_Country :=
+			for_each_ne(
+				Regios/name
+				, 'Per_Country_T('+quote(Regios/label)+')'
+			)
+		{
+			parameter<string> Generate_all      := 'Ready', ExplicitSuppliers = "=AsList(Regios/name+'/Generate_FSS', ';')";
+		}
+
+		Template Per_Country_T
+		{
+			parameter<string> Regio0;
+			///
+			parameter<string> Regio := replace(Regio0, '_', '-');
+			
+			parameter<string> Generate_FSS      := 'Lines', ExplicitSuppliers = "Make_lines_fss";
+			
+			container Read_Roads_pbf
+			:	StorageName     = "= dir + '/'+Regio+'-'+date+'.osm.pbf'" 
+			,	StorageType     = "gdal.vect"
+			,	StorageReadOnly = "True"
+			, 	SyncMode        = "None"
+			, 	DialogData      = "wgs84"
+			{
+				unit<uint32> lines // : sqlstring = "SELECT * FROM lines"
+				{
+					attribute<wgs84>                        geometry (arc);
+					attribute<string>                       highway;
+					attribute<string>                       other_tags;
+					attribute<int32>                        z_order;
+				}
+			}
+			
+			unit<uint32> Make_lines_fss := Read_Roads_pbf/lines
+			,   StorageName = "='%LocalDataProjDir%/RegionFiles/'+file_date+'_'+Regio+'.fss'"
+			{
+				attribute<wgs84>                        geometry (arc) := Read_Roads_pbf/lines/geometry;
+				attribute<string>                       highway        := Read_Roads_pbf/lines/highway;
+				attribute<string>                       other_tags     := Read_Roads_pbf/lines/other_tags;
+				attribute<int32>                        z_order        := Read_Roads_pbf/lines/z_order;
+			}
+			
+			unit<uint32> Read_lines_fss 
+			:   StorageName = "='%LocalDataProjDir%/RegionFiles/'+file_date+'_'+Regio+'.fss'"
+			,	StorageReadOnly = "True"
+			{
+				attribute<wgs84>                        geometry (arc);
+				attribute<string>                       highway;
+				attribute<string>                       other_tags;
+				attribute<int32>                        z_order;
+				attribute<classifications/OSM/roadtype> roadtype_rel       := switch(
+																					case(IsCarFerry, classifications/OSM/roadtype/v/ferry)
+																					, rlookup(highway, classifications/OSM/roadtype/name)
+																				);
+																				
+				attribute<bool>                         IsPartOfCarNetwork := /Classifications/OSM/roadtype/IsPartOfCarNetwork[roadtype_rel];
+				
+				attribute<bool>                         IsOneDirection    := strcount(other_tags, '"oneway"=>"yes"') > 0;
+				attribute<bool>                         IsFerry           := strcount(other_tags, '"route"=>"ferry"') > 0;
+				attribute<bool>                         IsCarFerry        := strcount(other_tags, '"route"=>"ferry"') > 0 && strcount(other_tags, '"motor_vehicle"=>"yes"') > 0;
+				
+				unit<uint8> MaxSpeeds : nrofrows = 15
+				{
+					attribute<string> name  := 's'+speed;
+					attribute<string> speed : ['10','20','30','40','50','60','70','80','90','100','110','120','130','140','150'];
+					attribute<string> expr  := '"maxspeed"=>"'+speed+'"';
+					attribute<string> label := name;
+				}
+				
+				container ExtractMaxSpeeds :=
+					for_each_nedv(
+						MaxSpeeds/name
+						, 'strcount(other_tags, '+quote(MaxSpeeds/expr)+')'
+						, .
+						, uint32
+					);
+				attribute<MaxSpeeds>                       KPH_from_source_rel    := ='argmax_ifdefined_uint8('+AsItemList('ExtractMaxSpeeds/'+MaxSpeeds/name+' > 0 ? ExtractMaxSpeeds/'+MaxSpeeds/name+' : null_u')+')';
+				attribute<km_hr>                           KPH_from_source        := value(MaxSpeeds/speed, km_hr)[KPH_from_source_rel];
+				attribute<km_hr>                           KPH                    := MakeDefined(KPH_from_source, Classifications/OSM/roadtype/CarSpeedOutside[roadtype_rel]);
+			}
+			
+			unit<uint32> Roads := select_with_attr_by_cond(Read_lines_fss, Read_lines_fss/IsPartOfCarNetwork || Read_lines_fss/IsCarFerry)
+			{
+				attribute<rdc>                            geometry_rd (arc)  := LatLongWgs842RD(geometry, rdc);
+			}
+		}
+		
+		unit<uint32>  Roads := ='union_unit('+AsList('Per_Country/'+Regios/name+'/Roads', ',')+')'
+		{
+			attribute<rdc>                          geometry (arc) := ='union_data(., '+AsList('Per_Country/'+Regios/name+'/Roads/geometry_rd', ',')+')';
+			attribute<km_hr>                        KPH            := ='union_data(., '+AsList('Per_Country/'+Regios/name+'/Roads/KPH', ',')+')';
+			attribute<classifications/OSM/roadtype> roadtype_rel   := ='union_data(., '+AsList('Per_Country/'+Regios/name+'/Roads/roadtype_rel', ',')+')';
+			attribute<bool>                         IsOneDirection := ='union_data(., '+AsList('Per_Country/'+Regios/name+'/Roads/IsOneDirection', ',')+')';
+			attribute<int32>                         z_order        := ='union_data(., '+AsList('Per_Country/'+Regios/name+'/Roads/z_order', ',')+')';
+		}
+		
+		#include <NetworkPreperation.dms>
+
+		unit<uint32> Read_Final_Network
+		:   StorageName = "='%LocalDataProjDir%/OSM/Final_Network_'+file_date+'.fss'"
+		,   StorageReadOnly = "true"
+		{
+			attribute<rdc>                          geometry (arc);
+			attribute<classifications/OSM/roadtype> roadtype_rel;
+			attribute<km_hr>                        kph;
+			attribute<bool>                         IsOneDirection;
+			attribute<int32>                        z_order;
+			attribute<string>                       roadtype_label                    := classifications/OSM/roadtype/label[roadtype_rel];
+			attribute<km_hr>                        freeflow_speed_bike              := const(ModelParameters/Advanced/BikingSpeed,.);
+			attribute<km_hr>                        freeflow_speed_pedestrian        := const(ModelParameters/Advanced/WalkingSpeed,.);
+			
+			attribute<bool>                         isPartOfCarNetwork        := classifications/OSM/roadtype/IsPartOfCarNetwork[roadtype_rel];
+			attribute<bool>                         isPartOfBikeNetwork       := classifications/OSM/roadtype/isPartOfBikeNetwork[roadtype_rel];
+			attribute<bool>                         isPartOfPedestrianNetwork := classifications/OSM/roadtype/isPartOfPedestrianNetwork[roadtype_rel];
+			
+			container Connectiveness
+			{
+				unit<uint32> src := ..;
+				attribute<rdc>               point (src)           := first_point(src/geometry);
+				attribute<rdc>               nextpoint (src)       := last_point(src/geometry);
+				
+				unit<uint32> pointset : = union_unit(src,src)
+				{
+					attribute<rdc>                  point       := union_data(., ../point, ../nextpoint);
+					attribute<bool>                 isVerbonden := isNull(rlookup(point, NodesNotConnected/point));
+					attribute<src>                  ArcNr       := value(ID(.) % #(src), src);
+				}
+				
+				unit<uint32> NodeSet := unique(pointset/point)
+				,	DialogData = "Values"
+				,	DialogType = "Map"
+				{
+					attribute<rdc> values;
+				}
+
+				attribute<NodeSet> F1 (src) := rlookup(point,     NodeSet/Values);
+				attribute<NodeSet> F2 (src) := rlookup(nextpoint, NodeSet/Values);
+			
+				unit<uint32> networks:= connected_parts(F1, F2) // Verzameling van alle netwerken, inclusief de subnetwerken.
+				{
+					attribute<uint32>   nr_nodes   := sum(const(1, NodeSet, uint32), partnr);
+					parameter<uint32>   MaxNrNodes := max(networks/nr_nodes);
+					parameter<networks> main       := rlookup(MaxNrNodes, nr_nodes); // uitgangspunt: het netwerk met de meeste nodes is het relevante netwerk
+				}
+
+				unit<uint32> NodesNotConnected := select_with_org_rel(networks/partnr <> networks/main)
+				{
+					attribute<rdc> point := NodeSet/Values[org_rel];
+				}
+				attribute<bool> isVerbonden (src) := all(pointset/isVerbonden, pointset/ArcNr);
+			}
+		}
+
+		unit<uint32> Network_Car := select_with_org_rel(Read_Final_Network/isPartOfCarNetwork)
+		{
+			attribute<rdc>                          geometry (arc)                   := Read_Final_Network/geometry[org_rel];
+			attribute<classifications/OSM/roadtype> roadtype_rel                     := Read_Final_Network/roadtype_rel[org_rel];
+			attribute<string>                       roadtype_label                   := Read_Final_Network/roadtype_label[org_rel];
+			attribute<bool>                         Connectable                      := roadtype_rel != Classifications/OSM/roadtype/V/motorway && roadtype_rel != Classifications/OSM/roadtype/V/motorway_link;
+			attribute<km_hr>                        kph                              := Read_Final_Network/kph[org_rel];
+			attribute<bool>                         IsOneDirection                   := Read_Final_Network/IsOneDirection[org_rel];
+			attribute<int32>                        z_order                          := Read_Final_Network/z_order[org_rel];
+
+			unit<uint32> isVerbonden := select_with_attr_by_cond(., Connectiveness/isVerbonden);
+			
+			container Connectiveness
+			{
+				unit<uint32> src := ..;
+				attribute<rdc>               point (src)           := first_point(src/geometry);
+				attribute<rdc>               nextpoint (src)       := last_point(src/geometry);
+				
+				unit<uint32> pointset : = union_unit(src,src)
+				{
+					attribute<rdc>                  point       := union_data(., ../point, ../nextpoint);
+					attribute<bool>                 isVerbonden := isNull(rlookup(point, NodesNotConnected/point));
+					attribute<src>                  ArcNr       := value(ID(.) % #(src), src);
+				}
+				
+				unit<uint32> NodeSet := unique(pointset/point)
+				,	DialogData = "Values"
+				,	DialogType = "Map"
+				{
+					attribute<rdc> values;
+				}
+
+				attribute<NodeSet> F1 (src) := rlookup(point,     NodeSet/Values);
+				attribute<NodeSet> F2 (src) := rlookup(nextpoint, NodeSet/Values);
+			
+				unit<uint32> networks:= connected_parts(F1, F2) // Verzameling van alle netwerken, inclusief de subnetwerken.
+				{
+					attribute<uint32>   nr_nodes   := sum(const(1, NodeSet, uint32), partnr);
+					parameter<uint32>   MaxNrNodes := max(networks/nr_nodes);
+					parameter<networks> main       := rlookup(MaxNrNodes, nr_nodes); // uitgangspunt: het netwerk met de meeste nodes is het relevante netwerk
+				}
+
+				unit<uint32> NodesNotConnected := select_with_org_rel(networks/partnr <> networks/main)
+				{
+					attribute<rdc> point := NodeSet/Values[org_rel];
+				}
+				attribute<bool> isVerbonden (src) := all(pointset/isVerbonden, pointset/ArcNr);
+			}
+		}
+		unit<uint32> Network_Bike := select_with_org_rel(Read_Final_Network/isPartOfBikeNetwork)
+		{
+			attribute<rdc>                          geometry (arc)                   := Read_Final_Network/geometry[org_rel];
+			attribute<classifications/OSM/roadtype> roadtype_rel                     := Read_Final_Network/roadtype_rel[org_rel];
+			attribute<string>                       roadtype_label                   := Read_Final_Network/roadtype_label[org_rel];
+			attribute<bool>                         Connectable                      := roadtype_rel != Classifications/OSM/roadtype/V/motorway && roadtype_rel != Classifications/OSM/roadtype/V/motorway_link;
+			attribute<km_hr>                        kph                              := Read_Final_Network/freeflow_speed_bike[org_rel];
+			attribute<bool>                         IsOneDirection                   := Read_Final_Network/IsOneDirection[org_rel];
+			attribute<int32>                        z_order                          := Read_Final_Network/z_order[org_rel];
+
+			unit<uint32> isVerbonden := select_with_attr_by_cond(., Connectiveness/isVerbonden);
+			
+			container Connectiveness
+			{
+				unit<uint32> src := ..;
+				attribute<rdc>               point (src)           := first_point(src/geometry);
+				attribute<rdc>               nextpoint (src)       := last_point(src/geometry);
+				
+				unit<uint32> pointset : = union_unit(src,src)
+				{
+					attribute<rdc>       point       := union_data(., ../point, ../nextpoint);
+					attribute<bool>                 isVerbonden := isNull(rlookup(point, NodesNotConnected/point));
+					attribute<src>                   ArcNr       := value(ID(.) % #(src), src);
+				}
+				
+				unit<uint32> NodeSet := unique(pointset/point)
+				,	DialogData = "Values"
+				,	DialogType = "Map"
+				{
+					attribute<rdc> values;
+				}
+
+				attribute<NodeSet> F1 (src) := rlookup(point,     NodeSet/Values);
+				attribute<NodeSet> F2 (src) := rlookup(nextpoint, NodeSet/Values);
+			
+				unit<uint32> networks:= connected_parts(F1, F2) // Verzameling van alle netwerken, inclusief de subnetwerken.
+				{
+					attribute<uint32>   nr_nodes   := sum(const(1, NodeSet, uint32), partnr);
+					parameter<uint32>   MaxNrNodes := max(networks/nr_nodes);
+					parameter<networks> main       := rlookup(MaxNrNodes, nr_nodes); // uitgangspunt: het netwerk met de meeste nodes is het relevante netwerk
+				}
+
+				unit<uint32> NodesNotConnected := select_with_org_rel(networks/partnr <> networks/main)
+				{
+					attribute<rdc> point := NodeSet/Values[org_rel];
+				}
+				attribute<bool> isVerbonden (src) := all(pointset/isVerbonden, pointset/ArcNr);
+			}
+		}
+		unit<uint32> Network_Pedestrian := select_with_org_rel(Read_Final_Network/isPartOfPedestrianNetwork)
+		{
+			attribute<rdc>                          geometry (arc)                   := Read_Final_Network/geometry[org_rel];
+			attribute<classifications/OSM/roadtype> roadtype_rel                     := Read_Final_Network/roadtype_rel[org_rel];
+			attribute<string>                       roadtype_label                   := Read_Final_Network/roadtype_label[org_rel];
+			attribute<bool>                         Connectable                      := roadtype_rel != Classifications/OSM/roadtype/V/motorway && roadtype_rel != Classifications/OSM/roadtype/V/motorway_link;
+			attribute<km_hr>                        kph                              := Read_Final_Network/freeflow_speed_pedestrian[org_rel];
+			attribute<bool>                         IsOneDirection                   := Read_Final_Network/IsOneDirection[org_rel];
+			attribute<int32>                        z_order                          := Read_Final_Network/z_order[org_rel];
+			
+			unit<uint32> isVerbonden := select_with_attr_by_cond(., Connectiveness/isVerbonden);
+			
+			container Connectiveness
+			{
+				unit<uint32> src := ..;
+				attribute<rdc>               point (src)           := first_point(src/geometry);
+				attribute<rdc>               nextpoint (src)       := last_point(src/geometry);
+				
+				unit<uint32> pointset : = union_unit(src,src)
+				{
+					attribute<rdc>                  point       := union_data(., ../point, ../nextpoint);
+					attribute<bool>                 isVerbonden := isNull(rlookup(point, NodesNotConnected/point));
+					attribute<src>                  ArcNr       := value(ID(.) % #(src), src);
+				}
+				
+				unit<uint32> NodeSet := unique(pointset/point)
+				,	DialogData = "Values"
+				,	DialogType = "Map"
+				{
+					attribute<rdc> values;
+				}
+
+				attribute<NodeSet> F1 (src) := rlookup(point,     NodeSet/Values);
+				attribute<NodeSet> F2 (src) := rlookup(nextpoint, NodeSet/Values);
+			
+				unit<uint32> networks:= connected_parts(F1, F2) // Verzameling van alle netwerken, inclusief de subnetwerken.
+				{
+					attribute<uint32>   nr_nodes   := sum(const(1, NodeSet, uint32), partnr);
+					parameter<uint32>   MaxNrNodes := max(networks/nr_nodes);
+					parameter<networks> main       := rlookup(MaxNrNodes, nr_nodes); // uitgangspunt: het netwerk met de meeste nodes is het relevante netwerk
+				}
+
+				unit<uint32> NodesNotConnected := select_with_org_rel(networks/partnr <> networks/main)
+				{
+					attribute<rdc> point := NodeSet/Values[org_rel];
+				}
+				attribute<bool> isVerbonden (src) := all(pointset/isVerbonden, pointset/ArcNr);
+			}
+		}
+	}
+}

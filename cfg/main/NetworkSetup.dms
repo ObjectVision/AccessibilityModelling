@@ -1,0 +1,36 @@
+container NetworkSetup : using = "units;geometries;SourceData;Classifications;SourceData/RegionalUnits;"
+{	
+	container Per_NetworkType :=
+		for_each_ne(
+			NetworkType/name
+			,'Call_CreateNetwork_T(
+				'+quote(NetworkType/name)+
+				',/SourceData/RegionalUnits/Gemeente'    //orgs
+				',/SourceData/RegionalUnits/Gemeente'     //dests
+				',''SourceData/Infrastructure/OSM/Network_@NT@'''
+			')'
+		);
+
+	Template Call_CreateNetwork_T
+	{
+		parameter<string> NetworkTypeName;
+		unit<uint32>      Org;
+		unit<uint32>      Dest;
+		parameter<string> NetworkPath;
+		///
+		unit<uint32>      RoadDomain := =replace(NetworkPath, '@NT@', NetworkTypeName);
+		attribute<string> OrgName  (org)  := Org/name;
+		attribute<string> DestName (dest) := Dest/name;
+		
+		container NetwerkSpec :=
+			Templates/CreateNetwork_T(
+				  org
+				, dest
+				, RoadDomain
+			);
+			
+		parameter<bool> Store_Network1:= True, explicitsuppliers = "NetwerkSpec/CreateInitialWorkingNetwork/LinkSet_Write;";
+		parameter<bool> Store_Network2:= True, explicitsuppliers = "NetwerkSpec/CreateMoreEfficientNetwork/FinalNodeSet_Write;NetwerkSpec/CreateMoreEfficientNetwork/FinalLinkSet_Write;";
+		
+	}
+}

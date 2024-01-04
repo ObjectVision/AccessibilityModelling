@@ -1,0 +1,48 @@
+container Geometries : using = "units"
+{
+	#include <wms_layer_latlong.dms>
+	#include <ngr_layer.dms> // reference WMS layer
+	
+	unit<dpoint> rdc_base          : SpatialReference = "EPSG:28992", DialogData = "ngr_layer";
+	unit<dpoint> rdc               := range(rdc_base, point(y_min, x_min), point(y_max, x_max));
+	unit<ipoint> rdc_mm   := gridset(rdc, point(0.001,0.001), point(0.0, 0.0), ipoint);
+	unit<dpoint> WGS84             : SpatialReference = "EPSG:4326", DialogData = "wms_layer_latlong"
+	{
+		parameter<float32> ViewPortMinSize := 100f / 3600f;
+		parameter<float32> PenWorldWidth   := 0.1f / 3600f, DialogType = "PenWorldWidth";
+		parameter<float32> LabelWorldSize  := 10f / 3600f, DialogType = "LabelWorldSize";
+		parameter<float32> SymbolWorldSize := 10f / 3600f, DialogType = "SymbolWorldSize";
+	}
+	
+	parameter<m> x_min := 0[m];
+	parameter<m> x_max := 280000[m];
+	parameter<m> y_min := 300000[m];
+	parameter<m> y_max := 625000[m];
+
+	unit<wpoint> Base_grid_base :=
+		gridset(
+			range(WGS84, 
+				LowerBound(WGS84) + point(0.5 * SourceRasterFactor, 0.5 * SourceRasterFactor, WGS84), 
+				UpperBound(WGS84) - point(0.5 * SourceRasterFactor, 0.5 * SourceRasterFactor, WGS84)
+			)
+			, point(-SourceRasterFactor, SourceRasterFactor, WGS84)
+			, point(90d, -180d, WGS84)
+			, wpoint
+		), DialogData = "WGS84";
+ 
+	unit<wpoint> Base_grid     := TiledUnit(point(1024w, 43200w, Base_grid_base))
+	{
+		unit<uint16> rowset := range(uint16, pointrow(Lowerbound(.)), pointrow(Upperbound(.)));
+		unit<uint16> colset := range(uint16, pointcol(Lowerbound(.)), pointcol(Upperbound(.)));
+		
+		attribute<BaseProjection>       point            := mapping(Base_grid, BaseProjection);
+		attribute<Base_grid_spoint>     Base_grid_spoint_rel     := point[Base_grid_spoint];
+	}
+	
+	unit<spoint> Base_grid_spoint  := gridset(
+												 BaseProjection                         // the baseunit in which the coordinates of the coordinate system are expressed;
+												,GetProjectionFactor(Base_grid)     // the size of the grid cells in both X and Y directions, expressed in the base unit;
+												,GetProjectionOffSet(Base_grid)     // the offset, the coordinates of the top left coordinate, expressed in the base unit;
+												,spoint                                 // the value type of the resulting domain unit (in earlier versions the value type was configured as string, this is not supported anymore)
+											);
+}
