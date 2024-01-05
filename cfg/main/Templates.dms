@@ -186,14 +186,13 @@ container Templates: Using = "Units;Classifications;geometries"
 			}
 			unit<uint32> LastLinkSet  := OptimiseNetwork/LastIter/IntermediateLinkSet;
 			
-			// hardstore optimised network and nodeset
-			unit<uint32> FinalNodeSet_Write := select_with_org_rel(pcount(LastLinkSet/F1)+pcount(LastLinkSet/F2) > 0),	StorageName = "= '%LocalDataProjDir%/Final_Nodeset_O-'+OrgName+'_D-'+Destname+'.fss'" 
+			unit<uint32> FinalNodeSet_Calc := select_with_org_rel(pcount(LastLinkSet/F1)+pcount(LastLinkSet/F2) > 0)
 			{
 				attribute<rdc>                geometry                  := org_rel->values;
 				attribute<.>                  OrgNode_rel  (OrgDomain)  := rlookup(OrgDomain/centroid,  geometry);
 				attribute<.>                  DestNode_rel (DestDomain) := rlookup(DestDomain/centroid, geometry);	
 			}
-			unit<uint32> FinalLinkSet_Write := LastLinkSet,	StorageName = "= '%LocalDataProjDir%/Final_Linkset_O-'+OrgName+'_D-'+Destname+'.fss'" 
+			unit<uint32> FinalLinkSet_Calc := LastLinkSet 
 			{
 				attribute<FinalNodeSet_Write> F1                   := invert(FinalNodeSet_Write/org_rel)[LastLinkSet/F1];
 				attribute<FinalNodeSet_Write> F2                   := invert(FinalNodeSet_Write/org_rel)[LastLinkSet/F2];
@@ -202,6 +201,24 @@ container Templates: Using = "Units;Classifications;geometries"
 				attribute<bool>               IsOneDirection       := LastLinkSet/IsOneDirection;
 				attribute<bool>               IsOD_connection_road := LastLinkSet/IsOD_connection_road;
 			}
+			
+			// hardstore optimised network and nodeset
+			unit<uint32> FinalNodeSet_Write := FinalNodeSet_Calc, StorageName = "= '%LocalDataProjDir%/Final_Nodeset_O-'+OrgName+'_D-'+Destname+'.fss'"
+			{
+				attribute<rdc>                geometry                  := FinalNodeSet_Calc/geometry;
+				attribute<.>                  OrgNode_rel  (OrgDomain)  := FinalNodeSet_Calc/OrgNode_rel;
+				attribute<.>                  DestNode_rel (DestDomain) := FinalNodeSet_Calc/DestNode_rel;
+			}
+			unit<uint32> FinalLinkSet_Write := FinalLinkSet_Calc, StorageName = "= '%LocalDataProjDir%/Final_Linkset_O-'+OrgName+'_D-'+Destname+'.fss'" 
+			{
+				attribute<FinalNodeSet_Calc>  F1                   := FinalLinkSet_Calc/F1;
+				attribute<FinalNodeSet_Calc>  F2                   := FinalLinkSet_Calc/F2;
+				attribute<s_f>                Impedance            := FinalLinkSet_Calc/Impedance;
+				attribute<km>                 LengthKm             := FinalLinkSet_Calc/LengthKm;
+				attribute<bool>               IsOneDirection       := FinalLinkSet_Calc/IsOneDirection;
+				attribute<bool>               IsOD_connection_road := FinalLinkSet_Calc/IsOD_connection_road;
+			}
+			
 			
 			// read stored nodeset and links
 			unit<uint32> FinalNodeSet_Read : storagename = "= propvalue(FinalNodeSet_Write, 'StorageName')", StorageReadOnly = "True"
@@ -218,10 +235,15 @@ container Templates: Using = "Units;Classifications;geometries"
 				attribute<km>                     LengthKm;
 				attribute<bool>                   IsOneDirection;
 				attribute<bool>                   IsOD_connection_road;
+			}
+			unit<uint32> FinalNodeSet := =ModelParameters/IsNetworkStored ? 'FinalNodeSet_Read' : 'FinalNodeSet_Calc';
+			unit<uint32> FinalLinkSet := =ModelParameters/IsNetworkStored ? 'FinalLinkSet_Read' : 'FinalLinkSet_Calc'
+			{
 				
+			
 				// For visualisation
-				attribute<rdc>            FirstPoint                     := FinalNodeSet_Read/Geometry[F1];
-				attribute<rdc>            LastPoint                      := FinalNodeSet_Read/Geometry[F2];
+				attribute<rdc>            FirstPoint                     := FinalNodeSet/Geometry[F1];
+				attribute<rdc>            LastPoint                      := FinalNodeSet/Geometry[F2];
 				attribute<rdc>            geometry (arc)                 := points2sequence(PointSet/Point, PointSet/SeqNr, PointSet/Ordinal);
 				unit<uint32> PointSet := union_unit(.,.)
 				{

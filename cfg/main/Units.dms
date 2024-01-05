@@ -5,6 +5,9 @@ container Units
 	unit<float64> m2         := m * m;
 	unit<float64> km        := 1000f * m;
 	
+	unit<float64> ha        := 10000.0 * m2;
+	unit<float64> km2       := km * km;
+	
 	unit<uint32>  s         := baseunit('second', uint32);
 	unit<float64> s_f       := baseunit('second', float64);
 	unit<uint32>  min       := 60 * s, Descr = "Minutes";

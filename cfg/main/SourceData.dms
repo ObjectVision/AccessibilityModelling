@@ -4,4 +4,8 @@ container SourceData: Using = "Units;Classifications;geometries"
 	#include<RegionalUnits.dms>
 	#include<BAG.dms>
 	
+	container Locaties
+	{
+		#include<Inwoners.dms>
+	}
 }

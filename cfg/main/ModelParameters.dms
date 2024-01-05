@@ -8,8 +8,10 @@
 	// parameter<bool>     UseStreetTypeSubset            := TRUE; // TRUE FALSE
 	parameter<uint8>    NumberOfItersForNetworkCleanUp := 10b;
 	parameter<string>   RegioIndelingen_jaar           := '2022';
-	parameter<uint32>   BAG_jaar                     := 2022;
-	parameter<string>   CentroidWeightType           := 'Addresses';                       // Population Addresses
+	parameter<string>   Populatie_jaar                 := '2022';
+	parameter<uint32>   BAG_jaar                       := 2022;
+	parameter<string>   CentroidWeightType             := 'Addresses';                       // Population Addresses
+	parameter<bool>     IsNetworkStored                := FALSE;     
 	
 	
 	// SourceData Settings

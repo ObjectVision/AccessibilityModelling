@@ -1,12 +1,15 @@
 container NetworkSetup : using = "units;geometries;SourceData;Classifications;SourceData/RegionalUnits;"
 {	
+	unit<uint32> Org  := SourceData/RegionalUnits/Gemeente;
+	unit<uint32> Dest := SourceData/RegionalUnits/Gemeente;
+
 	container Per_NetworkType :=
 		for_each_ne(
 			NetworkType/name
 			,'Call_CreateNetwork_T(
 				'+quote(NetworkType/name)+
-				',/SourceData/RegionalUnits/Gemeente'    //orgs
-				',/SourceData/RegionalUnits/Gemeente'     //dests
+				', Org'    
+				', Dest'     
 				',''SourceData/Infrastructure/OSM/Network_@NT@'''
 			')'
 		);
