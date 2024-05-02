@@ -5,19 +5,7 @@ Your branch is up to date with 'origin/main'.
 Changes not staged for commit:
   (use "git add <file>..." to update what will be committed)
   (use "git restore <file>..." to discard changes in working directory)
-	modified:   cfg/main/Analyses.dms
-	modified:   cfg/main/Geometries.dms
-	modified:   cfg/main/ModelParameters.dms
-	modified:   cfg/main/NetworkSetup.dms
-	modified:   cfg/main/SourceData.dms
-	modified:   cfg/main/SourceData/RegionalUnits.dms
-	modified:   cfg/main/Templates.dms
-	modified:   cfg/main/Units.dms
 	modified:   git.txt
 
-Untracked files:
-  (use "git add <file>..." to include in what will be committed)
-	cfg/main/SourceData/Inwoners.dms
-
 no changes added to commit (use "git add" and/or "git commit -a")
-418821774108b4e63c2fcf2cbe60bb9c8d66948d
+37957d8d8fb3f9f5ceca15c373efcb9b94a3155e
