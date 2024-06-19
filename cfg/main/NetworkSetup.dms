@@ -1,7 +1,7 @@
 container NetworkSetup : using = "units;geometries;SourceData;Classifications;SourceData/RegionalUnits;"
 {	
-	unit<uint32> Org  := SourceData/RegionalUnits/Gemeente;
-	unit<uint32> Dest := SourceData/RegionalUnits/Gemeente;
+	unit<uint32> Org  := SourceData/RegionalUnits/PC4;
+	unit<uint32> Dest := SourceData/RegionalUnits/PC4;
 
 	container Per_NetworkType :=
 		for_each_ne(

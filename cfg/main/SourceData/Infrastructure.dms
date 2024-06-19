@@ -105,15 +105,15 @@ container Infrastructure : using = "geometries;units"
 		
 		#include <NetworkPreperation.dms>
 
-		unit<uint32> Read_Final_Network
-		:   StorageName = "='%LocalDataProjDir%/OSM/Final_Network_'+file_date+'.fss'"
-		,   StorageReadOnly = "true"
+		unit<uint32> Read_Final_Network := /SourceData/infrastructure/OSM/NetworkPreperation/road_segments/Final_Network
+		// :   StorageName = "='%LocalDataProjDir%/OSM/Final_Network_'+file_date+'.fss'"
+		// ,   StorageReadOnly = "true"
 		{
-			attribute<rdc>                          geometry (arc);
-			attribute<classifications/OSM/roadtype> roadtype_rel;
-			attribute<km_hr>                        kph;
-			attribute<bool>                         IsOneDirection;
-			attribute<int32>                        z_order;
+			// attribute<rdc>                          geometry (arc);
+			// attribute<classifications/OSM/roadtype> roadtype_rel;
+			// attribute<km_hr>                        kph;
+			// attribute<bool>                         IsOneDirection;
+			// attribute<int32>                        z_order;
 			attribute<string>                       roadtype_label                    := classifications/OSM/roadtype/label[roadtype_rel];
 			attribute<km_hr>                        freeflow_speed_bike              := const(ModelParameters/Advanced/BikingSpeed,.);
 			attribute<km_hr>                        freeflow_speed_pedestrian        := const(ModelParameters/Advanced/WalkingSpeed,.);

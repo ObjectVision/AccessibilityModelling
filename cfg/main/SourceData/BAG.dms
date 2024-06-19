@@ -32,7 +32,7 @@ container BAG
 			attribute<uint64>              vbo_bag_nr              := uint64(import/identificatie);
 			attribute<vbo_status>          status_rel              := rlookup(status, vbo_status/label);
 			attribute<string>              status                  := import/status;
-			attribute<panden/pand>         pand_rel                := rlookup(pand_id, panden/pand/identificatie);
+			// attribute<panden/pand>         pand_rel                := rlookup(pand_id, panden/pand/identificatie);
 			
 			container gebruiksdoelen := 
 				for_each_nedv(
@@ -182,8 +182,8 @@ container BAG
 			
 			unit<uint32> buurt := RegioUnit_Buurt
 			{
-				attribute<float64>  x_mean    := mean(pointcol(../geometry), buurt_rel);
-				attribute<float64>  y_mean    := mean(pointrow(../geometry), buurt_rel);
+				attribute<float64>  x_mean    := mean(pointrow(../geometry), buurt_rel);
+				attribute<float64>  y_mean    := mean(pointcol(../geometry), buurt_rel);
 				attribute<rdc>      centroid0 := point(x_mean, y_mean, rdc);
 				
 				//controles
@@ -198,8 +198,8 @@ container BAG
 			
 			unit<uint32> wijk := RegioUnit_Wijk
 			{
-				attribute<float64>  x_mean := mean(pointcol(../geometry), wijk_rel);
-				attribute<float64>  y_mean := mean(pointrow(../geometry), wijk_rel);
+				attribute<float64>  x_mean := mean(pointrow(../geometry), wijk_rel);
+				attribute<float64>  y_mean := mean(pointcol(../geometry), wijk_rel);
 				attribute<rdc>      centroid0 := point(x_mean, y_mean, rdc);
 				
 				//controles
@@ -214,8 +214,8 @@ container BAG
 			
 			unit<uint32> gemeente := RegioUnit_Gemeente
 			{
-				attribute<float64>  x_mean := mean(pointcol(../geometry), gemeente_rel);
-				attribute<float64>  y_mean := mean(pointrow(../geometry), gemeente_rel);
+				attribute<float64>  x_mean := mean(pointrow(../geometry), gemeente_rel);
+				attribute<float64>  y_mean := mean(pointcol(../geometry), gemeente_rel);
 				attribute<rdc>      centroid0 := point(x_mean, y_mean, rdc);
 				
 				//controles
@@ -230,15 +230,15 @@ container BAG
 			
 			unit<uint32> pc4_uq := unique(postcode4)
 			{
-				attribute<float64>  x_mean   := mean(pointcol(../geometry), PC4_uq_rel);
-				attribute<float64>  y_mean   := mean(pointrow(../geometry), PC4_uq_rel);
+				attribute<float64>  x_mean   := mean(pointrow(../geometry), PC4_uq_rel);
+				attribute<float64>  y_mean   := mean(pointcol(../geometry), PC4_uq_rel);
 				attribute<rdc>      geometry := point(x_mean, y_mean, rdc);
 				attribute<string>   PC4      := values;
 			}
 			
 			unit<uint32> PC4_centroids := select_with_attr_by_cond(pc4_uq, IsDefined(pc4_uq/geometry) && pc4_uq/PC4 != '')
 			{
-				attribute<rdc>      point    := geometry;
+				attribute<rdc>      centroid    := geometry;
 				attribute<string>   name     := PC4;
 				
 				unit<uint32> sub1 := select_with_attr_by_cond(., name == '8891')
@@ -248,15 +248,15 @@ container BAG
 			
 			unit<uint32> pc6_uq := unique(postcode)
 			{
-				attribute<float64>  x_mean   := mean(pointcol(../geometry), PC6_uq_rel);
-				attribute<float64>  y_mean   := mean(pointrow(../geometry), PC6_uq_rel);
+				attribute<float64>  x_mean   := mean(pointrow(../geometry), PC6_uq_rel);
+				attribute<float64>  y_mean   := mean(pointcol(../geometry), PC6_uq_rel);
 				attribute<rdc>      geometry := point(x_mean, y_mean, rdc);
 				attribute<string>   PC6      := values;
 			}
 			
 			unit<uint32> PC6_centroids := select_with_attr_by_cond(pc6_uq, IsDefined(pc6_uq/geometry) && pc6_uq/PC6 != '')
 			{
-				attribute<rdc>      point    := geometry;
+				attribute<rdc>      centroid    := geometry;
 				attribute<string>   name     := PC6;
 			}
 		}

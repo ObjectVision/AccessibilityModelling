@@ -30,11 +30,11 @@ container RegionalUnits : using = "geometries"
 	}
 	
 	
-	unit<uint32>  Buurt := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/cbs_buurt_'+Regio_jaar+gegeneraliseerd_str
+	unit<uint32>  Buurt := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/buurt'+gegeneraliseerd_str
 	{
-		attribute<rdc>       geometry (poly)         := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/cbs_buurt_'+Regio_jaar+''+gegeneraliseerd_str+'/geometry';
-		attribute<string>    statcode                := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/cbs_buurt_'+Regio_jaar+''+gegeneraliseerd_str+'/statcode';
-		attribute<string>    statnaam                := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/cbs_buurt_'+Regio_jaar+''+gegeneraliseerd_str+'/statnaam';
+		attribute<rdc>       geometry (poly)         := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/buurt'+gegeneraliseerd_str+'/geometry';
+		attribute<string>    statcode                := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/buurt'+gegeneraliseerd_str+'/statcode';
+		attribute<string>    statnaam                := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/buurt'+gegeneraliseerd_str+'/statnaam';
 		attribute<string>    name                    := AsItemName(statnaam);
 		attribute<string>    label                   := statnaam;
 		attribute<.>         per_rdc_100m (rdc_100m) := poly2grid(Geometry, rdc_100m);
@@ -108,11 +108,11 @@ container RegionalUnits : using = "geometries"
 			);
 	}
 	
-	unit<uint32>  Wijk := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/cbs_wijk_'+Regio_jaar+''+gegeneraliseerd_str+'' 
+	unit<uint32>  Wijk := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/wijk'+gegeneraliseerd_str+'' 
 	{
-		attribute<rdc>       geometry (poly)         := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/cbs_wijk_'+Regio_jaar+''+gegeneraliseerd_str+'/geometry';
-		attribute<string>    statcode                := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/cbs_wijk_'+Regio_jaar+''+gegeneraliseerd_str+'/statcode';
-		attribute<string>    statnaam                := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/cbs_wijk_'+Regio_jaar+''+gegeneraliseerd_str+'/statnaam';
+		attribute<rdc>       geometry (poly)         := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/wijk'+gegeneraliseerd_str+'/geometry';
+		attribute<string>    statcode                := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/wijk'+gegeneraliseerd_str+'/statcode';
+		attribute<string>    statnaam                := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/wijk'+gegeneraliseerd_str+'/statnaam';
 		attribute<string>    name                    := AsItemName(statnaam);
 		attribute<string>    label                   := statnaam;
 		// attribute<.>         per_rdc_100m (rdc_100m) := poly2grid(Geometry, rdc_100m);
@@ -175,11 +175,11 @@ container RegionalUnits : using = "geometries"
 			);
 	}
 	
-	unit<uint32>  Gemeente := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/cbs_gemeente_'+Regio_jaar+''+gegeneraliseerd_str+'' 
+	unit<uint32>  Gemeente := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/gemeente'+gegeneraliseerd_str+'' 
 	{
-		attribute<rdc>       geometry (poly)         := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/cbs_gemeente_'+Regio_jaar+''+gegeneraliseerd_str+'/geometry';
-		attribute<string>    statcode                := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/cbs_gemeente_'+Regio_jaar+''+gegeneraliseerd_str+'/statcode';
-		attribute<string>    statnaam                := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/cbs_gemeente_'+Regio_jaar+''+gegeneraliseerd_str+'/statnaam';
+		attribute<rdc>       geometry (poly)         := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/gemeente'+gegeneraliseerd_str+'/geometry';
+		attribute<string>    statcode                := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/gemeente'+gegeneraliseerd_str+'/statcode';
+		attribute<string>    statnaam                := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/gemeente'+gegeneraliseerd_str+'/statnaam';
 		attribute<string>    name                    := AsItemName(statnaam);
 		attribute<string>    label                   := statnaam;
 		// attribute<.>         per_rdc_100m (rdc_100m) := poly2grid(Geometry, rdc_100m);
@@ -242,11 +242,11 @@ container RegionalUnits : using = "geometries"
 			);
 	}
 	
-	unit<uint32>  Corop := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/cbs_coropgebied_'+Regio_jaar+'_gegeneraliseerd' 
+	unit<uint32>  Corop := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/coropgebied_gegeneraliseerd' 
 	{
-		attribute<rdc>       geometry (poly)         := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/cbs_coropgebied_'+Regio_jaar+'_gegeneraliseerd/geometry';
-		attribute<string>    statcode                := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/cbs_coropgebied_'+Regio_jaar+'_gegeneraliseerd/statcode';
-		attribute<string>    statnaam                := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/cbs_coropgebied_'+Regio_jaar+'_gegeneraliseerd/statnaam';
+		attribute<rdc>       geometry (poly)         := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/coropgebied_gegeneraliseerd/geometry';
+		attribute<string>    statcode                := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/coropgebied_gegeneraliseerd/statcode';
+		attribute<string>    statnaam                := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/coropgebied_gegeneraliseerd/statnaam';
 		attribute<string>    name                    := AsItemName(statnaam);
 		attribute<string>    label                   := statnaam;
 		attribute<.>         per_rdc_100m (rdc_100m) := poly2grid(Geometry, rdc_100m);
@@ -256,11 +256,11 @@ container RegionalUnits : using = "geometries"
 		container V := for_each_nedv(name, 'value('+string(id(.))+', ..)', void, .);
 	}
 	
-	unit<uint32>  Provincie := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/cbs_provincie_'+Regio_jaar+'_gegeneraliseerd' 
+	unit<uint32>  Provincie := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/provincie_gegeneraliseerd' 
 	{
-		attribute<rdc>       geometry (poly)         := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/cbs_provincie_'+Regio_jaar+'_gegeneraliseerd/geometry';
-		attribute<string>    statcode                := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/cbs_provincie_'+Regio_jaar+'_gegeneraliseerd/statcode';
-		attribute<string>    statnaam                := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/cbs_provincie_'+Regio_jaar+'_gegeneraliseerd/statnaam';
+		attribute<rdc>       geometry (poly)         := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/provincie_gegeneraliseerd/geometry';
+		attribute<string>    statcode                := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/provincie_gegeneraliseerd/statcode';
+		attribute<string>    statnaam                := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/provincie_gegeneraliseerd/statnaam';
 		attribute<string>    name                    := AsItemName(statnaam);
 		attribute<string>    label                   := statnaam;
 		attribute<.>         per_rdc_100m (rdc_100m) := poly2grid(Geometry, rdc_100m);
@@ -278,6 +278,9 @@ container RegionalUnits : using = "geometries"
 		attribute<ipoint>            Nederland_10kbuffer_int  (poly) := polygon_i4D_d4D(geometry[ipoint], 20000d, 10000d);
 		attribute<geometries/rdc>    Nederland_10kbuffer      (poly) := Nederland_10kbuffer_int[geometries/rdc];
 	}
+	
+	unit<uint32> PC4 := /SourceData/BAG/Adressen/Woon_Voorraad/PC4_centroids;
+	unit<uint32> PC6 := /SourceData/BAG/Adressen/Woon_Voorraad/PC6_centroids;
 	
 	unit<uint32> Buitenland : nrofrows = 1
 	{
