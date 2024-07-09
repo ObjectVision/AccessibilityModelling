@@ -1,0 +1,28 @@
+Template Merge_Regions_PedestrianBike_T
+{
+	parameter<string> Dest_str;
+	parameter<string> netwerk_type_OSM;
+	//
+	parameter<string> MaxTravelTime := ='string(ModelParameters/Max'+netwerk_type_OSM+'Time_Org2Dest)';
+	
+	unit<uint32> Merged := ='union_unit('+AsItemList('Read/'+Advanced/Regio/name+'/domain')+')'
+	{
+		attribute<string> OrgName             := ='union_data(.,'+AsItemList('Read/'+Advanced/Regio/name+'/data/Org')+')';
+		attribute<string> DestName            := ='union_data(.,'+AsItemList('Read/'+Advanced/Regio/name+'/data/Dst')+')';
+		attribute<string> Freeflow            := ='union_data(.,'+AsItemList('Read/'+Advanced/Regio/name+'/data/Freeflow')+')';
+	}
+	
+	attribute<string> BodyLines (Merged) :=
+		Merged/OrgName + ';' + 
+		Merged/DestName + ';' +
+		Merged/Freeflow;
+	parameter<string> File := 'Org;Dst;Freeflow\n'++AsList(BodyLines, '\n')
+		, StorageName = "=fileNamePrefix+'Traveltimes'+fileNameSuffix+'.csv'", StorageType = "str";
+	
+	parameter<string> fileNamePrefix :=  '%LocalDataProjDir%/Output/';  //Locatie waar output files moeten worden opgeslagen.
+	parameter<string> fileNameSuffix :=  
+		'_ORG-' + Orgset + 
+		'_DEST-'   + Dest_str +
+		'_NETWERK-'+ netwerk_type_OSM + 
+		'_MaxTime-' + MaxTravelTime+'min';
+}

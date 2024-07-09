@@ -1,15 +1,21 @@
 container RegionalUnits : using = "geometries"
 { 	
-	parameter<string> Regio_jaar          := ModelParameters/RegioIndelingen_jaar;
-	parameter<bool>   IsGeneraliseerd     := rjoin(Regio_jaar, Gebiedsindelingen_jaren/name, Gebiedsindelingen_jaren/IsGeneraliseerd);
-	parameter<string> gegeneraliseerd_str := IsGeneraliseerd ? '_gegeneraliseerd' : '_niet_gegeneraliseerd';
+	parameter<string> Regio_jaar          := ModelParameters/Advanced/RegioIndelingen_jaar;
 	
-	unit<uint32> Gebiedsindelingen_jaren := range(uint32, 2021, 2024)
+	unit<uint32> Gebiedsindelingen_jaren := range(uint32, 2020, 2024)
 	{
 		attribute<uint32> jaar            := id(.);
 		attribute<string> name            := 'Y'+string(jaar);
-		attribute<bool>   IsGeneraliseerd := jaar >= 2019;
+		attribute<bool>   IsGeneraliseerd := jaar < 2019;
+		attribute<string> Pad_str         := jaar < 2020 
+												? replace(Naam_voor_2020_str, 'YYYY', string(jaar), 'GG', IsGeneraliseerd ? '_gegeneraliseerd' : '_niet_gegeneraliseerd') 
+												: replace(Naam_vanaf_2020_str, 'YYYY', string(jaar), 'GG', IsGeneraliseerd ? '_gegeneraliseerd' : '_niet_gegeneraliseerd');
+		attribute<string> Pad_Gegen_str   := jaar < 2020 ? replace(Naam_voor_2020_str, 'YYYY', string(jaar), 'GG', '_gegeneraliseerd') : replace(Naam_vanaf_2020_str, 'GG', '_gegeneraliseerd') ;
+		
+		parameter<string> Naam_voor_2020_str  := 'cbs_@R@_YYYYGG';
+		parameter<string> Naam_vanaf_2020_str := '@R@GG';
 	}
+
 	container Gebiedsindelingen :=
 		for_each_ne(
 			Gebiedsindelingen_jaren/name
@@ -30,25 +36,25 @@ container RegionalUnits : using = "geometries"
 	}
 	
 	
-	unit<uint32>  Buurt := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/buurt'+gegeneraliseerd_str
+	unit<uint32>  Buurt := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/'+replace(rjoin(Regio_jaar, string(Gebiedsindelingen_jaren/jaar), Gebiedsindelingen_jaren/Pad_str), '@R@', 'buurt')
 	{
-		attribute<rdc>       geometry (poly)         := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/buurt'+gegeneraliseerd_str+'/geometry';
-		attribute<string>    statcode                := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/buurt'+gegeneraliseerd_str+'/statcode';
-		attribute<string>    statnaam                := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/buurt'+gegeneraliseerd_str+'/statnaam';
+		attribute<rdc>       geometry (poly)         := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/'+replace(rjoin(Regio_jaar, string(Gebiedsindelingen_jaren/jaar), Gebiedsindelingen_jaren/Pad_str), '@R@', 'buurt')+'/geometry';
+		attribute<string>    statcode                := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/'+replace(rjoin(Regio_jaar, string(Gebiedsindelingen_jaren/jaar), Gebiedsindelingen_jaren/Pad_str), '@R@', 'buurt')+'/statcode';
+		attribute<string>    statnaam                := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/'+replace(rjoin(Regio_jaar, string(Gebiedsindelingen_jaren/jaar), Gebiedsindelingen_jaren/Pad_str), '@R@', 'buurt')+'/statnaam';
 		attribute<string>    name                    := AsItemName(statnaam);
 		attribute<string>    label                   := statnaam;
 		attribute<.>         per_rdc_100m (rdc_100m) := poly2grid(Geometry, rdc_100m);
-		attribute<uint32>    nr_Inwoners             := sum(/SourceData/Locaties/Inwoners/nr_inwoners,point_in_polygon(/SourceData/Locaties/Inwoners/centroid, geometry));
-		attribute<uint32>    nr_banen                := ='sum(uint32(/SourceData/Locaties/LISA/ReadFSS/y'+/ModelParameters/LISA_jaar+'/PerYear/banen), point_in_polygon(/SourceData/Locaties/LISA/ReadFSS/y'+/ModelParameters/LISA_jaar+'/PerYear/Geometry, geometry))';
+		// attribute<uint32>    nr_Inwoners             := sum(/SourceData/Locaties/Inwoners/nr_inwoners,point_in_polygon(/SourceData/Locaties/Inwoners/centroid, geometry));
+		// attribute<uint32>    nr_banen                := ='sum(uint32(/SourceData/Locaties/LISA/ReadFSS/y'+ModelParameters/Advanced/LISA_jaar+'/PerYear/banen), point_in_polygon(/SourceData/Locaties/LISA/ReadFSS/y'+/ModelParameters/Advanced/LISA_jaar+'/PerYear/Geometry, geometry))';
 		
 		container V := for_each_nedv(name, 'value('+string(id(.))+', ..)', void, .);
 		
 		attribute<rdc>          address_weighted_centroid    := SourceData/BAG/Adressen/Woon_Voorraad/Buurt/centroid;
-		attribute<rdc>          population_weighted_centroid := CalcPopCentroids/geometry;
+		// attribute<rdc>          population_weighted_centroid := CalcPopCentroids/geometry;
 		attribute<rdc>          centroid                     := =ModelParameters/CentroidWeightType == 'Population' ? 'population_weighted_centroid' : 'address_weighted_centroid';
 		attribute<centroiden>   centroiden_rel               := rlookup(centroid, centroiden/geometry);
 		
-		unit<uint32> CalcPopCentroids := .
+/* 		unit<uint32> CalcPopCentroids := .
 		{
 			attribute<float32> W                   := sum(Population/pop, Population/regio_rel);
 			
@@ -80,14 +86,14 @@ container RegionalUnits : using = "geometries"
 				
 			}
 		}
-		
+ */		
 		unit<uint32> centroiden := unique(centroid)
 		{
 			attribute<geometries/rdc>   geometry     := values;
 			attribute<string>           name         := ../statcode[invert(Centroiden_rel)];
 			attribute<string>           label        := ../statnaam[invert(Centroiden_rel)];
-			attribute<uint32>           nr_Inwoners  := ../nr_Inwoners[invert(Centroiden_rel)];
-			attribute<uint32>           nr_banen     := ../nr_banen[invert(Centroiden_rel)];
+			// attribute<uint32>           nr_Inwoners  := ../nr_Inwoners[invert(Centroiden_rel)];
+			// attribute<uint32>           nr_banen     := ../nr_banen[invert(Centroiden_rel)];
 			attribute<Provincie>        prov_rel     := point_in_polygon(geometry, Provincie/geometry);
 			attribute<Corop>            corop_rel    := point_in_polygon(geometry, Corop/geometry);
 			container V := for_each_nedv(AsItemName(label), 'value('+string(id(.))+', ..)', void, .);
@@ -108,16 +114,13 @@ container RegionalUnits : using = "geometries"
 			);
 	}
 	
-	unit<uint32>  Wijk := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/wijk'+gegeneraliseerd_str+'' 
+	unit<uint32>  Wijk := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/'+replace(rjoin(Regio_jaar, string(Gebiedsindelingen_jaren/jaar), Gebiedsindelingen_jaren/Pad_str), '@R@', 'wijk')
 	{
-		attribute<rdc>       geometry (poly)         := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/wijk'+gegeneraliseerd_str+'/geometry';
-		attribute<string>    statcode                := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/wijk'+gegeneraliseerd_str+'/statcode';
-		attribute<string>    statnaam                := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/wijk'+gegeneraliseerd_str+'/statnaam';
+		attribute<rdc>       geometry (poly)         := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/'+replace(rjoin(Regio_jaar, string(Gebiedsindelingen_jaren/jaar), Gebiedsindelingen_jaren/Pad_str), '@R@', 'wijk')+'/geometry';
+		attribute<string>    statcode                := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/'+replace(rjoin(Regio_jaar, string(Gebiedsindelingen_jaren/jaar), Gebiedsindelingen_jaren/Pad_str), '@R@', 'wijk')+'/statcode';
+		attribute<string>    statnaam                := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/'+replace(rjoin(Regio_jaar, string(Gebiedsindelingen_jaren/jaar), Gebiedsindelingen_jaren/Pad_str), '@R@', 'wijk')+'/statnaam';
 		attribute<string>    name                    := AsItemName(statnaam);
 		attribute<string>    label                   := statnaam;
-		// attribute<.>         per_rdc_100m (rdc_100m) := poly2grid(Geometry, rdc_100m);
-		// attribute<uint32>    nr_Inwoners             := sum(/SourceData/Locaties/Inwoners/nr_inwoners,point_in_polygon(/SourceData/Locaties/Inwoners/centroid, geometry));
-		// attribute<uint32>    nr_banen                := ='sum(uint32(/SourceData/Locaties/LISA/ReadFSS/y'+/ModelParameters/LISA_jaar+'/PerYear/banen), point_in_polygon(/SourceData/Locaties/LISA/ReadFSS/y'+/ModelParameters/LISA_jaar+'/PerYear/Geometry, geometry))';
 		
 		container V := for_each_nedv(name, 'value('+string(id(.))+', ..)', void, .);
 		
@@ -175,15 +178,15 @@ container RegionalUnits : using = "geometries"
 			);
 	}
 	
-	unit<uint32>  Gemeente := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/gemeente'+gegeneraliseerd_str+'' 
+	unit<uint32>  Gemeente := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/'+replace(rjoin(Regio_jaar, string(Gebiedsindelingen_jaren/jaar), Gebiedsindelingen_jaren/Pad_str), '@R@', 'gemeente')
 	{
-		attribute<rdc>       geometry (poly)         := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/gemeente'+gegeneraliseerd_str+'/geometry';
-		attribute<string>    statcode                := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/gemeente'+gegeneraliseerd_str+'/statcode';
-		attribute<string>    statnaam                := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/gemeente'+gegeneraliseerd_str+'/statnaam';
+		attribute<rdc>       geometry (poly)         := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/'+replace(rjoin(Regio_jaar, string(Gebiedsindelingen_jaren/jaar), Gebiedsindelingen_jaren/Pad_str), '@R@', 'gemeente')+'/geometry';
+		attribute<string>    statcode                := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/'+replace(rjoin(Regio_jaar, string(Gebiedsindelingen_jaren/jaar), Gebiedsindelingen_jaren/Pad_str), '@R@', 'gemeente')+'/statcode';
+		attribute<string>    statnaam                := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/'+replace(rjoin(Regio_jaar, string(Gebiedsindelingen_jaren/jaar), Gebiedsindelingen_jaren/Pad_str), '@R@', 'gemeente')+'/statnaam';
 		attribute<string>    name                    := AsItemName(statnaam);
 		attribute<string>    label                   := statnaam;
 		// attribute<.>         per_rdc_100m (rdc_100m) := poly2grid(Geometry, rdc_100m);
-		attribute<uint32>    nr_Inwoners             := sum(/SourceData/Locaties/Inwoners/nr_inwoners,point_in_polygon(/SourceData/Locaties/Inwoners/centroid, geometry));
+		// attribute<uint32>    nr_Inwoners             := sum(/SourceData/Locaties/Inwoners/nr_inwoners,point_in_polygon(/SourceData/Locaties/Inwoners/centroid, geometry));
 		// attribute<uint32>    nr_banen                := ='sum(uint32(/SourceData/Locaties/LISA/ReadFSS/y'+/ModelParameters/LISA_jaar+'/PerYear/banen), point_in_polygon(/SourceData/Locaties/LISA/ReadFSS/y'+/ModelParameters/LISA_jaar+'/PerYear/Geometry, geometry))';
 
 		container V := for_each_nedv(name, 'value('+string(id(.))+', ..)', void, .);
@@ -193,7 +196,7 @@ container RegionalUnits : using = "geometries"
 		attribute<rdc>          centroid                     := =ModelParameters/CentroidWeightType == 'Population' ? 'population_weighted_centroid' : 'address_weighted_centroid';
 		attribute<centroiden>   centroiden_rel               := rlookup(centroid, centroiden/geometry);
 		
-		unit<uint32> CalcPopCentroids := .
+/* 		unit<uint32> CalcPopCentroids := .
 		{
 			attribute<float32> W          := sum(Population/pop, Population/regio_rel);
 			
@@ -217,18 +220,21 @@ container RegionalUnits : using = "geometries"
 				
 			}
 		}
-		
+ */		
 		unit<uint32> centroiden := unique(centroid)
 		{
 			attribute<geometries/rdc>   geometry     := values;
 			attribute<string>           name         := ../statcode[invert(Centroiden_rel)];
 			attribute<string>           label        := ../statnaam[invert(Centroiden_rel)];
-			attribute<uint32>           nr_Inwoners  := ../nr_Inwoners[invert(Centroiden_rel)];
-			attribute<uint32>           nr_banen     := ../nr_banen[invert(Centroiden_rel)];
+			// attribute<uint32>           nr_Inwoners  := ../nr_Inwoners[invert(Centroiden_rel)];
+			// attribute<uint32>           nr_banen     := ../nr_banen[invert(Centroiden_rel)];
 			attribute<Provincie>        prov_rel     := point_in_polygon(geometry, Provincie/geometry);
 			attribute<Corop>            corop_rel    := point_in_polygon(geometry, Corop/geometry);
 			container V := for_each_nedv(AsItemName(label), 'value('+string(id(.))+', ..)', void, .);
+			container V_Code := for_each_nedv(AsItemName(name), 'value('+string(id(.))+', ..)', void, .);
 		}
+		
+		unit<uint32> Enkele_Gemeente := ='select_with_attr_by_cond(centroiden, id(centroiden) == centroiden/V_Code/'+ModelParameters/Orgset_EnkeleGem_selectie+')';
 		
 		container Per_Prov := 
 			for_each_ne(
@@ -242,11 +248,11 @@ container RegionalUnits : using = "geometries"
 			);
 	}
 	
-	unit<uint32>  Corop := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/coropgebied_gegeneraliseerd' 
+	unit<uint32>  Corop := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/'+replace(rjoin(Regio_jaar, string(Gebiedsindelingen_jaren/jaar), Gebiedsindelingen_jaren/Pad_Gegen_str), '@R@', 'coropgebied')+'' 
 	{
-		attribute<rdc>       geometry (poly)         := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/coropgebied_gegeneraliseerd/geometry';
-		attribute<string>    statcode                := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/coropgebied_gegeneraliseerd/statcode';
-		attribute<string>    statnaam                := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/coropgebied_gegeneraliseerd/statnaam';
+		attribute<rdc>       geometry (poly)         := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/'+replace(rjoin(Regio_jaar, string(Gebiedsindelingen_jaren/jaar), Gebiedsindelingen_jaren/Pad_Gegen_str), '@R@', 'coropgebied')+'/geometry';
+		attribute<string>    statcode                := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/'+replace(rjoin(Regio_jaar, string(Gebiedsindelingen_jaren/jaar), Gebiedsindelingen_jaren/Pad_Gegen_str), '@R@', 'coropgebied')+'/statcode';
+		attribute<string>    statnaam                := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/'+replace(rjoin(Regio_jaar, string(Gebiedsindelingen_jaren/jaar), Gebiedsindelingen_jaren/Pad_Gegen_str), '@R@', 'coropgebied')+'/statnaam';
 		attribute<string>    name                    := AsItemName(statnaam);
 		attribute<string>    label                   := statnaam;
 		attribute<.>         per_rdc_100m (rdc_100m) := poly2grid(Geometry, rdc_100m);
@@ -256,11 +262,11 @@ container RegionalUnits : using = "geometries"
 		container V := for_each_nedv(name, 'value('+string(id(.))+', ..)', void, .);
 	}
 	
-	unit<uint32>  Provincie := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/provincie_gegeneraliseerd' 
+	unit<uint32>  Provincie := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/'+replace(rjoin(Regio_jaar, string(Gebiedsindelingen_jaren/jaar), Gebiedsindelingen_jaren/Pad_Gegen_str), '@R@', 'provincie')+'' 
 	{
-		attribute<rdc>       geometry (poly)         := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/provincie_gegeneraliseerd/geometry';
-		attribute<string>    statcode                := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/provincie_gegeneraliseerd/statcode';
-		attribute<string>    statnaam                := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/provincie_gegeneraliseerd/statnaam';
+		attribute<rdc>       geometry (poly)         := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/'+replace(rjoin(Regio_jaar, string(Gebiedsindelingen_jaren/jaar), Gebiedsindelingen_jaren/Pad_Gegen_str), '@R@', 'provincie')+'/geometry';
+		attribute<string>    statcode                := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/'+replace(rjoin(Regio_jaar, string(Gebiedsindelingen_jaren/jaar), Gebiedsindelingen_jaren/Pad_Gegen_str), '@R@', 'provincie')+'/statcode';
+		attribute<string>    statnaam                := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/'+replace(rjoin(Regio_jaar, string(Gebiedsindelingen_jaren/jaar), Gebiedsindelingen_jaren/Pad_Gegen_str), '@R@', 'provincie')+'/statnaam';
 		attribute<string>    name                    := AsItemName(statnaam);
 		attribute<string>    label                   := statnaam;
 		attribute<.>         per_rdc_100m (rdc_100m) := poly2grid(Geometry, rdc_100m);

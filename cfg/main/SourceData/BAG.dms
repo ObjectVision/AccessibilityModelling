@@ -5,7 +5,7 @@ container BAG
 	unit<uint32> RegioUnit_Wijk     := /SourceData/RegionalUnits/Wijk;
 	unit<uint32> RegioUnit_Gemeente := /SourceData/RegionalUnits/Gemeente;
 	
-	parameter<uint32> BAG_jaar      := ModelParameters/BAG_jaar;
+	parameter<uint32> BAG_jaar      := uint32(ModelParameters/Advanced/BAG_jaar);
 	
 	container VBOs
 	{
@@ -66,82 +66,81 @@ container BAG
 				attribute<rdc>                 geometry                             := geometry_mm[rdc];
 				attribute<string>              identificatie                        := org_rel -> identificatie;
 				attribute<string>              nummeraanduiding_id                  := org_rel -> nummeraanduiding_id;
-				attribute<panden/pand>         pand_rel                             := org_rel -> src/pand_rel;
+				// attribute<panden/pand>         pand_rel                             := org_rel -> src/pand_rel;
 			}
 		}
 	}
 	
-	container Panden
-	{
-		unit<uint32> import: StorageName = "= SnapshotDir+'/pand.fss'",	StorageReadOnly = "True"
-		{
-			attribute<rdc_mm> geometry_mm (polygon) ;
-			attribute<string> identificatie;
-			attribute<int16>  bouwjaar;
-			attribute<WPSrc>  woonpand_type;
-			attribute<string> status;
-		}
+	// container Panden
+	// {
+		// unit<uint32> import: StorageName = "= SnapshotDir+'/pand.fss'",	StorageReadOnly = "True"
+		// {
+			// attribute<rdc_mm> geometry_mm (polygon) ;
+			// attribute<string> identificatie;
+			// attribute<int16>  bouwjaar;
+			// attribute<WPSrc>  woonpand_type;
+			// attribute<string> status;
+		// }
 		
-		unit<uint32> src := import
-		{
-			attribute<rdc_mm> geometry_mm (polygon) := import/geometry_mm;
-			attribute<rdc> geometry (polygon) := geometry_mm[rdc];
-			attribute<string> identificatie := import/identificatie;
-			attribute<uint64> bag_nr := uint64(identificatie);
-			attribute<int16> bouwjaar := import/bouwjaar;
-			attribute<int16> bouwjaar_trunc := bouwjaar < 1000s || bouwjaar > BAG_jaar[int16] ? (0/0)[int16] : bouwjaar < 1600s ? 1600s : bouwjaar;
-			attribute<WPSrc> woonpand_type := import/woonpand_type;
-			attribute<WPSrc> WPSrc_rel := woonpand_type;
-			attribute<rdc_mm> NW := lower_bound(src/geometry_mm);
-			attribute<rdc_mm> SE := upper_bound(src/geometry_mm);
-			attribute<int32> X_ext := PointCol(SE) - PointCol(NW);
-			attribute<int32> Y_ext := PointRow(SE) - PointRow(NW);
-			attribute<string> status := import/status;
-			attribute<pand_status> status_rel := rlookup(status, pand_status/label);
-			attribute<bool> Pand_selection_condition (src) := src/X_ext < 1000000i && src/Y_ext < 1000000i
-				&& (src/status_rel == pand_status/V/Pand_in_gebruik
-					|| src/status_rel == pand_status/V/Pand_in_gebruik_niet_ingemeten
-					|| src/status_rel == pand_status/V/Pand_buiten_gebruik
-					|| src/status_rel == pand_status/V/Verbouwing_pand);
-		}
+		// unit<uint32> src := import
+		// {
+			// attribute<rdc_mm> geometry_mm (polygon) := import/geometry_mm;
+			// attribute<rdc> geometry (polygon) := geometry_mm[rdc];
+			// attribute<string> identificatie := import/identificatie;
+			// attribute<uint64> bag_nr := uint64(identificatie);
+			// attribute<int16> bouwjaar := import/bouwjaar;
+			// attribute<int16> bouwjaar_trunc := bouwjaar < 1000s || bouwjaar > BAG_jaar[int16] ? (0/0)[int16] : bouwjaar < 1600s ? 1600s : bouwjaar;
+			// attribute<WPSrc> woonpand_type := import/woonpand_type;
+			// attribute<WPSrc> WPSrc_rel := woonpand_type;
+			// attribute<rdc_mm> NW := lower_bound(src/geometry_mm);
+			// attribute<rdc_mm> SE := upper_bound(src/geometry_mm);
+			// attribute<int32> X_ext := PointCol(SE) - PointCol(NW);
+			// attribute<int32> Y_ext := PointRow(SE) - PointRow(NW);
+			// attribute<string> status := import/status;
+			// attribute<pand_status> status_rel := rlookup(status, pand_status/label);
+			// attribute<bool> Pand_selection_condition (src) := src/X_ext < 1000000i && src/Y_ext < 1000000i
+				// && (src/status_rel == pand_status/V/Pand_in_gebruik
+					// || src/status_rel == pand_status/V/Pand_in_gebruik_niet_ingemeten
+					// || src/status_rel == pand_status/V/Pand_buiten_gebruik
+					// || src/status_rel == pand_status/V/Verbouwing_pand);
+		// }
 	
-		unit<uint32> pand := select_with_attr_by_cond(src, src/Pand_selection_condition)
-		{
-			unit<uint32>                  vbo_woon_domein      := VBOs/GebruiksdoelSets/woon/GebruiksdoelSet;
-			attribute<string>             pand_id                  := identificatie;
-			attribute<rdc>                pand_centroid            := centroid_or_mid(geometry);
-			attribute<uint32>             count_vbo_pand_woon      := pcount(vbo_woon_domein/pand_rel); //pand_woon_vbo_rel
+		// unit<uint32> pand := select_with_attr_by_cond(src, src/Pand_selection_condition)
+		// {
+			// unit<uint32>                  vbo_woon_domein      := VBOs/GebruiksdoelSets/woon/GebruiksdoelSet;
+			// attribute<string>             pand_id                  := identificatie;
+			// attribute<rdc>                pand_centroid            := centroid_or_mid(geometry);
+			// attribute<uint32>             count_vbo_pand_woon      := pcount(vbo_woon_domein/pand_rel); //pand_woon_vbo_rel
 			
-			unit<uint32> pand_woon_vbo := select_with_org_rel(pand/count_vbo_pand_woon > 0)
-			{
-				attribute<rdc_mm>          geometry_mm (polygon)    := org_rel -> pand/geometry_mm;
-				attribute<rdc>             geometry                 := org_rel -> pand_centroid;
+			// unit<uint32> pand_woon_vbo := select_with_org_rel(pand/count_vbo_pand_woon > 0)
+			// {
+				// attribute<rdc_mm>          geometry_mm (polygon)    := org_rel -> pand/geometry_mm;
+				// attribute<rdc>             geometry                 := org_rel -> pand_centroid;
 				
-				attribute<uint32>          count_vbo_pand_woon      := org_rel -> count_vbo_pand_woon;
-				attribute<string>          name                     := org_rel -> pand_id;
+				// attribute<uint32>          count_vbo_pand_woon      := org_rel -> count_vbo_pand_woon;
+				// attribute<string>          name                     := org_rel -> pand_id;
 	
-				unit<spoint> domain := ='rdc_'+Gridsize;
+				// unit<spoint> domain := ='rdc_'+Gridsize;
 				
-				attribute<domain>                domain_rel                      := geometry[domain];
-				attribute<uint32>                Count_per_domain       (domain) := count(count_vbo_pand_woon[uint32], domain_rel);
-				attribute<uint32>                Count_IsPositive       (domain) := Count_per_domain > 0 ? Count_per_domain : (0/0);
+				// attribute<domain>                domain_rel                      := geometry[domain];
+				// attribute<uint32>                Count_per_domain       (domain) := count(count_vbo_pand_woon[uint32], domain_rel);
+				// attribute<uint32>                Count_IsPositive       (domain) := Count_per_domain > 0 ? Count_per_domain : (0/0);
 				
-				parameter<string>                Gridsize                        := ModelParameters/Advanced/Dest_location_scale;
+				// parameter<string>                Gridsize                        := ModelParameters/Advanced/Dest_location_scale;
 				
-				unit<uint32> HeeftPanden := select_with_attr_by_org_rel(.,Count_IsPositive > 0)
-				{
-					attribute<rdc>    geometry            := domain/point[org_rel];
-					attribute<uint32> identificatie       := id(.);
-					attribute<string> id_name             := 'PandBlok_' + string(identificatie);
-					attribute<string> label               := id_name;
-					attribute<string> name                := id_name;
-					attribute<uint32> nr_panden           := Count_per_domain;
-				} 
+				// unit<uint32> HeeftPanden := select_with_attr_by_org_rel(.,Count_IsPositive > 0)
+				// {
+					// attribute<rdc>    geometry            := domain/point[org_rel];
+					// attribute<uint32> identificatie       := id(.);
+					// attribute<string> id_name             := 'PandBlok_' + string(identificatie);
+					// attribute<string> label               := id_name;
+					// attribute<string> name                := id_name;
+					// attribute<uint32> nr_panden           := Count_per_domain;
+				// } 
 				
-			}
-		}
-
-	}	
+			// }
+		// }
+	// }	
 	
 	container Adressen
 	{	
@@ -182,9 +181,9 @@ container BAG
 			
 			unit<uint32> buurt := RegioUnit_Buurt
 			{
-				attribute<float64>  x_mean    := mean(pointrow(../geometry), buurt_rel);
-				attribute<float64>  y_mean    := mean(pointcol(../geometry), buurt_rel);
-				attribute<rdc>      centroid0 := point(x_mean, y_mean, rdc);
+				attribute<float32>  x_mean    := mean(pointrow(../geometry), buurt_rel);
+				attribute<float32>  y_mean    := mean(pointcol(../geometry), buurt_rel);
+				attribute<rdc>      centroid0 := point_xy(x_mean, y_mean, rdc);
 				
 				//controles
 				attribute<.>        poly_rel             := point_in_polygon(centroid0, ./geometry);
@@ -198,9 +197,9 @@ container BAG
 			
 			unit<uint32> wijk := RegioUnit_Wijk
 			{
-				attribute<float64>  x_mean := mean(pointrow(../geometry), wijk_rel);
-				attribute<float64>  y_mean := mean(pointcol(../geometry), wijk_rel);
-				attribute<rdc>      centroid0 := point(x_mean, y_mean, rdc);
+				attribute<float32>  x_mean := mean(pointrow(../geometry), wijk_rel);
+				attribute<float32>  y_mean := mean(pointcol(../geometry), wijk_rel);
+				attribute<rdc>      centroid0 := point_xy(x_mean, y_mean, rdc);
 				
 				//controles
 				attribute<.>        poly_rel       := point_in_polygon(centroid0, ./geometry);
@@ -214,9 +213,9 @@ container BAG
 			
 			unit<uint32> gemeente := RegioUnit_Gemeente
 			{
-				attribute<float64>  x_mean := mean(pointrow(../geometry), gemeente_rel);
-				attribute<float64>  y_mean := mean(pointcol(../geometry), gemeente_rel);
-				attribute<rdc>      centroid0 := point(x_mean, y_mean, rdc);
+				attribute<float32>  x_mean := mean(pointrow(../geometry), gemeente_rel);
+				attribute<float32>  y_mean := mean(pointcol(../geometry), gemeente_rel);
+				attribute<rdc>      centroid0 := point_xy(x_mean, y_mean, rdc);
 				
 				//controles
 				attribute<.>        poly_rel       := point_in_polygon(centroid0, ./geometry);
@@ -230,9 +229,9 @@ container BAG
 			
 			unit<uint32> pc4_uq := unique(postcode4)
 			{
-				attribute<float64>  x_mean   := mean(pointrow(../geometry), PC4_uq_rel);
-				attribute<float64>  y_mean   := mean(pointcol(../geometry), PC4_uq_rel);
-				attribute<rdc>      geometry := point(x_mean, y_mean, rdc);
+				attribute<float32>  x_mean   := mean(pointrow(../geometry), PC4_uq_rel);
+				attribute<float32>  y_mean   := mean(pointcol(../geometry), PC4_uq_rel);
+				attribute<rdc>      geometry := point_xy(x_mean, y_mean, rdc);
 				attribute<string>   PC4      := values;
 			}
 			
@@ -248,9 +247,9 @@ container BAG
 			
 			unit<uint32> pc6_uq := unique(postcode)
 			{
-				attribute<float64>  x_mean   := mean(pointrow(../geometry), PC6_uq_rel);
-				attribute<float64>  y_mean   := mean(pointcol(../geometry), PC6_uq_rel);
-				attribute<rdc>      geometry := point(x_mean, y_mean, rdc);
+				attribute<float32>  x_mean   := mean(pointrow(../geometry), PC6_uq_rel);
+				attribute<float32>  y_mean   := mean(pointcol(../geometry), PC6_uq_rel);
+				attribute<rdc>      geometry := point_xy(x_mean, y_mean, rdc);
 				attribute<string>   PC6      := values;
 			}
 			

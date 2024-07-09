@@ -1,0 +1,33 @@
+Template Merge_Regions_Car_T
+{
+	parameter<string> Dest_str;
+	//
+	
+	unit<uint32> Merged := ='union_unit('+AsItemList('Read/'+Advanced/Regio/name+'/domain')+')'
+	{
+		attribute<string>  OrgName             := ='union_data(.,'+AsItemList('Read/'+Advanced/Regio/name+'/data/Org')+')';
+		attribute<string>  DestName            := ='union_data(.,'+AsItemList('Read/'+Advanced/Regio/name+'/data/Dst')+')';
+		attribute<min_f>   MaxSpeed_min        := ='union_data(.,'+AsItemList('Read/'+Advanced/Regio/name+'/data/MaxSpeed[min_f]')+')';
+		attribute<km>      MaxSpeed_km         := ='union_data(.,'+AsItemList('Read/'+Advanced/Regio/name+'/data/MaxSpeed_km[km]')+')';
+	}
+	
+	container LongFormat
+	{
+		attribute<string> BodyLines (Merged) :=
+			Merged/OrgName + ';' + 
+			Merged/DestName + ';' +
+			string(Merged/MaxSpeed_min) + ';' + 
+			string(Merged/MaxSpeed_km);
+		
+		parameter<string> File_full         := 'Org;Dst;MaxSpeed;MaxSpeed_km\n'++AsList(BodyLines, '\n')
+																, StorageName = "=Export_filename", StorageType = "str";
+	}
+	parameter<string> netwerk_type_OSM    := 'Car';
+	parameter<string> netwerk_type_suffix := '-OSM';
+	parameter<string> Export_filename       := /ModelParameters/Advanced/fileNamePrefix+'Traveltimes'+fileNameSuffix+'.csv';
+	parameter<string> fileNameSuffix :=  
+		'_ORG-' + Orgset + 
+		'_DEST-'   + Dest_str +
+		'_NETWERK-'+ netwerk_type_OSM + netwerk_type_suffix +
+		'_MaxTime-' + string(ModelParameters/MaxCarTime_Org2Dest)+'min';
+}

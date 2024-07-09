@@ -1,0 +1,102 @@
+Template PrivateTransport_Car_T
+{
+	unit<uint32>       org;
+	unit<uint32>       dest;
+	parameter<bool>    DoMakeAllPairs;
+	///
+	parameter<string>  netwerk_type_OSM := 'car';
+
+	container Settings
+	{
+		parameter<min_f>   max_traveldistance_min  := ModelParameters/MaxCarTime_Org2Dest;
+		
+		parameter<string>  netwerk_type_suffix := '-OSM';
+		parameter<string>  fileNamePrefix :=  ModelParameters/Advanced/fileNamePrefix;
+		parameter<string>  fileNameSuffix :=  
+			'_ORG-'    + ModelParameters/Orgset + '-' + regio_name + 
+			'_DEST-'   + ModelParameters/Advanced/DestSet_string +
+			'_NETWERK-'+ netwerk_type_OSM + netwerk_type_suffix +
+			'_MaxTime-' + string(ModelParameters/MaxCarTime_Org2Dest)+'min';
+	}
+
+	unit<uint32> RoadDomain_OSM        := SourceData/Infrastructure/OSM/Network_Car/isVerbonden;
+	
+	container Create_Optimised_Network_OSM  := Templates/CreateNetwork_Efficient_T(org, dest, RoadDomain_OSM, netwerk_type_OSM); //instantiated for OSM
+
+	unit<uint32> LinkSet := Create_Optimised_Network_OSM/CreateMoreEfficientNetwork/FinalLinkSet;
+	unit<uint32> NodeSet := Create_Optimised_Network_OSM/CreateMoreEfficientNetwork/FinalNodeSet;
+
+	container Traveltimes
+	{
+		unit<uint64> MaxSpeed_OSM :=
+			dijkstra_m64('bidirectional(link_flag);startPoint(Node_rel):max_imp;endPoint(Node_rel);cut(OrgZone_max_imp);alternative(link_imp):alt_imp;od:impedance,OrgZone_rel,DstZone_rel'
+				, LinkSet/Impedance_per_ImpedanceType/max_limit_car
+				, LinkSet/F1
+				, LinkSet/F2
+				//
+				, not(LinkSet/IsOneDirection)
+				, NodeSet/OrgNode_rel
+				, NodeSet/DestNode_rel
+				, convert(settings/max_traveldistance_min, s_f) //cut impedance      
+				, LinkSet/LengthKm // alt (dist) imp
+			)
+		{
+			attribute<string> Org_Dest := string(OrgZone_rel)+'_'+string(DstZone_rel);
+		}
+		unit<uint64> MaxSpeed_OSM_woAltImp :=
+			dijkstra_m64('bidirectional(link_flag);startPoint(Node_rel):max_imp;endPoint(Node_rel);cut(OrgZone_max_imp);od:impedance,OrgZone_rel,DstZone_rel'
+				, LinkSet/Impedance_per_ImpedanceType/max_limit_car
+				, LinkSet/F1
+				, LinkSet/F2
+				//
+				, not(LinkSet/IsOneDirection)
+				, NodeSet/OrgNode_rel
+				, NodeSet/DestNode_rel
+				, convert(settings/max_traveldistance_min, s_f) //cut impedance      
+			)
+		{
+			attribute<string> Org_Dest := string(OrgZone_rel)+'_'+string(DstZone_rel);
+		}
+	}
+	
+	parameter<string> ExportTable_Traveltimes_str := 	 switch(
+															 case(ModelParameters/Export_AfgelegdeAfstand  , 'Traveltimes/MaxSpeed_OSM')
+															,case(!ModelParameters/Export_AfgelegdeAfstand , 'Traveltimes/MaxSpeed_OSM_woAltImp')
+															,''
+														);
+														
+													
+	unit<uint64> ExportTable_Traveltimes := =ExportTable_Traveltimes_str
+	{
+		parameter<string> NetworkTypeSuffix := '_OSM';
+	
+		attribute<org > Org_rel := OrgZone_rel;
+		attribute<dest> Dst_rel := DstZone_rel;
+		
+		attribute<min_f> MaxSpeed_min        := convert(Impedance, min_f);
+		
+		attribute<km>    MaxSpeed_km         := ='Alt_imp';
+		
+		attribute<string> BodyLines :=
+			org/name[Org_rel] + ';' + 
+			dest/name[Dst_rel] + ';' +
+			string(MaxSpeed_min) + ';' + 
+			string(MaxSpeed_km);
+			
+		attribute<string> BodyLines_woDistance :=
+			org/name[Org_rel] + ';' + 
+			dest/name[Dst_rel] + ';' +
+			string(MaxSpeed_min);
+			
+		attribute<string> BodyLines_woCongestion :=
+			org/name[Org_rel] + ';' + 
+			dest/name[Dst_rel] + ';' +
+			string(MaxSpeed_min) + ';' +
+			string(MaxSpeed_km);
+			
+		parameter<string> File_full         := 'Org;Dst;MaxSpeed;MaxSpeed_km\n'++AsList(BodyLines, '\n'), StorageName = "=settings/fileNamePrefix+'Traveltimes'+replace(settings/fileNameSuffix, '@@', 'Car', '##',  string(ModelParameters/MaxCarTime_Org2Dest))+'.csv'", StorageType = "str";
+		parameter<string> File_woDistance   := 'Org;Dst;MaxSpeed\n'++AsList(BodyLines_woDistance, '\n'), StorageName = "=settings/fileNamePrefix+'Traveltimes'+replace(settings/fileNameSuffix, '@@', 'Car', '##',  string(ModelParameters/MaxCarTime_Org2Dest))+'.csv'", StorageType = "str";
+		
+		parameter<string> File              := =ModelParameters/Export_AfgelegdeAfstand ? 'File_full' : 'File_woDistance';
+	}
+}

@@ -1,30 +1,31 @@
 container Analyses: Using = "Units;Classifications;geometries;sourcedata;SourceData/RegionalUnits;NetworkSetup" 
 {  
 	parameter<string>  NetworkType    := 'car';
-	parameter<uint32>  MaxInhabitants := 1000000;
-	unit<uint32> Org  := SourceData/RegionalUnits/PC4;
-	unit<uint32> Dest := SourceData/RegionalUnits/PC4;
-	unit<uint32> NodeSet := ='/NetworkSetup/Per_NetworkType/'+NetworkType+'/NetwerkSpec/CreateMoreEfficientNetwork/FinalNodeSet';
-	unit<uint32> LinkSet := ='/NetworkSetup/Per_NetworkType/'+NetworkType+'/NetwerkSpec/CreateMoreEfficientNetwork/FinalLinkSet';
+	// parameter<uint32>  MaxInhabitants := 1000000;
+	
+	unit<uint32> Org     := /NetworkSetup/ConfigurationPerRegio/all/org;
+	unit<uint32> Dest    := /NetworkSetup/ConfigurationPerRegio/all/dest;
+	
+	unit<uint32> NodeSet := ='/NetworkSetup/ConfigurationPerRegio/all/PrivateTransport/'+NetworkType+'/NodeSet';
+	unit<uint32> LinkSet := ='/NetworkSetup/ConfigurationPerRegio/all/PrivateTransport/'+NetworkType+'/LinkSet';
+	
+	attribute<s_f>   impedance (LinkSet) := ='LinkSet/Impedance_per_ImpedanceType/max_'+NetworkType;
+	parameter<min_f> MaxTravelTime       := ='ModelParameters/Max'+NetworkType+'Time_Org2Dest';
 	
 	unit<uint64> Impedance_OD_Cut := 
 		impedance_matrix_od64('bidirectional;startPoint(Node_rel);endPoint(Node_rel);cut(OrgZone_max_imp);od:OrgZone_rel,DstZone_rel'
-			, LinkSet/impedance
+			, impedance
 			, LinkSet/F1
 			, LinkSet/F2
 			//////
 			, NodeSet/OrgNode_rel
 			, NodeSet/DestNode_rel
-			, convert(ModelParameters/MaxTravelTime, s_f)
-		)
-	{
-		attribute<uint32> Inhabitants           := dest/item_of_interest[DstZone_rel];
-		attribute<uint32> Inhabitants_org (org) := sum(Inhabitants, OrgZone_rel);
-	}
+			, convert(MaxTravelTime, s_f)
+		);
 	
 	unit<uint64> Impedance_OD_FullOD := //calculation a full origin-destination matrix
 		impedance_matrix_od64('bidirectional;startPoint(Node_rel);endPoint(Node_rel);od:impedance,OrgZone_rel,DstZone_rel'
-			, LinkSet/impedance
+			, impedance
 			, LinkSet/F1
 			, LinkSet/F2
 			//
@@ -32,7 +33,7 @@ container Analyses: Using = "Units;Classifications;geometries;sourcedata;SourceD
 			, NodeSet/DestNode_rel
 		)
 	{
-		attribute<string> impedance_min := string(round(impedance / 60d)); //Convert the impedance from seconds to minutes, round it off, and store it as a string value.
+		attribute<string> impedance_min := string(round(impedance / 60f)); //Convert the impedance from seconds to minutes, round it off, and store it as a string value.
 		attribute<string> org_name      := org/name[OrgZone_rel];
 		attribute<string> dest_name     := dest/name[DstZone_rel];
 		
@@ -49,27 +50,27 @@ container Analyses: Using = "Units;Classifications;geometries;sourcedata;SourceD
 
 		unit<uint32> Matrix_met_header := union_unit(Header, Matrix_Array) //This unit can easily be exported to csv and used in other applications.
 		{
-			attribute<string> org_name     := union_data(., const('',Header), Matrix_Array/org_name);
-			attribute<string> values := union_data(., Header/values, Matrix_Array/impedance_min_list) ;
+			attribute<string> org_name := union_data(., const('',Header), Matrix_Array/org_name);
+			attribute<string> values   := union_data(., Header/values, Matrix_Array/impedance_min_list) ;
 		}
 	}
 	
-	unit<uint64> Impedance_OD_Limit :=
-		impedance_matrix_od64('bidirectional;startPoint(Node_rel):max_imp;endPoint(Node_rel);limit(OrgZone_max_mass,DstZone_mass)'
-			, LinkSet/impedance
-			, LinkSet/F1
-			, LinkSet/F2
-			//
-			, NodeSet/OrgNode_rel
-			, NodeSet/DestNode_rel
-			, MaxInhabitants, dest/nr_inwoners[uint32]
-		);
+	// unit<uint64> Impedance_OD_Limit :=
+		// impedance_matrix_od64('bidirectional;startPoint(Node_rel):max_imp;endPoint(Node_rel);limit(OrgZone_max_mass,DstZone_mass)'
+			// , impedance
+			// , LinkSet/F1
+			// , LinkSet/F2
+			
+			// , NodeSet/OrgNode_rel
+			// , NodeSet/DestNode_rel
+			// , MaxInhabitants, dest/nr_inwoners[uint32]
+		// );
 	
 	container Impedance_Table_Nearest
 	{
 		attribute<s_f> TraveltimeToNearestDest (NodeSet) := 
 			impedance_table('bidirectional;startPoint(Node_rel)'
-			, LinkSet/impedance
+			, impedance
 			, LinkSet/F1
 			, LinkSet/F2
 				///
@@ -81,7 +82,7 @@ container Analyses: Using = "Units;Classifications;geometries;sourcedata;SourceD
 		container Interpolate
 		{
 			attribute<float32> Sum_attribute    (rdc_100m) := sum(TraveltimeToNearestDest_perDest[float32], dest/geometry[rdc_100m]);
-			attribute<float32> Count_attribute  (rdc_100m) := sum(TraveltimeToNearestDest_perDest > 0d ? 1f : 0f , dest/geometry[rdc_100m]);
+			attribute<float32> Count_attribute  (rdc_100m) := sum(TraveltimeToNearestDest_perDest > 0f ? 1f : 0f , dest/geometry[rdc_100m]);
 			attribute<float32> Potential_sum    (rdc_100m) := potential(Sum_attribute[float32], Distmatrices_100m/pot500m/rev_dist_scaled[float32]); 
 			attribute<float32> Potential_count  (rdc_100m) := potential(Count_attribute, Distmatrices_100m/pot500m/rev_dist_scaled[float32]);
 			attribute<float32> Interpolated     (rdc_100m) := Potential_sum / Potential_count;

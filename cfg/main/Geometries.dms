@@ -4,8 +4,8 @@ container Geometries : using = "units"
 	#include <ngr_layer.dms> // reference WMS layer
 	
 	unit<dpoint> rdc_base          : SpatialReference = "EPSG:28992", DialogData = "ngr_layer";
-	unit<dpoint> rdc               := range(rdc_base, point(y_min, x_min), point(y_max, x_max));
-	unit<ipoint> rdc_mm   := gridset(rdc, point(0.001,0.001), point(0.0, 0.0), ipoint);
+	unit<fpoint> rdc               := range(rdc_base, point_yx(y_min, x_min), point_yx(y_max, x_max));
+	unit<ipoint> rdc_mm            := gridset(rdc, point_yx(0.001,0.001), point_yx(0.0, 0.0), ipoint);
 	unit<dpoint> WGS84             : SpatialReference = "EPSG:4326", DialogData = "wms_layer_latlong"
 	{
 		parameter<float32> ViewPortMinSize := 100f / 3600f;
@@ -13,6 +13,8 @@ container Geometries : using = "units"
 		parameter<float32> LabelWorldSize  := 10f / 3600f, DialogType = "LabelWorldSize";
 		parameter<float32> SymbolWorldSize := 10f / 3600f, DialogType = "SymbolWorldSize";
 	}
+	unit<fpoint> LambertEA_base   : SpatialReference = "EPSG:3035", DialogData = "ngr_layer_lea";
+	unit<fpoint> LambertEA        := range(LambertEA_base, point_xy(2500000f, 1300000f), point_xy(4900000f, 4300000f));
 	
 	parameter<m> x_min := 0[m];
 	parameter<m> x_max := 280000[m];
@@ -38,6 +40,23 @@ container Geometries : using = "units"
 			, 'Create_GridDomain_T('+string(Gridsizes/size)+'[m])'
 		);
 		
+	unit<uint32> selection_polygon : nrofrows = 1, Using = "units"
+	{
+		parameter<rdc> top_left     := point_xy(x_min - 5000[m], y_max + 5000[m], rdc); //XY
+		parameter<rdc> top_right    := point_xy(x_max + 5000[m], y_max + 5000[m], rdc);
+		parameter<rdc> bottom_left  := point_xy(x_min - 5000[m], y_min - 5000[m], rdc);
+		parameter<rdc> bottom_right := point_xy(x_max + 5000[m], y_min - 5000[m], rdc);
+		
+		unit<uint32> point_set : nrofrows = 5
+		{
+			attribute<rdc>  point        := union_data(., top_left, top_right, bottom_right, bottom_left, top_left);
+			attribute<..>   sequence_rel := const(0, .);
+			attribute<.>    ordinal      := id(.);
+		}
+		
+		attribute<rdc> polygon (poly)      := points2sequence(point_set/point, point_set/sequence_rel, point_set/ordinal);
+	}
+	
 	unit<uint8> Matrix : nrofrows = 23
 	{
 		attribute<m>      Size : [ 0, 17, 25, 50, 100, 150, 200, 300, 500, 625, 1000, 1250, 1500, 2000, 2250, 2500, 3250, 5000, 5250, 10000, 10250, 20000, 20250 ];
@@ -55,36 +74,36 @@ container Geometries : using = "units"
 		{
 			parameter<m>       gridgrootte;
 			parameter<m>       afkapstraal;
-			parameter<float64> straal       := afkapstraal / gridgrootte;
-			parameter<float64> oppervlakte  := pi()[float64] * straal^2d;
+			parameter<float32> straal       := afkapstraal / gridgrootte;
+			parameter<float32> oppervlakte  := pi()[float32] * straal^2f;
 			
-			unit<spoint> tmpRange := range(spoint, point(-int16(straal), -int16(straal)), point(int16(straal) + 1s, int16(straal) + 1s));
+			unit<spoint> tmpRange := range(spoint, point_yx(-int16(straal), -int16(straal)), point_yx(int16(straal) + 1s, int16(straal) + 1s));
 			unit<spoint> potRange := tmpRange
 			{
-				attribute<Dist2Range> distMatr          := dist2(point(0s, 0s, tmpRange), Dist2Range);
-				attribute<float64>    dist              := sqrt(float64(distMatr));
-				attribute<float64>    dist_scaled       := dist / straal;
+				attribute<Dist2Range> distMatr          := dist2(point_yx(0s, 0s, tmpRange), Dist2Range);
+				attribute<float32>    dist              := sqrt(float32(distMatr));
+				attribute<float32>    dist_scaled       := dist / straal;
 				
-				attribute<float64>    rev_dist          := max_elem(straal - dist, 0d);
-				parameter<float64>    rev_dist_max      := max(rev_dist);
-				attribute<float64>    rev_dist_scaled   := rev_dist / rev_dist_max;
-				attribute<float64>    AbsWeight         := distMatr[float64] <= (straal * straal) 
-															? distMatr[float64] != 0d 
-																? 1d / (distMatr[float64] ^ 2d) 
-																: 1d
-															: 0d;
-				attribute<float64>    AbsWeight_ln      := distMatr[float64] <= (straal * straal) 
-															? distMatr[float64] != 0d 
-																? 1d / (distMatr[float64] / straal) 
-																: 1d 
-															: 0d;
-				attribute<float64>    RelWeight         := scalesum(     AbsWeight , 1.0d);
-				attribute<float64>    RelWeightSqrt     := scalesum(Sqrt(AbsWeight), 1.0d);
-				attribute<float64>    Flat2             := float64(distMatr <= uint32(straal * straal));
-				attribute<float64>    Flat_Visualisatie := dist <= 1.5d ? 1d : 0d;
-				attribute<float64>    neighbourhood     := distMatr > 0 ? 1d : 0d;
-				parameter<float64>    oppervlakte       := sum(Flat2);
-				attribute<float64>    binair            := distMatr <= 100 ? 1d : 0d;
+				attribute<float32>    rev_dist          := max_elem(straal - dist, 0f);
+				parameter<float32>    rev_dist_max      := max(rev_dist);
+				attribute<float32>    rev_dist_scaled   := rev_dist / rev_dist_max;
+				attribute<float32>    AbsWeight         := distMatr[float32] <= (straal * straal) 
+															? distMatr[float32] != 0f 
+																? 1f / (distMatr[float32] ^ 2f) 
+																: 1f
+															: 0f;
+				attribute<float32>    AbsWeight_ln      := distMatr[float32] <= (straal * straal) 
+															? distMatr[float32] != 0f 
+																? 1f / (distMatr[float32] / straal) 
+																: 1f 
+															: 0f;
+				attribute<float32>    RelWeight         := scalesum(     AbsWeight , 1.0f);
+				attribute<float32>    RelWeightSqrt     := scalesum(Sqrt(AbsWeight), 1.0f);
+				attribute<float32>    Flat2             := float32(distMatr <= uint32(straal * straal));
+				attribute<float32>    Flat_Visualisatie := dist <= 1.5f ? 1f : 0f;
+				attribute<float32>    neighbourhood     := distMatr > 0 ? 1f : 0f;
+				parameter<float32>    oppervlakte       := sum(Flat2);
+				attribute<float32>    binair            := distMatr <= 100 ? 1f : 0f;
 			}
 		}
 		
@@ -104,17 +123,17 @@ container Geometries : using = "units"
 			range(
 				 gridset(
 					 rdc
-					,point(-gridsize, gridsize, rdc)
-					,point(y_max, x_min, rdc)
+					,point_yx(-gridsize, gridsize, rdc)
+					,point_yx(y_max, x_min, rdc)
 					,ipoint
 				)
-				,point(0i, 0i)
-				,point(nr_rows, nr_cols)
+				,point_yx(0i, 0i)
+				,point_yx(nr_rows, nr_cols)
 			),	DialogData = "rdc"
 		{
 			parameter<m>                    gridsize        := ../gridsize;
 			parameter<int32>                nr_cols         := ../nr_cols;
-			attribute<rdc>                  point           := mapping(., rdc) + point(-0.5d * gridsize, 0.5d * gridsize, rdc);
+			attribute<rdc>                  point           := mapping(., rdc) + point_yx(-0.5f * gridsize, 0.5f * gridsize, rdc);
 			unit<uint32>                    id_key          := range(uint32, 0, #domain);
 			attribute<uint32>               id_rel          := value(uint32(pointrow(id(.))) * uint32(nr_cols) + uint32(pointcol(id(.))), id_key);
 			
@@ -131,8 +150,8 @@ container Geometries : using = "units"
 		unit<uint64> points := select_with_org_rel(isDefined(domain/point) && domain/IsNederland)
 		{
 			attribute<rdc>                  geometry  := org_rel -> point;
-			attribute<float64>              x         := PointCol(geometry);
-			attribute<float64>              y         := PointRow(geometry);
+			attribute<float32>              x         := PointCol(geometry);
+			attribute<float32>              y         := PointRow(geometry);
 			attribute<domain>               grid_rel  := geometry[domain];	
 		}
 	}	
