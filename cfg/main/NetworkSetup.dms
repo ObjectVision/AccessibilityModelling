@@ -32,8 +32,8 @@ container NetworkSetup : using = "units;geometries;SourceData;Classifications;So
 				, RoadDomain
 			);
 			
-		parameter<bool> Store_Network1:= True, explicitsuppliers = "NetwerkSpec/CreateInitialWorkingNetwork/LinkSet_Write;";
-		parameter<bool> Store_Network2:= True, explicitsuppliers = "NetwerkSpec/CreateMoreEfficientNetwork/FinalNodeSet_Write;NetwerkSpec/CreateMoreEfficientNetwork/FinalLinkSet_Write;";
+		// parameter<bool> Store_Network1:= True, explicitsuppliers = "NetwerkSpec/CreateInitialWorkingNetwork/LinkSet_Write;";
+		// parameter<bool> Store_Network2:= True, explicitsuppliers = "NetwerkSpec/CreateMoreEfficientNetwork/FinalNodeSet_Write;NetwerkSpec/CreateMoreEfficientNetwork/FinalLinkSet_Write;";
 		
 	}
 }

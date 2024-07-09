@@ -5,7 +5,8 @@ container NetworkPreperation
 	unit<uint32> road_segments  := arc2segm(road/geometry)
 	{
 		// attribute<string>                       key              := String(pointRow(point)) + '_' + String(pointCol(point)) + '_' + String(pointRow(nextpoint)) + '_'+ String(pointCol(nextpoint));
-		attribute<km_hr>                        kph         := road/kph[Sequence_rel];
+		attribute<km_hr>                         kph         := road/kph[Sequence_rel];
+		attribute<classifications/OSM/roadtype>  roadtype_rel          := road/roadtype_rel[Sequence_rel];
 		
 		unit<uint32> pointset  := union_unit(., .)
 		{
@@ -43,15 +44,18 @@ container NetworkPreperation
 			attribute<rdc> point := NodeSet/Values[org_rel];
 		}
 		
-		unit<uint32> Complete_verbonden := select_with_org_rel(isVerbonden) // het resulterende verbonden wegennetwerk
+		unit<uint32> ConnectedNetwork := select_with_org_rel(isVerbonden) // het resulterende verbonden wegennetwerk
 		{
-			attribute<rdc>               geometry (arc)       := ../geometry[org_rel];
-			attribute<km_hr>             kph                  := ../kph[org_rel];
+			attribute<rdc>                           geometry (arc)          := ../geometry[org_rel];
+			attribute<km_hr>                         kph                     := ../kph[org_rel];
+			attribute<classifications/OSM/roadtype>  roadtype_rel            := ../roadtype_rel[org_rel];
 		}
-		unit<uint32> Final_Network := unique(Complete_verbonden/geometry)
+		unit<uint32> Final_Network := unique(ConnectedNetwork/geometry)
 		{
-			attribute<rdc>               geometry (arc):= values;
-			attribute<km_hr>             kph           := rjoin(values, Complete_verbonden/geometry, Complete_verbonden/kph);
+			attribute<ConnectedNetwork>              ConnectedNetwork_rel    := rlookup(geometry, ConnectedNetwork/geometry);
+			attribute<rdc>                           geometry          (arc) := values;
+			attribute<km_hr>                         kph                     := ConnectedNetwork/kph[ConnectedNetwork_rel];
+			attribute<classifications/OSM/roadtype>  roadtype_rel            := ConnectedNetwork/roadtype_rel[ConnectedNetwork_rel];
 		}
 	}
 }

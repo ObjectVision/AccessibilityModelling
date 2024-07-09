@@ -56,7 +56,7 @@ container Infrastructure : using = "geometries;units"
 				attribute<wgs84>                        geometry (arc);
 				attribute<string>                       highway;
 				attribute<string>                       other_tags;
-				attribute<int32>                        z_order;
+				// attribute<int32>                        z_order;
 				attribute<classifications/OSM/roadtype> roadtype_rel       := switch(
 																					case(IsCarFerry, classifications/OSM/roadtype/v/ferry)
 																					, rlookup(highway, classifications/OSM/roadtype/name)
@@ -64,7 +64,7 @@ container Infrastructure : using = "geometries;units"
 																				
 				attribute<bool>                         IsPartOfCarNetwork := /Classifications/OSM/roadtype/IsPartOfCarNetwork[roadtype_rel];
 				
-				attribute<bool>                         IsOneDirection    := strcount(other_tags, '"oneway"=>"yes"') > 0;
+				// attribute<bool>                         IsOneDirection    := strcount(other_tags, '"oneway"=>"yes"') > 0;
 				attribute<bool>                         IsFerry           := strcount(other_tags, '"route"=>"ferry"') > 0;
 				attribute<bool>                         IsCarFerry        := strcount(other_tags, '"route"=>"ferry"') > 0 && strcount(other_tags, '"motor_vehicle"=>"yes"') > 0;
 				
@@ -99,8 +99,8 @@ container Infrastructure : using = "geometries;units"
 			attribute<rdc>                          geometry (arc) := ='union_data(., '+AsList('Per_Country/'+Regios/name+'/Roads/geometry_rd', ',')+')';
 			attribute<km_hr>                        KPH            := ='union_data(., '+AsList('Per_Country/'+Regios/name+'/Roads/KPH', ',')+')';
 			attribute<classifications/OSM/roadtype> roadtype_rel   := ='union_data(., '+AsList('Per_Country/'+Regios/name+'/Roads/roadtype_rel', ',')+')';
-			attribute<bool>                         IsOneDirection := ='union_data(., '+AsList('Per_Country/'+Regios/name+'/Roads/IsOneDirection', ',')+')';
-			attribute<int32>                         z_order        := ='union_data(., '+AsList('Per_Country/'+Regios/name+'/Roads/z_order', ',')+')';
+			// attribute<bool>                         IsOneDirection := ='union_data(., '+AsList('Per_Country/'+Regios/name+'/Roads/IsOneDirection', ',')+')';
+			// attribute<int32>                        z_order        := ='union_data(., '+AsList('Per_Country/'+Regios/name+'/Roads/z_order', ',')+')';
 		}
 		
 		#include <NetworkPreperation.dms>
@@ -167,8 +167,8 @@ container Infrastructure : using = "geometries;units"
 			attribute<string>                       roadtype_label                   := Read_Final_Network/roadtype_label[org_rel];
 			attribute<bool>                         Connectable                      := roadtype_rel != Classifications/OSM/roadtype/V/motorway && roadtype_rel != Classifications/OSM/roadtype/V/motorway_link;
 			attribute<km_hr>                        kph                              := Read_Final_Network/kph[org_rel];
-			attribute<bool>                         IsOneDirection                   := Read_Final_Network/IsOneDirection[org_rel];
-			attribute<int32>                        z_order                          := Read_Final_Network/z_order[org_rel];
+			// attribute<bool>                         IsOneDirection                   := Read_Final_Network/IsOneDirection[org_rel];
+			// attribute<int32>                        z_order                          := Read_Final_Network/z_order[org_rel];
 
 			unit<uint32> isVerbonden := select_with_attr_by_cond(., Connectiveness/isVerbonden);
 			
@@ -216,8 +216,8 @@ container Infrastructure : using = "geometries;units"
 			attribute<string>                       roadtype_label                   := Read_Final_Network/roadtype_label[org_rel];
 			attribute<bool>                         Connectable                      := roadtype_rel != Classifications/OSM/roadtype/V/motorway && roadtype_rel != Classifications/OSM/roadtype/V/motorway_link;
 			attribute<km_hr>                        kph                              := Read_Final_Network/freeflow_speed_bike[org_rel];
-			attribute<bool>                         IsOneDirection                   := Read_Final_Network/IsOneDirection[org_rel];
-			attribute<int32>                        z_order                          := Read_Final_Network/z_order[org_rel];
+			// attribute<bool>                         IsOneDirection                   := Read_Final_Network/IsOneDirection[org_rel];
+			// attribute<int32>                        z_order                          := Read_Final_Network/z_order[org_rel];
 
 			unit<uint32> isVerbonden := select_with_attr_by_cond(., Connectiveness/isVerbonden);
 			
@@ -265,8 +265,8 @@ container Infrastructure : using = "geometries;units"
 			attribute<string>                       roadtype_label                   := Read_Final_Network/roadtype_label[org_rel];
 			attribute<bool>                         Connectable                      := roadtype_rel != Classifications/OSM/roadtype/V/motorway && roadtype_rel != Classifications/OSM/roadtype/V/motorway_link;
 			attribute<km_hr>                        kph                              := Read_Final_Network/freeflow_speed_pedestrian[org_rel];
-			attribute<bool>                         IsOneDirection                   := Read_Final_Network/IsOneDirection[org_rel];
-			attribute<int32>                        z_order                          := Read_Final_Network/z_order[org_rel];
+			// attribute<bool>                         IsOneDirection                   := Read_Final_Network/IsOneDirection[org_rel];
+			// attribute<int32>                        z_order                          := Read_Final_Network/z_order[org_rel];
 			
 			unit<uint32> isVerbonden := select_with_attr_by_cond(., Connectiveness/isVerbonden);
 			

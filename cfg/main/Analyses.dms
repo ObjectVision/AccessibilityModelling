@@ -2,7 +2,8 @@ container Analyses: Using = "Units;Classifications;geometries;sourcedata;SourceD
 {  
 	parameter<string>  NetworkType    := 'car';
 	parameter<uint32>  MaxInhabitants := 1000000;
-	
+	unit<uint32> Org  := SourceData/RegionalUnits/PC4;
+	unit<uint32> Dest := SourceData/RegionalUnits/PC4;
 	unit<uint32> NodeSet := ='/NetworkSetup/Per_NetworkType/'+NetworkType+'/NetwerkSpec/CreateMoreEfficientNetwork/FinalNodeSet';
 	unit<uint32> LinkSet := ='/NetworkSetup/Per_NetworkType/'+NetworkType+'/NetwerkSpec/CreateMoreEfficientNetwork/FinalLinkSet';
 	
@@ -17,7 +18,7 @@ container Analyses: Using = "Units;Classifications;geometries;sourcedata;SourceD
 			, convert(ModelParameters/MaxTravelTime, s_f)
 		)
 	{
-		attribute<uint32> Inhabitants           := dest/nr_inwoners[DstZone_rel];
+		attribute<uint32> Inhabitants           := dest/item_of_interest[DstZone_rel];
 		attribute<uint32> Inhabitants_org (org) := sum(Inhabitants, OrgZone_rel);
 	}
 	

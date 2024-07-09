@@ -46,9 +46,9 @@ container Templates: Using = "Units;Classifications;geometries"
 			unit<uint32> Roads := arc2segm(RoadDomain0/geometry)
 			{
 				attribute<km_hr>               KPH                 := sequence_rel -> KPH;
-				attribute<bool>                IsOneDirection      := sequence_rel -> IsOneDirection;
+				// attribute<bool>                IsOneDirection      := sequence_rel -> IsOneDirection;
 				attribute<bool>                Connectable         := sequence_rel -> Connectable;
-				attribute<int32>               z_order             := sequence_rel -> z_order;
+				// attribute<int32>               z_order             := sequence_rel -> z_order;
 				
 				unit<uint32> PointSet     := union_unit(., .)
 				{
@@ -71,7 +71,7 @@ container Templates: Using = "Units;Classifications;geometries"
 			unit<uint32> LinkSet := connect(Roads_Connected/geometry, uq_OD_points/geometry, (10000d^2d))
 			{
 				attribute<km_hr>           KPH                  := MakeDefined(arc_rel->KPH, ModelParameters/Advanced/CarDefaultSpeed_low);
-				attribute<bool>            IsOneDirection       := arc_rel->IsOneDirection;
+				// attribute<bool>            IsOneDirection       := arc_rel->IsOneDirection;
 				attribute<rdc>             first_point          := first_point(geometry);
 				attribute<rdc>             last_point           := last_point(geometry);
 				attribute<bool>            IsOD_connection_road := !IsDefined(arc_rel); // connect gives arc_rel which gives the rel to the original link, in case of existing link. Is new link, this is undefined.
@@ -85,42 +85,15 @@ container Templates: Using = "Units;Classifications;geometries"
 					attribute<..>          SeqNr   := value(id(.) % nrofrows(..), ..);
 					attribute<uint32>      Ordinal := id(.) / nrofrows(..);
 				}
-			}
 
-			unit<uint32> LinkSet_Write := LinkSet,	StorageName = "= '%LocalDataProjDir%/Linkset_O-'+OrgName+'_D-'+Destname+'.fss'"
-			{
-				attribute<km_hr>           KPH                  := LinkSet/KPH;
-				attribute<km>              LengthKm             := LinkSet/LengthKm;
-				//attribute<bool>            IsOneDirection       := LinkSet/IsOneDirection;
-				attribute<bool>            IsOneDirection       := const(False,.,bool); // don't trust digitization and onedirectional attributes yet.
-				attribute<rdc>             first_point          := LinkSet/first_point; 
-				attribute<rdc>             last_point           := LinkSet/last_point; 
-				attribute<bool>            IsOD_connection_road := LinkSet/IsOD_connection_road;
-			}
-			
-			unit<uint32> LinkSet_Read : StorageName = "= '%LocalDataProjDir%/Linkset_O-'+OrgName+'_D-'+Destname+'.fss'", StorageReadOnly = "True"
-			{
-				attribute<km_hr>            KPH;
-				attribute<km>               LengthKm;
-				attribute<bool>             IsOneDirection;
-				attribute<rdc>              first_point;
-				attribute<rdc>              last_point;
-				attribute<bool>             IsOD_connection_road;
 				attribute<s_f>              impedance             := convert(minutes, s_f);// + Float64(CorrectImpedanceForCrossroads/impedance_Start + CorrectImpedanceForCrossroads/impedance_End);
-				attribute<NodeSet_fromRead> F1                    := rlookup(first_point, NodeSet_fromRead/Values); //node from the OD towards the network
-				attribute<NodeSet_fromRead> F2                    := rlookup(last_point,  NodeSet_fromRead/Values); //network node to which the the OD is connected 
-				attribute<min_f>            Minutes               := MakeDefined(convert((LengthKm / KPH), min_f), 0.0001[min_f]);
-				attribute<rdc>              geometry (arc)        := points2sequence(PointSet_fromRead/Point, PointSet_fromRead/SeqNr, PointSet_fromRead/Ordinal);
+				attribute<NodeSet_src> F1                    := rlookup(first_point, NodeSet_src/Values); //node from the OD towards the network
+				attribute<NodeSet_src> F2                    := rlookup(last_point,  NodeSet_src/Values); //network node to which the the OD is connected 
+				attribute<rdc>              geometry (arc)        := points2sequence(PointSet/Point, PointSet/SeqNr, PointSet/Ordinal);
 				attribute<float32>          KPH_from_imp          := float32(LengthKm) / (float32(impedance) / 3600f);
 				attribute<float32>          KPH_from_min          := float32(LengthKm) / (float32(Minutes) / 60f);
 				
-				unit<uint32> PointSet_fromRead:= union_unit(., .)
-				{
-					attribute<rdc>          Point   := Union_Data(., ../first_point, ../last_point);
-					attribute<..>           SeqNr   := value(id(.) % nrofrows(..), ..);
-					attribute<uint32>       Ordinal := id(.) / nrofrows(..);
-				}
-				unit<uint32> NodeSet_fromRead := unique(PointSet_fromRead/Point)
+				unit<uint32> NodeSet_src  := unique(PointSet/Point)
 				{
 					attribute<.>            F1 (..)          := rlookup(first_point, Values); //node from the OD towards the network
 					attribute<.>            F2 (..)          := rlookup(last_point,  Values); //network node to which the the OD is connected 
@@ -140,10 +113,10 @@ container Templates: Using = "Units;Classifications;geometries"
 				parameter<s>       Impedance4Links    := 5[s];
 				parameter<s>       Impedance_gt4Links := 6[s];
 
-				attribute<uint32>  Start (LinkSet_Read)     := LinkSet_Read/NodeSet_fromRead/NrConnectedLinks[LinkSet_Read/F1];
-				attribute<uint32>  End   (LinkSet_Read)     := LinkSet_Read/NodeSet_fromRead/NrConnectedLinks[LinkSet_Read/F2];
+				attribute<uint32>  Start (LinkSet)     := LinkSet/NodeSet_src/NrConnectedLinks[LinkSet/F1];
+				attribute<uint32>  End   (LinkSet)     := LinkSet/NodeSet_src/NrConnectedLinks[LinkSet/F2];
 			
-				attribute<s> impedance_Start (LinkSet_Read):=
+				attribute<s> impedance_Start (LinkSet):=
 					switch(
 						 case(Start <= 2, Impedance2Links)
 						,case(Start  = 3, Impedance3Links)
@@ -151,7 +124,7 @@ container Templates: Using = "Units;Classifications;geometries"
 						,Impedance_gt4Links
 					);
 			
-				attribute<s> impedance_End (LinkSet_Read):=
+				attribute<s> impedance_End (LinkSet):=
 					switch(
 						 case(End <= 2, Impedance2Links)
 						,case(End  = 3, Impedance3Links)
@@ -171,8 +144,8 @@ container Templates: Using = "Units;Classifications;geometries"
 				attribute<uint32> nrofarc_na_iter := ='union_data(., '+AsList('OptimiseNetwork/'+name+'/IntermediateLinkSet/count_arcs', ',')+')'; 
 			}
 			
-			unit<uint32> LinkSet_src     := CreateInitialWorkingNetwork/LinkSet_Read;
-			unit<uint32> NodeSet_src     := CreateInitialWorkingNetwork/LinkSet_Read/NodeSet_fromRead;
+			unit<uint32> LinkSet_src     := CreateInitialWorkingNetwork/LinkSet;
+			unit<uint32> NodeSet_src     := CreateInitialWorkingNetwork/LinkSet/NodeSet_src;
 
 			unit<uint64> Nodeset_x_NodeSet := combine_unit_uint64(NodeSet_src, NodeSet_src);
 			
@@ -186,60 +159,21 @@ container Templates: Using = "Units;Classifications;geometries"
 			}
 			unit<uint32> LastLinkSet  := OptimiseNetwork/LastIter/IntermediateLinkSet;
 			
-			unit<uint32> FinalNodeSet_Calc := select_with_org_rel(pcount(LastLinkSet/F1)+pcount(LastLinkSet/F2) > 0)
+			unit<uint32> FinalNodeSet := select_with_org_rel(pcount(LastLinkSet/F1)+pcount(LastLinkSet/F2) > 0)
 			{
 				attribute<rdc>                geometry                  := org_rel->values;
 				attribute<.>                  OrgNode_rel  (OrgDomain)  := rlookup(OrgDomain/centroid,  geometry);
 				attribute<.>                  DestNode_rel (DestDomain) := rlookup(DestDomain/centroid, geometry);	
 			}
-			unit<uint32> FinalLinkSet_Calc := LastLinkSet 
+			
+			unit<uint32> FinalLinkSet := LastLinkSet 
 			{
-				attribute<FinalNodeSet_Write> F1                   := invert(FinalNodeSet_Write/org_rel)[LastLinkSet/F1];
-				attribute<FinalNodeSet_Write> F2                   := invert(FinalNodeSet_Write/org_rel)[LastLinkSet/F2];
+				attribute<FinalNodeSet> F1                   := invert(FinalNodeSet/org_rel)[LastLinkSet/F1];
+				attribute<FinalNodeSet> F2                   := invert(FinalNodeSet/org_rel)[LastLinkSet/F2];
 				attribute<s_f>                Impedance            := LastLinkSet/Impedance;
 				attribute<km>                 LengthKm             := LastLinkSet/LengthKm;
-				attribute<bool>               IsOneDirection       := LastLinkSet/IsOneDirection;
+				// attribute<bool>               IsOneDirection       := LastLinkSet/IsOneDirection;
 				attribute<bool>               IsOD_connection_road := LastLinkSet/IsOD_connection_road;
-			}
-			
-			// hardstore optimised network and nodeset
-			unit<uint32> FinalNodeSet_Write := FinalNodeSet_Calc, StorageName = "= '%LocalDataProjDir%/Final_Nodeset_O-'+OrgName+'_D-'+Destname+'.fss'"
-			{
-				attribute<rdc>                geometry                  := FinalNodeSet_Calc/geometry;
-				attribute<.>                  OrgNode_rel  (OrgDomain)  := FinalNodeSet_Calc/OrgNode_rel;
-				attribute<.>                  DestNode_rel (DestDomain) := FinalNodeSet_Calc/DestNode_rel;
-			}
-			unit<uint32> FinalLinkSet_Write := FinalLinkSet_Calc, StorageName = "= '%LocalDataProjDir%/Final_Linkset_O-'+OrgName+'_D-'+Destname+'.fss'" 
-			{
-				attribute<FinalNodeSet_Calc>  F1                   := FinalLinkSet_Calc/F1;
-				attribute<FinalNodeSet_Calc>  F2                   := FinalLinkSet_Calc/F2;
-				attribute<s_f>                Impedance            := FinalLinkSet_Calc/Impedance;
-				attribute<km>                 LengthKm             := FinalLinkSet_Calc/LengthKm;
-				attribute<bool>               IsOneDirection       := FinalLinkSet_Calc/IsOneDirection;
-				attribute<bool>               IsOD_connection_road := FinalLinkSet_Calc/IsOD_connection_road;
-			}
-			
-			
-			// read stored nodeset and links
-			unit<uint32> FinalNodeSet_Read : storagename = "= propvalue(FinalNodeSet_Write, 'StorageName')", StorageReadOnly = "True"
-			{
-				attribute<rdc>           geometry; 
-				attribute<.>             OrgNode_rel  (OrgDomain);
-				attribute<.>             DestNode_rel (DestDomain);
-			}
-			unit<uint32> FinalLinkSet_Read : StorageName = "= propvalue(FinalLinkSet_Write, 'StorageName')", StorageReadOnly = "True"
-			{
-				attribute<FinalNodeSet_Read>      F1;
-				attribute<FinalNodeSet_Read>      F2;
-				attribute<s_f>                    Impedance;
-				attribute<km>                     LengthKm;
-				attribute<bool>                   IsOneDirection;
-				attribute<bool>                   IsOD_connection_road;
-			}
-			unit<uint32> FinalNodeSet := =ModelParameters/IsNetworkStored ? 'FinalNodeSet_Read' : 'FinalNodeSet_Calc';
-			unit<uint32> FinalLinkSet := =ModelParameters/IsNetworkStored ? 'FinalLinkSet_Read' : 'FinalLinkSet_Calc'
-			{
-				
 			
 				// For visualisation
 				attribute<rdc>            FirstPoint                     := FinalNodeSet/Geometry[F1];
@@ -271,7 +205,7 @@ container Templates: Using = "Units;Classifications;geometries"
 				
 				unit<uint32> LinkSet := PrevIntermediateLinkSet
 				{
-					attribute<bool>                            IsOneDirection                 := PrevIntermediateLinkSet/IsOneDirection;
+					// attribute<bool>                            IsOneDirection                 := PrevIntermediateLinkSet/IsOneDirection;
 					
 					attribute<bool>                            IsPartOfJunctionFreeSection    := NodeSet/WillBeDeleted[F1] || NodeSet/WillBeDeleted[F2];
 					attribute<bool>                            IsInsideJunctionFreeSection    := NodeSet/WillBeDeleted[F1] && NodeSet/WillBeDeleted[F2];
@@ -286,9 +220,9 @@ container Templates: Using = "Units;Classifications;geometries"
 				, Descr = "set of all nodes in the network, comprised of the nodes from the original network AND the OD-points." 
 				{
 					attribute<uint32>                          NrConnectedLinks               := pcount(LinkSet/F1) + pcount(LinkSet/F2);
-					attribute<bool>                            BordersWithOneDirectionalRoad  := LinkSet/IsOneDirection[invert(LinkSet/F1)] || LinkSet/IsOneDirection[invert(LinkSet/F2)];
-					attribute<bool>                            WillBeDeleted                  := NrConnectedLinks == 2  // 2 connectinglinks means intermediary without junction
-																									&& !IsOD_connection_road;
+					// attribute<bool>                            BordersWithOneDirectionalRoad  := LinkSet/IsOneDirection[invert(LinkSet/F1)] || LinkSet/IsOneDirection[invert(LinkSet/F2)];
+					attribute<bool>                            WillBeDeleted                  := NrConnectedLinks == 2;  // 2 connectinglinks means intermediary without junction
+																									// && !IsOD_connection_road;
 					attribute<bool>                            IsOD_connection_road           := pcount(uq_OD_points/Node_rel) != 0 // if there are node_rel's then it is an connected OD-point.
 																									|| pcount(uq_OD_points/Node_rel_of_link_to_network) != 0; //if a node is used in the connection link between network and OD-point, then it is the connecting node
 
@@ -312,7 +246,7 @@ container Templates: Using = "Units;Classifications;geometries"
 					attribute<km>                              LengthKm                       := collect_by_cond(LinksInsideJunctionFreeSection, LinkSet/IsInsideJunctionFreeSection, LinkSet/LengthKm);
 					attribute<NodeSet>                         F1                             := collect_by_cond(LinksInsideJunctionFreeSection, LinkSet/IsInsideJunctionFreeSection, LinkSet/F1);
 					attribute<NodeSet>                         F2                             := collect_by_cond(LinksInsideJunctionFreeSection, LinkSet/IsInsideJunctionFreeSection, LinkSet/F2); 
-					attribute<bool>                            IsOneDirection                 := collect_by_cond(LinksInsideJunctionFreeSection, LinkSet/IsInsideJunctionFreeSection, LinkSet/IsOneDirection); 
+					// attribute<bool>                            IsOneDirection                 := collect_by_cond(LinksInsideJunctionFreeSection, LinkSet/IsInsideJunctionFreeSection, LinkSet/IsOneDirection); 
 					attribute<JunctionFreeSection_wC>          JunctionFreeSection_wC_rel     := NodeSet/JunctionFreeSection_wC_rel[F1];
 					
 					//For visualisation
@@ -340,7 +274,7 @@ container Templates: Using = "Units;Classifications;geometries"
 					attribute<NodeSet>                         NodeSet_rel                    := F_keep;
 					attribute<s_f>                             Impedance                      := LinkSet/Impedance[org_rel];
 					attribute<km>                              LengthKm                       := LinkSet/LengthKm[org_rel];
-					attribute<bool>                            IsOneDirection                 := LinkSet/IsOneDirection[org_rel];
+					// attribute<bool>                            IsOneDirection                 := LinkSet/IsOneDirection[org_rel];
 					
 					//For visualisation
 					attribute<rdc>                     geometry  (arc)                := LinkSet/geometry[org_rel];
@@ -368,11 +302,11 @@ container Templates: Using = "Units;Classifications;geometries"
 					attribute<NodeSet>                         F1                             :=  First_ConnectorLink_rel -> F1 == Fa ? Fa : Fb;
 					attribute<NodeSet>                         F2                             :=  First_ConnectorLink_rel -> F1 == Fa ? Fb : Fa;
 					
-					attribute<bool>                            First_ConnectorLink_IsOneDirection := ConnectorLink/IsOneDirection[First_ConnectorLink_rel];
-					attribute<bool>                            Last_ConnectorLink_IsOneDirection  := ConnectorLink/IsOneDirection[Last_ConnectorLink_rel];
-					attribute<bool>                            Links_InsideJFS_IsOneDirection     := all(LinksInsideJunctionFreeSection/IsOneDirection, LinksInsideJunctionFreeSection/JunctionFreeSection_wC_rel);
+					// attribute<bool>                            First_ConnectorLink_IsOneDirection := ConnectorLink/IsOneDirection[First_ConnectorLink_rel];
+					// attribute<bool>                            Last_ConnectorLink_IsOneDirection  := ConnectorLink/IsOneDirection[Last_ConnectorLink_rel];
+					// attribute<bool>                            Links_InsideJFS_IsOneDirection     := all(LinksInsideJunctionFreeSection/IsOneDirection, LinksInsideJunctionFreeSection/JunctionFreeSection_wC_rel);
 					
-					attribute<bool>                            IsOneDirection                     := First_ConnectorLink_IsOneDirection && Last_ConnectorLink_IsOneDirection && Links_InsideJFS_IsOneDirection;
+					// attribute<bool>                            IsOneDirection                     := First_ConnectorLink_IsOneDirection && Last_ConnectorLink_IsOneDirection && Links_InsideJFS_IsOneDirection;
 					attribute<bool>                            IsOD_connection_road               := const(FALSE,.);
 					
 					//For visualisation
@@ -394,7 +328,7 @@ container Templates: Using = "Units;Classifications;geometries"
 					attribute<NodeSet>                         F2                             := collect_by_cond(., JunctionFreeSection_wC/IsNonCyclic_JFS, JunctionFreeSection_wC/F2);
 					attribute<s_f>                             impedance                      := collect_by_cond(., JunctionFreeSection_wC/IsNonCyclic_JFS, JunctionFreeSection_wC/Total_Impedance);
 					attribute<km>                              LengthKm                       := collect_by_cond(., JunctionFreeSection_wC/IsNonCyclic_JFS, JunctionFreeSection_wC/Total_LengthKm);
-					attribute<bool>                            IsOneDirection                 := collect_by_cond(., JunctionFreeSection_wC/IsNonCyclic_JFS, JunctionFreeSection_wC/IsOneDirection);
+					// attribute<bool>                            IsOneDirection                 := collect_by_cond(., JunctionFreeSection_wC/IsNonCyclic_JFS, JunctionFreeSection_wC/IsOneDirection);
 					attribute<bool>                            IsOD_connection_road           := collect_by_cond(., JunctionFreeSection_wC/IsNonCyclic_JFS, JunctionFreeSection_wC/IsOD_connection_road);
 				}
 				
@@ -405,7 +339,7 @@ container Templates: Using = "Units;Classifications;geometries"
 					attribute<NodeSet>                         F2                             := LinkSet/F2[org_rel];
 					attribute<s_f>                             impedance                      := LinkSet/impedance[org_rel];
 					attribute<km>                              LengthKm                       := LinkSet/LengthKm[org_rel];
-					attribute<bool>                            IsOneDirection                 := LinkSet/IsOneDirection[org_rel];
+					// attribute<bool>                            IsOneDirection                 := LinkSet/IsOneDirection[org_rel];
 					attribute<bool>                            IsOD_connection_road           := LinkSet/IsOD_connection_road[org_rel];
 					
 					//For visualisation
@@ -426,17 +360,19 @@ container Templates: Using = "Units;Classifications;geometries"
 					attribute<NodeSet>                         F1                             := union_data(., UnchangedLinkSet/F1, JunctionFreeSection/F1);
 					attribute<NodeSet>                         F2                             := union_data(., UnchangedLinkSet/F2, JunctionFreeSection/F2);
 					attribute<s_f>                             impedance_org                  := union_data(., UnchangedLinkSet/impedance, JunctionFreeSection/impedance);
-					attribute<s_f>                             impedance                      := !IsOneDirection ? MakeDefined(Find_DuplicateLinks/min_impedance[Find_DuplicateLinks_rel],impedance_org) : impedance_org;
+					// attribute<s_f>                             impedance                      := !IsOneDirection ? MakeDefined(Find_DuplicateLinks/min_impedance[Find_DuplicateLinks_rel],impedance_org) : impedance_org;
+					attribute<s_f>                             impedance                      := MakeDefined(Find_DuplicateLinks/min_impedance[Find_DuplicateLinks_rel],impedance_org);
 
 					attribute<km>                              LengthKm_org                   := union_data(., UnchangedLinkSet/LengthKm, JunctionFreeSection/LengthKm);
 					attribute<km>                              LengthKm                       := MakeDefined(Find_DuplicateLinks/min_length_km[Find_DuplicateLinks_rel],LengthKm_org);
-					attribute<bool>                            IsOneDirection                 := union_data(., UnchangedLinkSet/IsOneDirection, JunctionFreeSection/IsOneDirection);
+					// attribute<bool>                            IsOneDirection                 := union_data(., UnchangedLinkSet/IsOneDirection, JunctionFreeSection/IsOneDirection);
 					
 					attribute<bool>                            IsLinkWithDeadEnd              := NodeSet/IsDeadEnd_and_NotOD[F1] || NodeSet/IsDeadEnd_and_NotOD[F2];
 					attribute<bool>                            IsLinkConnectedWithItself      := F1 == F2;
 					attribute<bool>                            IsDuplicateLink                := Find_DuplicateLinks/IsDuplicateLink[Find_DuplicateLinks_rel] && id(.) != Find_DuplicateLinks/FirstLink[Find_DuplicateLinks_rel];
 					
-					attribute<bool>                            ToBeOmitted                    := (IsLinkWithDeadEnd || IsLinkConnectedWithItself || IsDuplicateLink) && !IsOneDirection;
+					// attribute<bool>                            ToBeOmitted                    := (IsLinkWithDeadEnd || IsLinkConnectedWithItself || IsDuplicateLink) && !IsOneDirection;
+					attribute<bool>                            ToBeOmitted                    := (IsLinkWithDeadEnd || IsLinkConnectedWithItself || IsDuplicateLink);
 					attribute<bool>                            IsOD_connection_road           := union_data(., UnchangedLinkSet/IsOD_connection_road, JunctionFreeSection/IsOD_connection_road);
 					
 					attribute<Nodeset_x_NodeSet>               Nodeset_x_NodeSet_rel          := combine_data(Nodeset_x_NodeSet, min_elem(F1, F2), max_elem(F1,F2)); //TO DO let op direction
@@ -473,7 +409,7 @@ container Templates: Using = "Units;Classifications;geometries"
 		
 					attribute<s_f>     Impedance      := collect_by_cond(., !LinkSet_cleanedforJFS/ToBeOmitted, LinkSet_cleanedforJFS/impedance);
 					attribute<km>      LengthKm       := collect_by_cond(., !LinkSet_cleanedforJFS/ToBeOmitted, LinkSet_cleanedforJFS/LengthKm);
-					attribute<bool>    IsOneDirection := collect_by_cond(., !LinkSet_cleanedforJFS/ToBeOmitted, LinkSet_cleanedforJFS/IsOneDirection);
+					// attribute<bool>    IsOneDirection := collect_by_cond(., !LinkSet_cleanedforJFS/ToBeOmitted, LinkSet_cleanedforJFS/IsOneDirection);
 					attribute<bool>    IsOD_connection_road       := collect_by_cond(., !LinkSet_cleanedforJFS/ToBeOmitted, LinkSet_cleanedforJFS/IsOD_connection_road);
 					
 					parameter<uint32>  count_arcs := #.;
