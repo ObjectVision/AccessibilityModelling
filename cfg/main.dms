@@ -1,5 +1,18 @@
 container AccessibilityModelling
 { 
+	container MaakOntkoppeldeData
+	{
+		container OSM
+		{   
+			parameter<String> Step1_Generate_roads_shp2fss                   := 'Ready', ExplicitSuppliers = "/sourcedata/Infrastructure/OSM/Per_Country/Generate_All";
+		}
+		
+		container GTFS_2_FSS
+		{
+			parameter<String> Generate_GTSF_FSS                              := 'Ready', ExplicitSuppliers = "/SourceData/Infrastructure/GTFS/LoadFeeds/storefss";
+		}
+	}
+
 	#include<ModelParameters.dms>
 	#include<units.dms>
 	#include<geometries.dms>

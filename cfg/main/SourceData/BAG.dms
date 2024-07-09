@@ -1,6 +1,6 @@
 container BAG
 {
-	parameter<string> SnapshotDir   := '%SourceDataDir%/NetworkModel/RegioIndelingen/BAG/'+string(BAG_jaar)+'0101';
+	parameter<string> SnapshotDir   := '%Accessibility_DataDir%/RegionalUnits/BAG/'+string(BAG_jaar)+'0101';
 	unit<uint32> RegioUnit_Buurt    := /SourceData/RegionalUnits/Buurt;
 	unit<uint32> RegioUnit_Wijk     := /SourceData/RegionalUnits/Wijk;
 	unit<uint32> RegioUnit_Gemeente := /SourceData/RegionalUnits/Gemeente;
