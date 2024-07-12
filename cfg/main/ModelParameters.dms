@@ -12,8 +12,8 @@
 	parameter<bool>     Export_AfgelegdeAfstand      := TRUE;                               // export (en daarmee bereken) de afgelegde afstand in de output cvs's voor private transport.
 	
 	//OV-berekening instellingen
-	parameter<string>   GTFS_file_date               := '20231003';                         //GTFS file date #'20191007' #20201002 20211001 20120917
-	parameter<string>   Analysis_date                := '20231004', IntegrityCheck = "uint32(this) >= uint32(GTFS_file_date) && uint32(this) <= uint32(GTFS_file_date) + 100";                //GTFS model date #'20191008' 20201006 20201004 20211005 20211003 20171003 (=dinsdag) 20171001 (=zondag)
+	parameter<string>   GTFS_file_date               := rjoin(AnalyseMoment, Advanced/AnalyseMomentPresets/name, Advanced/AnalyseMomentPresets/GTFS_file_date);                         //GTFS file date #'20191007' #20201002 20211001 20120917
+	parameter<string>   Analysis_date                := rjoin(AnalyseMoment, Advanced/AnalyseMomentPresets/name, Advanced/AnalyseMomentPresets/PT_analysis_date), IntegrityCheck = "uint32(this) >= uint32(GTFS_file_date) && uint32(this) <= uint32(GTFS_file_date) + 100";                //GTFS model date #'20191008' 20201006 20201004 20211005 20211003 20171003 (=dinsdag) 20171001 (=zondag)
 
 	parameter<min_f>    MaxPedestrianTime_Org2Stop   := 10[min_f];                          //Maximum looptijd van org naar eerste halte, in seconden. x  MaxWalkingDistSelection_Org2Stop
 	parameter<min_f>    MaxPedestrianTime_Stop2Dest  := 10[min_f];                          //Maximum looptijd van de laatste stop naar dest, in seconden. x
@@ -43,23 +43,27 @@
 		parameter<float32>  MaxODconn                    := 25f;                                //Maximum aantal haltes dat bij de org of de dest wordt gezocht
 		parameter<string>   OSM_file_date                := rjoin(AnalyseMoment, Advanced/AnalyseMomentPresets/name, Advanced/AnalyseMomentPresets/OSM_file_date);                         //OpenStreetMap file date #'20200117' 20211004 '20211221' 20221201
 
-		unit<uint8>  AnalyseMomentPresets : nrofrows = 7
+		unit<uint8>  AnalyseMomentPresets : nrofrows = 4
 		{
 			unit<uint32> Elements  := Range(uint32, 0, nrAttr*#.)
 			{
 				attribute<String> Text:
-				// name, OSM date , Regios, OSM_perProv, 
+				// name, OSM date , Regios, GTFS date, PT analysis date
 				[
-				'Y2022','20221201', '2022', 
-				'Y2023','20240101', '2023'
+				'Y2018','20240101', '2018', '20181002', '20181009', //tuesday
+				'Y2019','20240101', '2019', '20191007', '20191008', //tuesday
+				'Y2022','20240101', '2022', '20220928', '20221004', //tuesday
+				'Y2023','20240101', '2023', '20231003', '20181010'  //tuesday
 				];
 			}
 			
 			attribute<string>        name                    := Elements/Text[value(UInt32(ID(.))* nrAttr + 0, Elements)];
 			attribute<string>        OSM_file_date           := Elements/Text[value(UInt32(ID(.))* nrAttr + 1, Elements)];
 			attribute<string>        RegioIndelingen_jaar    := Elements/Text[value(UInt32(ID(.))* nrAttr + 2, Elements)];
+			attribute<string>        GTFS_file_date          := Elements/Text[value(UInt32(ID(.))* nrAttr + 3, Elements)];
+			attribute<string>        PT_analysis_date        := Elements/Text[value(UInt32(ID(.))* nrAttr + 4, Elements)];
 			
-			parameter<uint32> nrAttr := 3;
+			parameter<uint32> nrAttr := 5;
 		}
 	
 		unit<uint32> org_domain_list : nrofrows = 17 // Hier worden de paden voor elke org set opgegeven. En wanneer er nieuwe bij komen dat hier ook toegevoegd worden.

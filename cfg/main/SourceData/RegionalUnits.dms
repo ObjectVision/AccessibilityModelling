@@ -2,7 +2,7 @@ container RegionalUnits : using = "geometries"
 { 	
 	parameter<string> Regio_jaar          := ModelParameters/Advanced/RegioIndelingen_jaar;
 	
-	unit<uint32> Gebiedsindelingen_jaren := range(uint32, 2020, 2024)
+	unit<uint32> Gebiedsindelingen_jaren := range(uint32, 2018, 2024)
 	{
 		attribute<uint32> jaar            := id(.);
 		attribute<string> name            := 'Y'+string(jaar);
@@ -27,7 +27,7 @@ container RegionalUnits : using = "geometries"
 		parameter<string> jaar;
 		//
 		container gpkg
-		:	StorageName     = "='%SourceDataDir%/CBS/cbsgebiedsindelingen'+jaar+'.gpkg'"
+		:	StorageName     = "='%Accessibility_DataDir%/RegionalUnits/cbsgebiedsindelingen'+jaar+'.gpkg'"
 		, 	StorageType     = "gdal.vect"
 		,	StorageReadOnly = "True"
 		,	SyncMode        = "alltables"
