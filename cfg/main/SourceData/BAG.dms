@@ -181,8 +181,8 @@ container BAG
 			
 			unit<uint32> buurt := RegioUnit_Buurt
 			{
-				attribute<float32>  x_mean    := mean(pointrow(../geometry), buurt_rel);
-				attribute<float32>  y_mean    := mean(pointcol(../geometry), buurt_rel);
+				attribute<float32>  x_mean    := mean(pointcol(../geometry), buurt_rel);
+				attribute<float32>  y_mean    := mean(pointrow(../geometry), buurt_rel);
 				attribute<rdc>      centroid0 := point_xy(x_mean, y_mean, rdc);
 				
 				//controles
@@ -197,8 +197,8 @@ container BAG
 			
 			unit<uint32> wijk := RegioUnit_Wijk
 			{
-				attribute<float32>  x_mean := mean(pointrow(../geometry), wijk_rel);
-				attribute<float32>  y_mean := mean(pointcol(../geometry), wijk_rel);
+				attribute<float32>  x_mean := mean(pointcol(../geometry), wijk_rel);
+				attribute<float32>  y_mean := mean(pointrow(../geometry), wijk_rel);
 				attribute<rdc>      centroid0 := point_xy(x_mean, y_mean, rdc);
 				
 				//controles
@@ -213,8 +213,8 @@ container BAG
 			
 			unit<uint32> gemeente := RegioUnit_Gemeente
 			{
-				attribute<float32>  x_mean := mean(pointrow(../geometry), gemeente_rel);
-				attribute<float32>  y_mean := mean(pointcol(../geometry), gemeente_rel);
+				attribute<float32>  x_mean := mean(pointcol(../geometry), gemeente_rel);
+				attribute<float32>  y_mean := mean(pointrow(../geometry), gemeente_rel);
 				attribute<rdc>      centroid0 := point_xy(x_mean, y_mean, rdc);
 				
 				//controles
@@ -229,8 +229,8 @@ container BAG
 			
 			unit<uint32> pc4_uq := unique(postcode4)
 			{
-				attribute<float32>  x_mean   := mean(pointrow(../geometry), PC4_uq_rel);
-				attribute<float32>  y_mean   := mean(pointcol(../geometry), PC4_uq_rel);
+				attribute<float32>  x_mean   := mean(pointcol(../geometry), PC4_uq_rel);
+				attribute<float32>  y_mean   := mean(pointrow(../geometry), PC4_uq_rel);
 				attribute<rdc>      geometry := point_xy(x_mean, y_mean, rdc);
 				attribute<string>   PC4      := values;
 			}
@@ -247,8 +247,8 @@ container BAG
 			
 			unit<uint32> pc6_uq := unique(postcode)
 			{
-				attribute<float32>  x_mean   := mean(pointrow(../geometry), PC6_uq_rel);
-				attribute<float32>  y_mean   := mean(pointcol(../geometry), PC6_uq_rel);
+				attribute<float32>  x_mean   := mean(pointcol(../geometry), PC6_uq_rel);
+				attribute<float32>  y_mean   := mean(pointrow(../geometry), PC6_uq_rel);
 				attribute<rdc>      geometry := point_xy(x_mean, y_mean, rdc);
 				attribute<string>   PC6      := values;
 			}
