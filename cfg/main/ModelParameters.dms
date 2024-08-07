@@ -1,47 +1,46 @@
-﻿container ModelParameters : using = "units"
+﻿container Modelparameters : using = "units"
 {   
 	//Generieke instellingen
-	parameter<string>   AnalyseMoment                := 'Y2018';                            //gebruikt om de rij te selecten in Advanced/AnalyseMomentPresets
-	parameter<string>   Orgset                       := 'PC4';                              //Welke origin punten worden gebruikt? Opties: 'PC4' 'PC6' 'Buurt_y2020' 'Buurt_y2017_centroiden' 'Buurt_y2020_centroiden'
-	parameter<string>   Destset                      := 'PC4';                              //Welke destination punten worden gebruikt? Opties: Groen_BS2017 'LISA' 'Huisartsenposten' 'Huisartsenposten_geclusterd', 'Ziekenhuizen_y2020', 'Ziekenhuizen_y2020_sub' 'Supermarkten_yokt2018' 'Winkelsdagelijks_yokt2018' 'PC6pnt_y2020' 'Basisscholen_okt2021' 'Scholen_voortgezet_onderwijs_okt2021'
-	parameter<string>   CentroidWeightType           := 'Addresses';                        //Als je gewogen centroide neemt bij de orgs, op welke manier wil je die gewogen hebben? Obv Population of Addresses ?
-	parameter<string>   Orgset_EnkeleBuurt_selectie  := 'BU00141705';                       //Als je een enkele buurt selecteert bij OrgSet, welke buurt wil je dan? BU00140107  'Laanhuizen'; 'Elzenhof'; BU19010209
-	parameter<string>   Orgset_EnkeleGem_selectie    := 'GM0119';                           //Als je een enkele gemeente selecteert bij OrgSet, welke gemeente wil je dan?
-	parameter<string>   Orgset_EnkeleProv_selectie   := 'Groningen';                        //Als je een enkele provincie selecteert bij OrgSet, welke provincie wil je dan?
-	parameter<string>   Destset_Enkele_selectie      := '91';                               //Als je een enkele dest selecteert bij dest, welke gebruik je dan in de subset selectie?
-	parameter<bool>     Export_AfgelegdeAfstand      := TRUE;                               // export (en daarmee bereken) de afgelegde afstand in de output cvs's voor private transport.
+	parameter<string>   AnalyseMoment                := 'Y2018',                                                                                                                   Descr = "use this to select a row in Advanced/AnalyseMomentPresets";
+	parameter<string>   Orgset                       := 'PC4',                                                                                                                     Descr = "Which origin point set need to be used? Examples: 'PC4' 'PC6' 'Buurt' 'Gemeente'";
+	parameter<string>   Destset                      := 'PC4',                                                                                                                     Descr = "Which destination point set needs to be used? Examples: PC4";
+	parameter<string>   CentroidWeightType           := 'Addresses',                                                                                                               Descr = "If you use a weighted centroid in the org set, how would you like to weigh it? Based on Population or Addresses ?";
+	parameter<string>   Orgset_EnkeleBuurt_selectie  := 'BU00141705',                                                                                                              Descr = "If you choose a single neighbourhood for the OrgSet, which neighbourhood would you like to use? Examples: BU00140107  'Laanhuizen'; 'Elzenhof'; BU19010209";
+	parameter<string>   Orgset_EnkeleGem_selectie    := 'GM0119',                                                                                                                  Descr = "If you choose a single municipality for the OrgSet, which municipality would you like to use? Examples: ";
+	parameter<string>   Orgset_EnkeleProv_selectie   := 'Groningen',                                                                                                               Descr = "If you choose a single province for the OrgSet, which province would you like to use? Examples: ";
+	parameter<string>   Destset_Enkele_selectie      := '91',                                                                                                                      Descr = "If you choose a single destination for the DestSet, which destination name would you like to use? Examples: ";
+	parameter<bool>     Export_AfgelegdeAfstand      := TRUE,                                                                                                                      Descr = "export (and with that, calculate) the travelled distance in the output cvs's for private transport.";
 	
 	//OV-berekening instellingen
-	parameter<string>   GTFS_file_date               := rjoin(AnalyseMoment, Advanced/AnalyseMomentPresets/name, Advanced/AnalyseMomentPresets/GTFS_file_date);                         //GTFS file date #'20191007' #20201002 20211001 20120917
-	parameter<string>   Analysis_date                := rjoin(AnalyseMoment, Advanced/AnalyseMomentPresets/name, Advanced/AnalyseMomentPresets/PT_analysis_date), IntegrityCheck = "uint32(this) >= uint32(GTFS_file_date) && uint32(this) <= uint32(GTFS_file_date) + 100";                //GTFS model date #'20191008' 20201006 20201004 20211005 20211003 20171003 (=dinsdag) 20171001 (=zondag)
+	parameter<string>   GTFS_file_date               := rjoin(AnalyseMoment, Advanced/AnalyseMomentPresets/name, Advanced/AnalyseMomentPresets/GTFS_file_date),                    Descr = "GTFS file date #'20191007' #20201002 20211001 20120917";
+	parameter<string>   Analysis_date                := rjoin(AnalyseMoment, Advanced/AnalyseMomentPresets/name, Advanced/AnalyseMomentPresets/PT_analysis_date),                  Descr = "GTFS model date #'20191008' 20201006 20201004 20211005 20211003 20171003 (=dinsdag) 20171001 (=zondag)", IntegrityCheck = "uint32(this) >= uint32(GTFS_file_date) && uint32(this) <= uint32(GTFS_file_date) + 100";
 
-	parameter<min_f>    MaxPedestrianTime_Org2Stop   := 10[min_f];                          //Maximum looptijd van org naar eerste halte, in seconden. x  MaxWalkingDistSelection_Org2Stop
-	parameter<min_f>    MaxPedestrianTime_Stop2Dest  := 10[min_f];                          //Maximum looptijd van de laatste stop naar dest, in seconden. x
-	parameter<min_f>    MaxBikeTime_Org2Stop         := 15[min_f];                          //Maximum fietstijd van org naar eerste halte, in seconden. x
-	parameter<min_f>    MaxBikeTime_Stop2Dest        := 10[min_f];                          //Maximum fietstijd van laatste halte naar dest, in seconden. x
-	parameter<min_f>    MaxPedestrianTime_Org2Dest   := 20[min_f];                          //Maximale looptijd wanneer er direct van org naar dest locatie wordt gelopen, in seconden.
-	parameter<min_f>    MaxBikeTime_Org2Dest         := 30[min_f];                          //Maximale fietstijd wanneer er direct van org naar dest locatie wordt gefietst, in seconden.
-	parameter<min_f>    MaxOVTime                    := 45[min_f];                          //Maximale reistijd met OV. Te gebruiken om de rekentijd te verkorten. LET OP: hierdoor worden mogelijk de verste locaties niet bereikt. Wannneer een distance decay wordt gebruikt is niet zo erg. Maar bij een volledige OD wel! 
-	parameter<min_f>    OngelijkvloersPenalty        := 2[min_f];                           //Is er sprake van een halte waar je veel verticale afstand moet afleggen? Dan kun je daar een tijd penalty voor geven bij het overstappen, in seconden.
-	parameter<bool>     UseActualBikeSpeeds          := FALSE;                              //Gebruik van actualbike speeds in OV berekening voor voor- en natransport. TRUE: Gebruik FietsTelWeek data fietssnelheden. FALSE: Gebruik default waarde, hieronder gedefinieerd.
+	parameter<min_f>    MaxPedestrianTime_Org2Stop   := 10[min_f],                                                                                                                 Descr = "Maximum walking time from org to the first stop, in minutes.";
+	parameter<min_f>    MaxPedestrianTime_Stop2Dest  := 10[min_f],                                                                                                                 Descr = "Maximum walking time from the last stop to the dest, in minutes.";
+	parameter<min_f>    MaxBikeTime_Org2Stop         := 15[min_f],                                                                                                                 Descr = "Maximum biking time from org to the first stop, in minutes.";
+	parameter<min_f>    MaxBikeTime_Stop2Dest        := 10[min_f],                                                                                                                 Descr = "Maximum biking time from the last stop to the dest, in minutes.";
+	parameter<min_f>    MaxPedestrianTime_Org2Dest   := 20[min_f],                                                                                                                 Descr = "Maximale walking time when traveling directly from the org to the destination, in minutes";
+	parameter<min_f>    MaxBikeTime_Org2Dest         := 30[min_f],                                                                                                                 Descr = "Maximale biking time when traveling directly from the org to the destination, in minutes";
+	parameter<min_f>    MaxOVTime                    := 45[min_f],                                                                                                                 Descr = "Maximale travel time with public transport, in minutes. This is can be used to limit calculation times. NOTE: this could mean that the location furthest away might not be reached. If a distance decay variant is used, it might not be a big issue, however it will be when calculating a full OD-matrix!";
+	parameter<min_f>    OngelijkvloersPenalty        := 2[min_f],                                                                                                                  Descr = "Is there a stop with a lot of vertical distance to travelled when changing? Here you can specify a time penalty when changing at this stop, in minutes.";
+	parameter<bool>     UseActualBikeSpeeds          := FALSE,                                                                                                                     Descr = "Use actual bike speeds in public transport calculation for pre- and post-transports. TRUE: use FietsTelWeek data biking speeds. FALSE: use a default value, as specified below.";
 	
 	//Auto berekening instellingen
-	parameter<min_f>    MaxCarTime_Org2Dest          := 60[min_f];                          //Maximale reistijd met lopen/fiets/auto //120
-	
+	parameter<min_f>    MaxCarTime_Org2Dest          := 60[min_f],                                                                                                                 Descr = "Maximum car travel time from org to dest.";
 	
 	container Advanced
 	{
-		parameter<bool>     Create_Symmetric_fullOD      := FALSE;                              //Als je van org naar org wilt, zet deze dan op true.
-		parameter<bool>     Getiled_berekenen            := FALSE;                              //Als je getiled wilt rekenen, om het rekenproces sneller te maken. En opsplitst om het effect van crashes te verkleinen
-		parameter<string>   Regio_voor_Tiling            := 'corop';                            //Deze indeling bepaald hoe je wilt tilen. Opties: 'corop', 'provincies'
-		parameter<string>   BAG_jaar                     := RegioIndelingen_jaar;               //Het BAG jaar laten we nu afhankelijk zijn van het gekozen regio indelingen jaar. Gebruikt voor de gewogen centroiden. 
-		parameter<string>   RegioIndelingen_jaar         := rjoin(AnalyseMoment, Advanced/AnalyseMomentPresets/name, Advanced/AnalyseMomentPresets/RegioIndelingen_jaar);
-		parameter<bool>     Dests_geclusterd             := FALSE;                              //Destinations clusteren? aan te raden bij bijv LISA.
-		parameter<string>   items_of_interest            := rjoin(lowercase(DestSet), lowercase(Advanced/dest_domain_list/label), Advanced/dest_domain_list/items_of_interest);
-		parameter<string>   Arrival_or_Departure_at_time := 'Departure';                        //Zijn de analyse tijdsstippen aankomst- of vertrektijden? Opties: 'Arrival'  'Departure'
-		parameter<m>        MaxTransferDistKm            := 500[m];                             //Maximale euclidische loopafstand tussen OV-haltes voor overstappen, in meters.
-		parameter<float32>  MaxODconn                    := 25f;                                //Maximum aantal haltes dat bij de org of de dest wordt gezocht
-		parameter<string>   OSM_file_date                := rjoin(AnalyseMoment, Advanced/AnalyseMomentPresets/name, Advanced/AnalyseMomentPresets/OSM_file_date);                         //OpenStreetMap file date #'20200117' 20211004 '20211221' 20221201
+		parameter<bool>     Create_Symmetric_fullOD      := FALSE,                                                                                                                 Descr = "If you want a full OD-matrix, i.e. orgset=destset.";
+		parameter<bool>     Getiled_berekenen            := FALSE,                                                                                                                 Descr = "If you want to tile your calculations to speed up calculation times (and decrease the chance of crashed due to large memory consumption issues.";
+		parameter<string>   Regio_voor_Tiling            := 'corop',                                                                                                               Descr = "This region layout determines which layout to be use when tiling. Options: 'corop', 'provincie'";
+		parameter<string>   BAG_jaar                     := RegioIndelingen_jaar,                                                                                                  Descr = "The BAG year is now dependent on region year. This is used for calculating the centroids. ";
+		parameter<string>   RegioIndelingen_jaar         := rjoin(AnalyseMoment, Advanced/AnalyseMomentPresets/name, Advanced/AnalyseMomentPresets/RegioIndelingen_jaar),          Descr = "The year for the region layouts.";
+		parameter<bool>     Dests_geclusterd             := FALSE,                                                                                                                 Descr = "If you want to cluster destinations. This is recommended for LISA, where there are many locations almost on top of each other.";
+		parameter<string>   items_of_interest            := rjoin(lowercase(DestSet), lowercase(Advanced/dest_domain_list/label), Advanced/dest_domain_list/items_of_interest),    Descr = "What is the name of the item of interest? huisartsenposten, nr_pc4, etc.";
+		parameter<string>   Arrival_or_Departure_at_time := 'Departure',                                                                                                           Descr = "Are the analysis times arrival or departure times? Options: 'Arrival'  'Departure'";
+		parameter<m>        MaxTransferDistKm            := 500[m],                                                                                                                Descr = "Maximum euclidean walking distance between public transport stops for changing, in withers.";
+		parameter<float32>  MaxODconn                    := 25f,                                                                                                                   Descr = "Maximum number of stops to search for when connecting stop to the org and dest locations.";
+		parameter<string>   OSM_file_date                := rjoin(AnalyseMoment, Advanced/AnalyseMomentPresets/name, Advanced/AnalyseMomentPresets/OSM_file_date),                 Descr = "OpenStreetMap file date #'20200117' 20211004 '20211221' 20221201";
 
 		unit<uint8>  AnalyseMomentPresets : nrofrows = 4
 		{
@@ -66,7 +65,8 @@
 			parameter<uint32> nrAttr := 5;
 		}
 	
-		unit<uint32> org_domain_list : nrofrows = 17 // Hier worden de paden voor elke org set opgegeven. En wanneer er nieuwe bij komen dat hier ook toegevoegd worden.
+		unit<uint32> org_domain_list : nrofrows = 17
+		,  Descr = "Here, the paths for each org set is provided"
 		{
 			unit<uint32> Elements  := Range(uint32, 0, nrAttr*#.)
 			{
@@ -105,8 +105,9 @@
 			parameter<uint32> nrAttr := 2;
 		}
 		
-		unit<uint32> dest_domain_list : nrofrows = 2 // Hier worden de paden voor elke dest set opgegeven. En wanneer er nieuwe bij komen dat hier ook toegevoegd worden.
-		{ 
+		unit<uint32> dest_domain_list : nrofrows = 2
+		,  Descr = "Here, the paths for each dest set is provided"
+		{
 			unit<uint32> Elements  := Range(uint32, 0, nrAttr*#.)
 			{
 				attribute<String> Text:
@@ -130,85 +131,86 @@
 		{
 			attribute<string> name : 
 			[
-				 // 'WW'                        //direct lopen vanaf org naar dest.
-				// ,'BB'                        //direct fietsen vanaf org naar dest.
-				 // 'W_OV_W'                    //vanaf org lopen, dan OV, dan lopen naar dest.
-				// ,'B_OV_W'                    //vanaf org fietsen, dan OV, dan lopen naar dest.
-				// ,'B_Tic_OV_W'                //vanaf org fietsen naar IC-treinstation, dan OV, dan lopen naar dest.
-				// ,'B_T_OV_W'                  //vanaf org fietsen naar IC-treinstation, dan OV, dan lopen naar dest.
-				// ,'B_TM_OV_W'                 //vanaf org fietsen naar IC-treinstation, dan OV, dan lopen naar dest.
-				// ,'B_TM_OV_B'                 //vanaf org fietsen naar IC-treinstation, dan OV, dan lopen naar dest.
-				// ,'B_TMT_OV_W'                //vanaf org fietsen naar IC-treinstation, dan OV, dan lopen naar dest.
-				// ,'B_TMT_OV_B'                //vanaf org fietsen naar IC-treinstation, dan OV, dan lopen naar dest.
-				'W_OV_W_with_WW'          //vanaf org lopen, dan OV, dan lopen naar dest; gecombineerd met direct lopen vanaf org naar dest.
-				// ,'B_OV_W_with_BB'            //vanaf org fietsen, dan OV, dan lopen naar dest; gecombineerd met direct fietsen vanaf org naar dest.
-				// ,'B_Tic_OV_W_with_BB'        //vanaf org fietsen naar IC-treinstation, dan OV, dan lopen naar dest; gecombineerd met direct fietsen vanaf org naar dest.
-				// ,'B_Tic_OV_W_with_W_OV_W_BB' //vanaf org fietsen naar IC-treinstation, dan OV, dan lopen naar dest; gecombineerd met lopen vanaf org, dan OV, en lopen naar dest; gecombineerd met direct fietsen vanaf org naar dest.
-				// ,'B_Tic_OV_W_with_W_OV_W_WW' //vanaf org fietsen naar IC-treinstation, dan OV, dan lopen naar dest; gecombineerd met lopen vanaf org, dan OV, en lopen naar dest; gecombineerd met direct fietsen vanaf org naar dest.
-				// ,'B_Tic_OV_W_with_B_OV_W_BB' //vanaf org fietsen naar IC-treinstation, dan OV, dan lopen naar dest; gecombineerd met fietsen vanaf org, dan OV, en lopen naar dest; gecombineerd met direct fietsen vanaf org naar dest.
-				// ,'B_T_OV_W_with_BB'          //vanaf org fietsen naar IC-treinstation, dan OV, dan lopen naar dest; gecombineerd met direct fietsen vanaf org naar dest.
-				// ,'B_T_OV_W_with_W_OV_W_BB'   //vanaf org fietsen naar IC-treinstation, dan OV, dan lopen naar dest; gecombineerd met lopen vanaf org, dan OV, en lopen naar dest; gecombineerd met direct fietsen vanaf org naar dest. 
-				// ,'B_T_OV_W_with_W_OV_W_WW'   //vanaf org fietsen naar IC-treinstation, dan OV, dan lopen naar dest; gecombineerd met lopen vanaf org, dan OV, en lopen naar dest; gecombineerd met direct fietsen vanaf org naar dest. 
-				// ,'B_T_OV_W_with_B_OV_W_BB'   //vanaf org fietsen naar IC-treinstation, dan OV, dan lopen naar dest; gecombineerd met fietsen vanaf org, dan OV, en lopen naar dest; gecombineerd met direct fietsen vanaf org naar dest. 
-				// ,'B_TM_OV_W_with_BB'         //vanaf org fietsen naar IC-treinstation, dan OV, dan lopen naar dest; gecombineerd met direct fietsen vanaf org naar dest.
-				//,'B_TM_OV_W_with_W_OV_W_BB'   //vanaf org fietsen naar IC-treinstation, dan OV, dan lopen naar dest; gecombineerd met lopen vanaf org, dan OV, en lopen naar dest; gecombineerd met direct fietsen vanaf org naar dest. 
-				// 'B_TM_OV_W_with_W_OV_W_WW'   //vanaf org fietsen naar IC-treinstation, dan OV, dan lopen naar dest; gecombineerd met lopen vanaf org, dan OV, en lopen naar dest; gecombineerd met direct fietsen vanaf org naar dest. 
-				// ,'B_TM_OV_W_with_B_OV_W_BB'  //vanaf org fietsen naar IC-treinstation, dan OV, dan lopen naar dest; gecombineerd met fietsen vanaf org, dan OV, en lopen naar dest; gecombineerd met direct fietsen vanaf org naar dest. 
-				// ,'B_TMT_OV_W_with_BB'        //vanaf org fietsen naar IC-treinstation, dan OV, dan lopen naar dest; gecombineerd met direct fietsen vanaf org naar dest.
-				// ,'B_TMT_OV_W_with_W_OV_W_BB' //vanaf org fietsen naar IC-treinstation, dan OV, dan lopen naar dest; gecombineerd met lopen vanaf org, dan OV, en lopen naar dest; gecombineerd met direct fietsen vanaf org naar dest. 
-				// ,'B_TMT_OV_W_with_B_OV_W_BB' //vanaf org fietsen naar IC-treinstation, dan OV, dan lopen naar dest; gecombineerd met fietsen vanaf org, dan OV, en lopen naar dest; gecombineerd met direct fietsen vanaf org naar dest. 
-				// ,'B_TMT_OV_W_with_W_OV_W_WW' //vanaf org fietsen naar IC-treinstation, dan OV, dan lopen naar dest; gecombineerd met lopen vanaf org, dan OV, en lopen naar dest; gecombineerd met direct fietsen vanaf org naar dest. 
-				// ,'B_TMT_OV_W_with_B_OV_W_WW' //vanaf org fietsen naar IC-treinstation, dan OV, dan lopen naar dest; gecombineerd met fietsen vanaf org, dan OV, en lopen naar dest; gecombineerd met direct fietsen vanaf org naar dest. 
-				// ,'B_Tic_OV_B_with_BB'        //vanaf org fietsen naar IC-treinstation, dan OV, dan lopen naar dest; gecombineerd met direct fietsen vanaf org naar dest.
-				// ,'B_Tic_OV_B_with_W_OV_W_BB' //vanaf org fietsen naar IC-treinstation, dan OV, dan lopen naar dest; gecombineerd met lopen vanaf org, dan OV, en lopen naar dest; gecombineerd met direct fietsen vanaf org naar dest.
-				// ,'B_Tic_OV_B_with_B_OV_W_BB' //vanaf org fietsen naar IC-treinstation, dan OV, dan lopen naar dest; gecombineerd met fietsen vanaf org, dan OV, en lopen naar dest; gecombineerd met direct fietsen vanaf org naar dest.
-				// ,'B_T_OV_B_with_BB'          //vanaf org fietsen naar IC-treinstation, dan OV, dan lopen naar dest; gecombineerd met direct fietsen vanaf org naar dest.
-				// ,'B_T_OV_B_with_W_OV_W_BB'   //vanaf org fietsen naar IC-treinstation, dan OV, dan lopen naar dest; gecombineerd met lopen vanaf org, dan OV, en lopen naar dest; gecombineerd met direct fietsen vanaf org naar dest. 
-				// ,'B_T_OV_B_with_B_OV_W_BB'   //vanaf org fietsen naar IC-treinstation, dan OV, dan lopen naar dest; gecombineerd met fietsen vanaf org, dan OV, en lopen naar dest; gecombineerd met direct fietsen vanaf org naar dest. 
-				// ,'B_TM_OV_B_with_BB'         //vanaf org fietsen naar IC-treinstation, dan OV, dan lopen naar dest; gecombineerd met direct fietsen vanaf org naar dest.
-				// ,'B_TM_OV_B_with_W_OV_W_BB'  //vanaf org fietsen naar IC-treinstation, dan OV, dan lopen naar dest; gecombineerd met lopen vanaf org, dan OV, en lopen naar dest; gecombineerd met direct fietsen vanaf org naar dest. 
-				// ,'B_TM_OV_B_with_B_OV_W_BB'  //vanaf org fietsen naar IC-treinstation, dan OV, dan lopen naar dest; gecombineerd met fietsen vanaf org, dan OV, en lopen naar dest; gecombineerd met direct fietsen vanaf org naar dest. 
-				// ,'B_TMT_OV_B_with_BB'        //vanaf org fietsen naar IC-treinstation, dan OV, dan lopen naar dest; gecombineerd met direct fietsen vanaf org naar dest.
-				// ,'B_TMT_OV_B_with_W_OV_W_BB' //vanaf org fietsen naar IC-treinstation, dan OV, dan lopen naar dest; gecombineerd met lopen vanaf org, dan OV, en lopen naar dest; gecombineerd met direct fietsen vanaf org naar dest. 
-				// ,'B_TMT_OV_B_with_B_OV_W_BB' //vanaf org fietsen naar IC-treinstation, dan OV, dan lopen naar dest; gecombineerd met fietsen vanaf org, dan OV, en lopen naar dest; gecombineerd met direct fietsen vanaf org naar dest. 
-				// ,'B_TMT_OV_B_with_W_OV_W_WW' //vanaf org fietsen naar IC-treinstation, dan OV, dan lopen naar dest; gecombineerd met lopen vanaf org, dan OV, en lopen naar dest; gecombineerd met direct fietsen vanaf org naar dest. 
-				// ,'B_TMT_OV_B_with_B_OV_W_WW' //vanaf org fietsen naar IC-treinstation, dan OV, dan lopen naar dest; gecombineerd met fietsen vanaf org, dan OV, en lopen naar dest; gecombineerd met direct fietsen vanaf org naar dest. 
-				// ,'B_OV_B_with_BB'            //vanaf org fietsen, dan OV, dan fietsen naar dest; gecombineerd met direct fietsen vanaf org naar dest.)
+				 // 'WW'                        //walk directly from org to dest
+				// ,'BB'                        //bike directly from org to dest
+				 // 'W_OV_W'                    //from org walking, then PT, then walking to dest
+				// ,'B_OV_W'                    //from org biking, then PT, then walking to dest.
+				// ,'B_Tic_OV_W'                //from org biking to IC-trainstation, then OV, then walking to dest.
+				// ,'B_T_OV_W'                  //from org biking to trainstation, then PT, then walking to dest.
+				// ,'B_TM_OV_W'                 //from org biking to train or metro station, then PT, then walking to dest.
+				// ,'B_TM_OV_B'                 //from org biking to train or metro station, then PT, then biking to dest.
+				// ,'B_TMT_OV_W'                //from org biking to train, metro, or tram station, then PT, then walking to dest.
+				// ,'B_TMT_OV_B'                //from org biking to train, metro, or tram station, then PT, then biking to dest.
+				'W_OV_W_with_WW'            //from org walking, then PT, then walking to dest; combined with directly walking from org to dest.
+				// ,'B_OV_W_with_BB'            //from org biking, then PT, then walking to dest; combined with directly biking from org to dest.
+				// ,'B_Tic_OV_W_with_BB'        //from org biking to IC-trainstation, then PT, then walking to dest; combined with directly biking from org to dest.
+				// ,'B_Tic_OV_W_with_W_OV_W_BB' //from org biking to IC-trainstation, then PT, then walking to dest; combined with walking from org, then PT, and walking to dest; combined with directly biking from org to dest.
+				// ,'B_Tic_OV_W_with_W_OV_W_WW' //from org biking to IC-trainstation, then PT, then walking to dest; combined with walking from org, then PT, and walking to dest; combined with directly walking from org to dest.
+				// ,'B_Tic_OV_W_with_B_OV_W_BB' //from org biking to IC-trainstation, then PT, then walking to dest; combined with biking from org, then PT, and walking to dest; combined with directly biking from org to dest.
+				// ,'B_T_OV_W_with_BB'          //from org biking to trainstation, then PT, then walking to dest; combined with directly biking from org to dest.
+				// ,'B_T_OV_W_with_W_OV_W_BB'   //from org biking to trainstation, then PT, then walking to dest; combined with walking from org, then PT, and walking to dest; combined with directly biking from org to dest. 
+				// ,'B_T_OV_W_with_W_OV_W_WW'   //from org biking to trainstation, then PT, then walking to dest; combined with walking from org, then PT, and walking to dest; combined with directly walking from org to dest. 
+				// ,'B_T_OV_W_with_B_OV_W_BB'   //from org biking to trainstation, then PT, then walking to dest; combined with biking from org, then PT, and walking to dest; combined with directly biking from org to dest. 
+				// ,'B_TM_OV_W_with_BB'         //from org biking to train or metro station, then PT, then walking to dest; combined with directly biking from org to dest.
+				//,'B_TM_OV_W_with_W_OV_W_BB'   //from org biking to train or metro station, then PT, then walking to dest; combined with walking from org, then PT, and walking to dest; combined with directly biking from org to dest. 
+				// 'B_TM_OV_W_with_W_OV_W_WW'   //from org biking to train or metro station, then PT, then walking to dest; combined with walking from org, then PT, and walking to dest; combined with directly walking from org to dest. 
+				// ,'B_TM_OV_W_with_B_OV_W_BB'  //from org biking to train or metro station, then PT, then walking to dest; combined with biking from org, then PT, and walking to dest; combined with directly biking from org to dest. 
+				// ,'B_TMT_OV_W_with_BB'        //from org biking to train, metro, or tram station, then PT, then walking to dest; combined with directly biking from org to dest.
+				// ,'B_TMT_OV_W_with_W_OV_W_BB' //from org biking to train, metro, or tram station, then PT, then walking to dest; combined with walking from org, then PT, and walking to dest; combined with directly biking from org to dest. 
+				// ,'B_TMT_OV_W_with_B_OV_W_BB' //from org biking to train, metro, or tram station, then PT, then walking to dest; combined with biking from org, then PT, and walking to dest; combined with directly biking from org to dest. 
+				// ,'B_TMT_OV_W_with_W_OV_W_WW' //from org biking to train, metro, or tram station, then PT, then walking to dest; combined with walking from org, then PT, and walking to dest; combined with directly walking from org to dest. 
+				// ,'B_TMT_OV_W_with_B_OV_W_WW' //from org biking to train, metro, or tram station, then PT, then walking to dest; combined with biking from org, then PT, and walking to dest; combined with directly walking from org to dest. 
+				// ,'B_Tic_OV_B_with_BB'        //from org biking to IC-trainstation, then PT, then biking to dest; combined with directly biking from org to dest.
+				// ,'B_Tic_OV_B_with_W_OV_W_BB' //from org biking to IC-trainstation, then PT, then biking to dest; combined with walking from org, then PT, and walking to dest; combined with directly biking from org to dest.
+				// ,'B_Tic_OV_B_with_B_OV_W_BB' //from org biking to IC-trainstation, then PT, then biking to dest; combined with biking from org, then PT, and walking to dest; combined with directly biking from org to dest.
+				// ,'B_T_OV_B_with_BB'          //from org biking to trainstation, then PT, then biking to dest; combined with directly biking from org to dest.
+				// ,'B_T_OV_B_with_W_OV_W_BB'   //from org biking to trainstation, then PT, then biking to dest; combined with walking from org, then PT, and walking to dest; combined with directly biking from org to dest. 
+				// ,'B_T_OV_B_with_B_OV_W_BB'   //from org biking to trainstation, then PT, then biking to dest; combined with biking from org, then PT, and walking to dest; combined with directly biking from org to dest. 
+				// ,'B_TM_OV_B_with_BB'         //from org biking to train or metro station, then PT, then biking to dest; combined with directly biking from org to dest.
+				// ,'B_TM_OV_B_with_W_OV_W_BB'  //from org biking to train or metro station, then PT, then biking to dest; combined with walking from org, then PT, and walking to dest; combined with directly biking from org to dest. 
+				// ,'B_TM_OV_B_with_B_OV_W_BB'  //from org biking to train or metro station, then PT, then biking to dest; combined with biking from org, then PT, and walking to dest; combined with directly biking from org to dest. 
+				// ,'B_TMT_OV_B_with_BB'        //from org biking to train, metro, or tram station, then PT, then biking to dest; combined with directly biking from org to dest.
+				// ,'B_TMT_OV_B_with_W_OV_W_BB' //from org biking to train, metro, or tram station, then PT, then biking to dest; combined with walking from org, then PT, and walking to dest; combined with directly biking from org to dest. 
+				// ,'B_TMT_OV_B_with_B_OV_W_BB' //from org biking to train, metro, or tram station, then PT, then biking to dest; combined with biking from org, then PT, and walking to dest; combined with directly biking from org to dest. 
+				// ,'B_TMT_OV_B_with_W_OV_W_WW' //from org biking to train, metro, or tram station, then PT, then biking to dest; combined with walking from org, then PT, and walking to dest; combined with directly walking from org to dest. 
+				// ,'B_TMT_OV_B_with_B_OV_W_WW' //from org biking to train, metro, or tram station, then PT, then biking to dest; combined with biking from org, then PT, and walking to dest; combined with directly walking from org to dest. 
+				// ,'B_OV_B_with_BB'            //from org biking, then PT, then biking to dest; combined with directly biking from org to dest.)
 			];
 		}
 	
-		parameter<string>   Dest_location_scale               := '100m';                                  //Het schaalniveau om destination op te clusteren. Opties: '100m', '500m', '1000m', '5000m', '10000m', '50000m'
-		parameter<m_s>      TransferEffectiveSpeed            := value(4[km_hr] / 1.2f, m_s);           //De loopsnelheid tijdens het overstappen. X km/uur / 1.2 (correctie voor Manhattan distances) en dan geconverteerd naar meter/sec.
-		parameter<string>   fileNamePrefix                    := Getiled_berekenen ? '%LocalDataProjDir%/Output/PerRegio/' : '%LocalDataProjDir%/Output/';  //Locatie waar output files moeten worden opgeslagen.
-		parameter<float32>  WegingWachttijdThuisVoortransport := 0f;                                      //Wil je dat de wachttijd thuis wordt meegenomen in de totale reisduur, bij vertrektijd vanaf bepaald moment?
-		parameter<uint8>    NumberOfItersForNetworkCleanUp    := 10b;
-		parameter<string>   PrevDate                          := string(uint32(Analysis_date) - 1);
-		parameter<string>   Date_prefix                       := substr(Analysis_date, 0, 4) + '/' + substr(Analysis_date, 4, 2) + '/' +  substr(Analysis_date, 6, 2);
-		parameter<Weekdays> Today                             := /units/Weekdays/V/tuesday[Weekdays];     //Relevant voor OV-berekening
-		parameter<Weekdays> Yesterday                         := Weekdays/PrevRef[Today];
+		parameter<string>   Dest_location_scale               := '100m',                                                                                               Descr = "The scale at what you would like to cluster dests if you choose to cluster. Options: '100m', '500m', '1000m', '5000m', '10000m', '50000m'";
+		parameter<m_s>      TransferEffectiveSpeed            := value(4[km_hr] / 1.2f, m_s),                                                                          Descr = "The transfer walking speed: X km/hour / 1.2 (correction for Manhattan distances) and then converted to meter/sec.";
+		parameter<string>   fileNamePrefix                    := Getiled_berekenen ? '%LocalDataProjDir%/Output/PerRegio/' : '%LocalDataProjDir%/Output/',             Descr = "Location where output files should be stored.";
+		parameter<float32>  WegingWachttijdThuisVoortransport := 0f,                                                                                                   Descr = "Would you like to include the waiting time at home in the total travel time, if you travelling from a certain departure time";
+		parameter<uint8>    NumberOfItersForNetworkCleanUp    := 10b,                                                                                                  Descr = "";
+		parameter<string>   PrevDate                          := string(uint32(Analysis_date) - 1),                                                                    Descr = "";
+		parameter<string>   Date_prefix                       := substr(Analysis_date, 0, 4) + '/' + substr(Analysis_date, 4, 2) + '/' +  substr(Analysis_date, 6, 2), Descr = "";
+		parameter<Weekdays> Today                             := /units/Weekdays/V/tuesday[Weekdays],                                                                  Descr = "Relevant for PT-calculation";
+		parameter<Weekdays> Yesterday                         := Weekdays/PrevRef[Today],                                                                              Descr = "";
 		
-		parameter<km_hr>    WalkingSpeed_kmhr                 := 4.5[km_hr];
-		parameter<km_hr>    BikingSpeed_kmhr                  := 14[km_hr];
-		parameter<m_s>      WalkingSpeed                      := WalkingSpeed_kmhr / 3600[s_f / hr_f] * 1000[m / km];
-		parameter<m_s>      BikingSpeed                       := BikingSpeed_kmhr / 3600[s_f / hr_f] * 1000[m / km];
-		parameter<km_hr>    MaxCarSpeed                       := 130[km_hr];
-		parameter<km_hr>    MaxCarSpeed_limit                 := 100[km_hr];
-		parameter<km_hr>    PedestrianDefaultSpeed            := WalkingSpeed_kmhr;
-		parameter<km_hr>    BikeDefaultSpeed                  := BikingSpeed_kmhr;
-		parameter<km_hr>    CarDefaultSpeed                   := 50[km_hr];
-		parameter<km_hr>    CarDefaultSpeed_low               := 30[km_hr];
-		parameter<km_hr>    Ferry_Speed                       := 25[km_hr];
+		parameter<km_hr>    WalkingSpeed_kmhr                 := 4.5[km_hr],                                                                                           Descr = "";
+		parameter<km_hr>    BikingSpeed_kmhr                  := 14[km_hr],                                                                                            Descr = "";
+		parameter<m_s>      WalkingSpeed                      := WalkingSpeed_kmhr / 3600[s_f / hr_f] * 1000[m / km],                                                  Descr = "";
+		parameter<m_s>      BikingSpeed                       := BikingSpeed_kmhr / 3600[s_f / hr_f] * 1000[m / km],                                                   Descr = "";
+		parameter<km_hr>    MaxCarSpeed                       := 130[km_hr],                                                                                           Descr = "";
+		parameter<km_hr>    MaxCarSpeed_limit                 := 100[km_hr],                                                                                           Descr = "";
+		parameter<km_hr>    PedestrianDefaultSpeed            := WalkingSpeed_kmhr,                                                                                    Descr = "";
+		parameter<km_hr>    BikeDefaultSpeed                  := BikingSpeed_kmhr,                                                                                     Descr = "";
+		parameter<km_hr>    CarDefaultSpeed                   := 50[km_hr],                                                                                            Descr = "";
+		parameter<km_hr>    CarDefaultSpeed_low               := 30[km_hr],                                                                                            Descr = "";
+		parameter<km_hr>    Ferry_Speed                       := 25[km_hr],                                                                                            Descr = "";
 		
 		parameter<string>   DestSet_string                    := Create_Symmetric_fullOD 
 																	? lowercase(Orgset) 
 																	: Dests_geclusterd 
 																		? lowercase(Destset) + '_' + lowercase(Dest_location_scale)
 																		: lowercase(Destset);
-		parameter<string>   Orgset_str                        := Getiled_berekenen ? lowercase(Orgset)+'_per'+lowercase(Regio_voor_Tiling) : lowercase(Orgset);    //'PC6_domain_corop'; //'PC6full' 'PC6sub' 'PC4full' 'PC4sub' PC6sub_MRA PC6sub_Pijp Point100m LocatiesMachiel Buurtsub_MRA  //org punten selectie
-		unit<uint32>        Regio                             := =Getiled_berekenen ? 'RegionalUnits' : 'SourceData/RegionalUnits/NL'; // Als je getiled wilt rekenen, zorgt dit dat je verwijst naar die tiling, of naar heel NL in één keer.
-		unit<uint32>        RegionalUnits                     := ='SourceData/RegionalUnits/'+Regio_voor_Tiling;
+		parameter<string>   Orgset_str                        := Getiled_berekenen ? lowercase(Orgset)+'_per'+lowercase(Regio_voor_Tiling) : lowercase(Orgset),        Descr = "'PC6_domain_corop'; //'PC6full' 'PC6sub' 'PC4full' 'PC4sub' PC6sub_MRA PC6sub_Pijp Point100m LocatiesMachiel Buurtsub_MRA  //org punten selectie";
+		unit<uint32>        Regio                             := =Getiled_berekenen ? 'RegionalUnits' : 'SourceData/RegionalUnits/NL',                                  Descr = "Als je getiled wilt rekenen, zorgt dit dat je verwijst to die tiling, of to heel NL in één keer.";
+		unit<uint32>        RegionalUnits                     := ='SourceData/RegionalUnits/'+Regio_voor_Tiling,                                                        Descr = "";
 	
-		unit<uint32> SampleDay := select_with_attr_by_org_rel(Time, Time/Day = 0) //Hier worden de analyse tijdstippen opgegeven. LET OP: Verander je deze dan zul je ook de NDW_meetmomenten/time moeten aanpassen. En de ChosenMoments ook wanneer er meer/minder momenten opgegeven zijn.
+		unit<uint32> SampleDay := select_with_attr_by_org_rel(Time, Time/Day = 0)
+		, Descr = "Here you can provide the analysis times for public transport, split up in hours and in minutes."
 		{
 			attribute<bool>    ChosenMoments   := =AsList(HoursMinutes/str,' || ');
 			attribute<Time>    Time_rel        := org_rel;
@@ -241,7 +243,7 @@
 		{
 			unit<uint32> Dijkstra_attributes : nrofrows = 3
 			{
-				attribute<string>    name : ['Impedance','OrgZone_rel','DstZone_rel'];
+				attribute<string>    name : ['Impethence','OrgZone_rel','DstZone_rel'];
 			}
 			unit<uint32> MomentXattributes := combine(MeasureMoments,Dijkstra_attributes)
 			{
@@ -276,59 +278,8 @@
 			
 			attribute<string>        label          := Elements/Text[value(UInt32(ID(.))* nrAttr + 0, Elements)], DialogType = "LabelText";
 			attribute<string>        name           := replace(label, '-', '_');
-			// attribute<string>        Country        := Elements/Text[value(UInt32(ID(.))* nrAttr + 1, Elements)];
-			// attribute<string>        Type_src       := Elements/Text[value(UInt32(ID(.))* nrAttr + 2, Elements)];
-			// attribute<AnalyseRegios> AnalyseRegios_rel := rlookup(country, AnalyseRegios/short);
-			// attribute<bool>          IsOD_Regio      := Type_src == 'OD';
-			
-			// unit<uint32> OD_regios := subset(IsOD_Regio)
-			// {
-				// attribute<string> name  := ../name[nr_OrgEntity];
-				// attribute<string> label := ../label[nr_OrgEntity];
-			// }
-			
-			// unit<uint32> Countries : nrofrows = 3
-			// {
-				// attribute<string> name : ['Germany', 'Netherlands', 'Belgium'];
-			// }
-			
-			// unit<uint32> Germany := subset(country == 'DE')
-			// {
-				// attribute<string> name  := ../name[nr_OrgEntity];
-				// attribute<string> label := ../label[nr_OrgEntity];
-			// }
-			// unit<uint32> Netherlands := subset(country == 'NL')
-			// {
-				// attribute<string> name  := ../name[nr_OrgEntity];
-				// attribute<string> label := ../label[nr_OrgEntity];
-			// }
-			// unit<uint32> Belgium := subset(country == 'BE')
-			// {
-				// attribute<string> name  := ../name[nr_OrgEntity];
-				// attribute<string> label := ../label[nr_OrgEntity];
-			// }
 			
 			parameter<uint32> nrAttr := 3;
 		}
-		
-		
-/* 		unit<uint32> AnalyseRegios : nrofrows = 1 // Hier worden de paden voor elke org set opgegeven. En wanneer er nieuwe bij komen dat hier ook toegevoegd worden.
-		{
-			unit<uint32> Elements  := Range(uint32, 0, nrAttr*#.)
-			{
-				attribute<String> Text:
-				// Regio             , OrgSet , OrgPath, Land, Type, 
-				[
-				'Netherlands'             , 'PC4' , '/SourceData/RegioIndelingen/Dutch_PC4_areas'      ,'NL'
-				]; 
-			}
-
-			attribute<string>        name          := Elements/Text[value(UInt32(ID(.))* nrAttr + 0, Elements)], DialogType = "LabelText";
-			attribute<string>        OrgSet        := Elements/Text[value(UInt32(ID(.))* nrAttr + 1, Elements)];
-			attribute<string>        OrgSet_path   := Elements/Text[value(UInt32(ID(.))* nrAttr + 2, Elements)];
-			attribute<string>        short         := Elements/Text[value(UInt32(ID(.))* nrAttr + 3, Elements)];
-			
-			parameter<uint32> nrAttr := 4;
-		}
- */	}
+	}
 }
