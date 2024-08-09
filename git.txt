@@ -6,7 +6,9 @@ Changes not staged for commit:
   (use "git add <file>..." to update what will be committed)
   (use "git restore <file>..." to discard changes in working directory)
 	modified:   cfg/main/ModelParameters.dms
+	modified:   cfg/main/NetworkSetup.dms
+	modified:   cfg/main/SourceData/BAG.dms
 	modified:   git.txt
 
 no changes added to commit (use "git add" and/or "git commit -a")
-6e5979d5b376ef581f49f7fb11f26208b3cec5db
+88d34321b8d248af54ecbf6dc7e1ad3cad5b0b6c

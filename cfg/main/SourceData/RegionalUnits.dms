@@ -321,7 +321,4 @@ container RegionalUnits : using = "geometries"
 			attribute<uint32> nr_inwoners := domain/nr_inwoners[org_rel];
 		}
 	}
-
-
-
 }

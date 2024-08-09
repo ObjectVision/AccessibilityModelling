@@ -142,7 +142,7 @@ container BAG
 		// }
 	// }	
 	
-	container Adressen
+	container Adressen : using = "RegionalUnits"
 	{	
 		unit<uint32> import
 		:	StorageName     = "= SnapshotDir + '/adres.fss'"
@@ -168,6 +168,33 @@ container BAG
 			attribute<rdc>      point                  := geometry;
 			attribute<string>   pc_huisnr              := postcode +'_'+string(huisnummer);
 			attribute<string>   name                   := pc_huisnr;
+		}
+		
+		unit<uint32> Voorraad := select_with_attr_by_cond(src, src/IsVoorraad)
+		{
+			attribute<uint32>   PC4_uq_rel := rlookup(postcode4, pc4_uq/values);
+			
+			unit<uint32> pc4_uq := unique(postcode4)
+			{
+				attribute<float32>  x_mean   := mean(pointcol(../geometry), PC4_uq_rel);
+				attribute<float32>  y_mean   := mean(pointrow(../geometry), PC4_uq_rel);
+				attribute<rdc>      geometry := point_xy(x_mean, y_mean, rdc);
+				attribute<string>   PC4      := values;
+				attribute<string>   label    := PC4;
+			}
+			
+			unit<uint32> PC4_centroids := select_with_attr_by_cond(pc4_uq, IsDefined(pc4_uq/geometry) && pc4_uq/PC4 != '')
+			{
+				attribute<rdc>      centroid    := geometry;
+				attribute<string>   name        := PC4;
+				attribute<Corop>    corop_rel   := point_in_polygon(geometry, Corop/geometry);
+				
+				container Per_COROP := 
+					for_each_ne(
+						COROP/name
+						, 'Per_COROP_T('+string(id(COROP))+', PC4_centroids)'
+					);
+			}
 		}
 		
 		unit<uint32> Woon_Voorraad := select_with_attr_by_cond(src, src/IsWoon && src/IsVoorraad)

@@ -2,8 +2,8 @@
 {   
 	//Generieke instellingen
 	parameter<string>   AnalyseMoment                := 'Y2018',                                                                                                                   Descr = "use this to select a row in Advanced/AnalyseMomentPresets";
-	parameter<string>   Orgset                       := 'PC4',                                                                                                                     Descr = "Which origin point set need to be used? Examples: 'PC4' 'PC6' 'Buurt' 'Gemeente'";
-	parameter<string>   Destset                      := 'PC4',                                                                                                                     Descr = "Which destination point set needs to be used? Examples: PC4";
+	parameter<string>   Orgset                       := 'PC4_all',                                                                                                                     Descr = "Which origin point set need to be used? Examples: 'PC4' 'PC6' 'Buurt' 'Gemeente'";
+	parameter<string>   Destset                      := 'PC4_all',                                                                                                                     Descr = "Which destination point set needs to be used? Examples: PC4";
 	parameter<string>   CentroidWeightType           := 'Addresses',                                                                                                               Descr = "If you use a weighted centroid in the org set, how would you like to weigh it? Based on Population or Addresses ?";
 	parameter<string>   Orgset_EnkeleBuurt_selectie  := 'BU00141705',                                                                                                              Descr = "If you choose a single neighbourhood for the OrgSet, which neighbourhood would you like to use? Examples: BU00140107  'Laanhuizen'; 'Elzenhof'; BU19010209";
 	parameter<string>   Orgset_EnkeleGem_selectie    := 'GM0119',                                                                                                                  Descr = "If you choose a single municipality for the OrgSet, which municipality would you like to use? Examples: ";
@@ -31,7 +31,7 @@
 	container Advanced
 	{
 		parameter<bool>     Create_Symmetric_fullOD      := FALSE,                                                                                                                 Descr = "If you want a full OD-matrix, i.e. orgset=destset.";
-		parameter<bool>     Getiled_berekenen            := FALSE,                                                                                                                 Descr = "If you want to tile your calculations to speed up calculation times (and decrease the chance of crashed due to large memory consumption issues.";
+		parameter<bool>     Getiled_berekenen            := TRUE,                                                                                                                 Descr = "If you want to tile your calculations to speed up calculation times (and decrease the chance of crashed due to large memory consumption issues.";
 		parameter<string>   Regio_voor_Tiling            := 'corop',                                                                                                               Descr = "This region layout determines which layout to be use when tiling. Options: 'corop', 'provincie'";
 		parameter<string>   BAG_jaar                     := RegioIndelingen_jaar,                                                                                                  Descr = "The BAG year is now dependent on region year. This is used for calculating the centroids. ";
 		parameter<string>   RegioIndelingen_jaar         := rjoin(AnalyseMoment, Advanced/AnalyseMomentPresets/name, Advanced/AnalyseMomentPresets/RegioIndelingen_jaar),          Descr = "The year for the region layouts.";
@@ -65,7 +65,7 @@
 			parameter<uint32> nrAttr := 5;
 		}
 	
-		unit<uint32> org_domain_list : nrofrows = 17
+		unit<uint32> org_domain_list : nrofrows = 20
 		,  Descr = "Here, the paths for each org set is provided"
 		{
 			unit<uint32> Elements  := Range(uint32, 0, nrAttr*#.)
@@ -89,6 +89,9 @@
 				'Gemeente_enkele_gemeente'            ,'SourceData/RegionalUnits/Gemeente/Enkele_gemeente',
 				
 				'PC4'                                 ,'SourceData/BAG/Adressen/Woon_Voorraad/PC4_centroids',
+				'PC4_all'                             ,'SourceData/BAG/Adressen/Voorraad/PC4_centroids',
+				'PC4_perCOROP'                        ,'SourceData/BAG/Adressen/Woon_Voorraad/PC4_centroids/Per_COROP/@REGIO@/sub',
+				'PC4_all_perCOROP'                    ,'SourceData/BAG/Adressen/Voorraad/PC4_centroids/Per_COROP/@REGIO@/sub',
 				
 				'PC6'                                 ,'SourceData/BAG/Adressen/Woon_Voorraad/PC6_centroids',
 				'PC6_sub'                             ,'SourceData/BAG/Adressen/Woon_Voorraad/PC6_centroids/sub',
@@ -105,7 +108,7 @@
 			parameter<uint32> nrAttr := 2;
 		}
 		
-		unit<uint32> dest_domain_list : nrofrows = 2
+		unit<uint32> dest_domain_list : nrofrows = 3
 		,  Descr = "Here, the paths for each dest set is provided"
 		{
 			unit<uint32> Elements  := Range(uint32, 0, nrAttr*#.)
@@ -114,6 +117,7 @@
 				// Label, Path
 				[
 				 'PC4'                                                            ,'SourceData/BAG/Adressen/Woon_Voorraad/PC4_centroids'                                                              , 'nr_pc4'
+				,'PC4_all'                                                        ,'SourceData/BAG/Adressen/Voorraad/PC4_centroids'                                                                   , 'nr_pc4'
 				,'PC4_sub1'                                                       ,'SourceData/BAG/Adressen/Woon_Voorraad/PC4_centroids/sub1'                                                         , 'nr_pc4'
 				]; 
 			}
