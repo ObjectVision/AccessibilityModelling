@@ -188,7 +188,7 @@ container BAG
 				attribute<rdc>      centroid    := geometry;
 				attribute<string>   name        := PC4;
 				attribute<Corop>    corop_rel   := point_in_polygon(geometry, Corop/geometry);
-				
+				unit<uint32> Enkele_Corop     := ='select_with_attr_by_cond(., ./corop_rel == COROP/V/'+ModelParameters/Orgset_EnkeleCorop_selectie+')';
 				container Per_COROP := 
 					for_each_ne(
 						COROP/name
@@ -265,11 +265,13 @@ container BAG
 			unit<uint32> PC4_centroids := select_with_attr_by_cond(pc4_uq, IsDefined(pc4_uq/geometry) && pc4_uq/PC4 != '')
 			{
 				attribute<rdc>      centroid    := geometry;
-				attribute<string>   name     := PC4;
+				attribute<string>   name        := PC4;
+				attribute<Corop>    corop_rel   := point_in_polygon(centroid, Corop/geometry);
 				
 				unit<uint32> sub1 := select_with_attr_by_cond(., name == '8891')
 				{
 				}
+				unit<uint32> Enkele_Corop     := ='select_with_attr_by_cond(., ./corop_rel == COROP/V/'+ModelParameters/Orgset_EnkeleCorop_selectie+')';
 			}
 			
 			unit<uint32> pc6_uq := unique(postcode)
