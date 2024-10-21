@@ -54,6 +54,12 @@ container NetworkSetup : using = "units;geometries;SourceData;Classifications;So
 		
 		container Merge_Output
 		{
+			// To merge exported data: 
+				// Move the exported file to a new folder name 'PerRegio'  in the export folder.
+				// Set Orgset == PC4_all_enkele_Corop
+				// Set Destset = PC4_all
+				// Set Getiled_berekenen = true
+		
 			parameter<string> OUTPUT_Merge_PublicTransport_Regions_fullOD_long_CSVFiles   := ReadMergeExports_PublicTransport/OUTPUT_Merge_Types;
 			parameter<string> OUTPUT_Merge_Car_Regions_traveltimes_CSVFiles               := ReadMergeExports_PrivateTransport/Car/Merge/OUTPUT_Merge_Regions;
 			parameter<string> OUTPUT_Merge_Bike_Regions_traveltimes_CSVFiles              := ReadMergeExports_PrivateTransport/Bike/Merge/OUTPUT_Merge_Regions;

@@ -190,13 +190,16 @@ container BAG
 				attribute<Corop>    corop_rel0  := point_in_polygon(geometry, Corop/geometry);
 				attribute<bool>     HasUndefinedCorop_rel := IsNull(corop_rel0);
 				attribute<corop>    corop_rel := HasUndefinedCorop_rel ? UndefinedCorop_rels/corop_rel[invert(UndefinedCorop_rels/org_rel)] : corop_rel0; 
-				
+				unit<uint32> Enkele_Corop     := ='select_with_attr_by_cond(., ./corop_rel == COROP/V/'+ModelParameters/Orgset_EnkeleCorop_selectie+')';
 				unit<uint32> UndefinedCorop_rels := select_with_org_rel(HasUndefinedCorop_rel)
 				{
 					attribute<rdc>      centroid    := ../geometry[org_rel];
 					attribute<corop>    corop_rel   := point2poly/arc_rel;
 					container           point2poly  := connect_info(corop/geometry, centroid);
 				}
+
+				unit<uint32> Enkele_Corop     := ='select_with_attr_by_cond(., ./corop_rel == COROP/V/'+ModelParameters/Orgset_EnkeleCorop_selectie+')';
+
 				container Per_COROP := 
 					for_each_ne(
 						COROP/name
@@ -273,11 +276,13 @@ container BAG
 			unit<uint32> PC4_centroids := select_with_attr_by_cond(pc4_uq, IsDefined(pc4_uq/geometry) && pc4_uq/PC4 != '')
 			{
 				attribute<rdc>      centroid    := geometry;
-				attribute<string>   name     := PC4;
+				attribute<string>   name        := PC4;
+				attribute<Corop>    corop_rel   := point_in_polygon(centroid, Corop/geometry);
 				
 				unit<uint32> sub1 := select_with_attr_by_cond(., name == '8891')
 				{
 				}
+				unit<uint32> Enkele_Corop     := ='select_with_attr_by_cond(., ./corop_rel == COROP/V/'+ModelParameters/Orgset_EnkeleCorop_selectie+')';
 			}
 			
 			unit<uint32> pc6_uq := unique(postcode)

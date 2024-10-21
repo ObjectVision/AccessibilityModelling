@@ -2,12 +2,13 @@
 {   
 	//Generieke instellingen
 	parameter<string>   AnalyseMoment                := 'Y2018',                                                                                                                   Descr = "use this to select a row in Advanced/AnalyseMomentPresets";
-	parameter<string>   Orgset                       := 'PC4_all',                                                                                                                     Descr = "Which origin point set need to be used? Examples: 'PC4' 'PC6' 'Buurt' 'Gemeente'";
+	parameter<string>   Orgset                       := 'PC4_enkele_Corop',                                                                                                                     Descr = "Which origin point set need to be used? Examples: 'PC4' 'PC6' 'Buurt' 'Gemeente'";
 	parameter<string>   Destset                      := 'PC4_all',                                                                                                                     Descr = "Which destination point set needs to be used? Examples: PC4";
 	parameter<string>   CentroidWeightType           := 'Addresses',                                                                                                               Descr = "If you use a weighted centroid in the org set, how would you like to weigh it? Based on Population or Addresses ?";
 	parameter<string>   Orgset_EnkeleBuurt_selectie  := 'BU00141705',                                                                                                              Descr = "If you choose a single neighbourhood for the OrgSet, which neighbourhood would you like to use? Examples: BU00140107  'Laanhuizen'; 'Elzenhof'; BU19010209";
 	parameter<string>   Orgset_EnkeleGem_selectie    := 'GM0119',                                                                                                                  Descr = "If you choose a single municipality for the OrgSet, which municipality would you like to use? Examples: ";
 	parameter<string>   Orgset_EnkeleProv_selectie   := 'Groningen',                                                                                                               Descr = "If you choose a single province for the OrgSet, which province would you like to use? Examples: ";
+	parameter<string>   Orgset_EnkeleCorop_selectie  := 'Flevoland'; //Als je een enkele corop selecteert bij OrgSet, welke provincie wil je dan?
 	parameter<string>   Destset_Enkele_selectie      := '91',                                                                                                                      Descr = "If you choose a single destination for the DestSet, which destination name would you like to use? Examples: ";
 	parameter<bool>     Export_AfgelegdeAfstand      := TRUE,                                                                                                                      Descr = "export (and with that, calculate) the travelled distance in the output cvs's for private transport.";
 	
@@ -65,7 +66,7 @@
 			parameter<uint32> nrAttr := 5;
 		}
 	
-		unit<uint32> org_domain_list : nrofrows = 20
+		unit<uint32> org_domain_list : nrofrows = 22
 		,  Descr = "Here, the paths for each org set is provided"
 		{
 			unit<uint32> Elements  := Range(uint32, 0, nrAttr*#.)
@@ -89,9 +90,11 @@
 				'Gemeente_enkele_gemeente'            ,'SourceData/RegionalUnits/Gemeente/Enkele_gemeente',
 				
 				'PC4'                                 ,'SourceData/BAG/Adressen/Woon_Voorraad/PC4_centroids',
-				'PC4_all'                             ,'SourceData/BAG/Adressen/Voorraad/PC4_centroids',
 				'PC4_perCOROP'                        ,'SourceData/BAG/Adressen/Woon_Voorraad/PC4_centroids/Per_COROP/@REGIO@/sub',
+				'PC4_enkele_Corop'                    ,'SourceData/BAG/Adressen/Woon_Voorraad/PC4_centroids/Enkele_Corop',
+				'PC4_all'                             ,'SourceData/BAG/Adressen/Voorraad/PC4_centroids',
 				'PC4_all_perCOROP'                    ,'SourceData/BAG/Adressen/Voorraad/PC4_centroids/Per_COROP/@REGIO@/sub',
+				'PC4_all_enkele_Corop'                ,'SourceData/BAG/Adressen/Voorraad/PC4_centroids/Enkele_Corop',
 				
 				'PC6'                                 ,'SourceData/BAG/Adressen/Woon_Voorraad/PC6_centroids',
 				'PC6_sub'                             ,'SourceData/BAG/Adressen/Woon_Voorraad/PC6_centroids/sub',
