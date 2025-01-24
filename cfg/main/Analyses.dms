@@ -1,6 +1,6 @@
 container Analyses: Using = "Units;Classifications;geometries;sourcedata;SourceData/RegionalUnits;NetworkSetup" 
 {  
-	parameter<string>  NetworkType    := 'car';
+	parameter<string>  NetworkType    := 'pedestrian';
 	// parameter<uint32>  MaxInhabitants := 1000000;
 	
 	unit<uint32> Org     := /NetworkSetup/ConfigurationPerRegio/all/org;
@@ -74,18 +74,20 @@ container Analyses: Using = "Units;Classifications;geometries;sourcedata;SourceD
 			, LinkSet/F1
 			, LinkSet/F2
 				///
-			, NodeSet/OrgNode_rel
+			, NodeSet/DestNode_rel
 			);
 			
-		attribute<s_f> TraveltimeToNearestDest_perDest (dest)                  := TraveltimeToNearestDest[NodeSet/DestNode_rel];
+		attribute<s_f> TraveltimeToNearestDest_perOrg   (org)                  := TraveltimeToNearestDest[NodeSet/OrgNode_rel];
+		attribute<s_f> TraveltimeToNearestDest_perOrg_perGrid   (rdc_100m)     := TraveltimeToNearestDest_perOrg[invert(Geometries/perGridsize/size_100m/points/grid_rel)]
+			, StorageName = "='%LocalDataProjDir%/TraveltimeToNearest_'+/Modelparameters/Destset+'_From'+/Modelparameters/Orgset+'.tif'", StorageType = "gdalwrite.grid";
 
 		container Interpolate
 		{
-			attribute<float32> Sum_attribute    (rdc_100m) := sum(TraveltimeToNearestDest_perDest[float32], dest/geometry[rdc_100m]);
-			attribute<float32> Count_attribute  (rdc_100m) := sum(TraveltimeToNearestDest_perDest > 0f ? 1f : 0f , dest/geometry[rdc_100m]);
-			attribute<float32> Potential_sum    (rdc_100m) := potential(Sum_attribute[float32], Distmatrices_100m/pot500m/rev_dist_scaled[float32]); 
-			attribute<float32> Potential_count  (rdc_100m) := potential(Count_attribute, Distmatrices_100m/pot500m/rev_dist_scaled[float32]);
-			attribute<float32> Interpolated     (rdc_100m) := Potential_sum / Potential_count;
+			attribute<float32> Sum_attribute    (rdc_100m) := sum(TraveltimeToNearestDest_perOrg[float32], org/geometry[rdc_100m]);
+			attribute<float32> Count_attribute  (rdc_100m) := sum(TraveltimeToNearestDest_perOrg > 0f ? 1f : 0f , org/geometry[rdc_100m]);
+			attribute<float32> Potential_sum    (rdc_100m) := potential(Sum_attribute[float32], Distmatrices_100m/pot200m/rev_dist_scaled[float32]); 
+			attribute<float32> Potential_count  (rdc_100m) := potential(Count_attribute, Distmatrices_100m/pot200m/rev_dist_scaled[float32]);
+			attribute<float32> Interpolated     (rdc_100m) := Potential_sum / Potential_count, StorageName = "='%LocalDataProjDir%/TraveltimeToNearest_Interpolated_'+/Modelparameters/Destset+'_From'+/Modelparameters/Orgset+'.tif'", StorageType = "gdalwrite.grid";
 		}
 	}
 }

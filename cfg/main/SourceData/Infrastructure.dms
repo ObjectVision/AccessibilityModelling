@@ -42,9 +42,12 @@ container Infrastructure : using = "geometries;units"
 			attribute<string>    code     := Read_NS_Stations_SHP/code[org_rel];
 			attribute<string>    label    := Read_NS_Stations_SHP/lang[org_rel];
 			
+			attribute<uq>  uq_rel := rlookup(geometry, uq/geometry);
+			
 			unit<uint32> uq := unique(geometry)
 			{
 				attribute<rdc>     geometry := values;
+				attribute<string>  name     := label[invert(uq_rel)];
 			}
 		}
 	}

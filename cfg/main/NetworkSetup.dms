@@ -268,12 +268,14 @@ container NetworkSetup : using = "units;geometries;SourceData;Classifications;So
 					attribute<dest> Dst_rel := DstZone_rel;
 					
 					attribute<min_f> DefaultSpeed_imp    := Impedance;
+					attribute<km>    distance            := alt_imp;
 					
 					attribute<string> BodyLines :=
 						org/name[Org_rel] + ';' + 
 						dest/name[Dst_rel] + ';' +
-						string(DefaultSpeed_imp);
-					parameter<string> File := 'Org;Dst;Freeflow\n'++AsList(BodyLines, '\n'), StorageName = "=impl/fileNamePrefix+'Traveltimes'+replace(impl/fileNameSuffix, '@@', 'Pedestrian', '##',  string(ModelParameters/MaxPedestrianTime_Org2Dest)) +'.csv'", StorageType = "str";
+						string(DefaultSpeed_imp) + ';' +
+						string(distance);
+					parameter<string> File := 'Org;Dst;Traveltime;Distance\n'++AsList(BodyLines, '\n'), StorageName = "=impl/fileNamePrefix+'Traveltimes'+replace(impl/fileNameSuffix, '@@', 'Pedestrian', '##',  string(ModelParameters/MaxPedestrianTime_Org2Dest)) +'.csv'", StorageType = "str";
 				}
 			}
 			

@@ -67,6 +67,23 @@ container BAG
 				attribute<string>              identificatie                        := org_rel -> identificatie;
 				attribute<string>              nummeraanduiding_id                  := org_rel -> nummeraanduiding_id;
 				// attribute<panden/pand>         pand_rel                             := org_rel -> src/pand_rel;
+				
+				unit<ipoint> domain := rdc_100m;
+				
+				attribute<domain>                domain_rel                      := geometry[domain];
+				attribute<uint32>                sum_vbos_per_grid      (domain) := count(id(.), domain_rel);
+				attribute<uint32>                Sum_IsPositive         (domain) := sum_vbos_per_grid > 0 ? sum_vbos_per_grid : (0/0);
+				
+				unit<uint32> HeeftVBOs := select_uint32_with_attr_by_cond(.,Sum_IsPositive > 0)
+				{
+					attribute<rdc>    geometry            :=  collect_by_cond(., ../Sum_IsPositive > 0, domain/geometry);
+					attribute<.>      identificatie       := id(.);
+					attribute<string> id_name             := 'dest' + string(identificatie);
+					attribute<string> label               := id_name, DialogType = "LabelText";
+					attribute<string> name := label;
+					
+					attribute<uint32> nr_vbos            := sum_vbos_per_grid;
+				} 
 			}
 		}
 	}

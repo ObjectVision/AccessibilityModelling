@@ -278,8 +278,8 @@ container RegionalUnits : using = "geometries"
 
 	unit<uint32> NL := range(uint32, 0, 1) 
 	{
-		attribute<geometries/rdc_mm> geometry_mm              (poly) := partitioned_union_polygon(Corop/geometry[rdc_mm], const(0[.],Corop));
-		attribute<geometries/rdc>    geometry                 (poly) := geometry_mm[rdc];
+		attribute<geometries/rdc_cm> geometry_cm              (poly) := bp_union_polygon(Corop/geometry[rdc_cm], const(0[.],Corop));
+		attribute<geometries/rdc>    geometry                 (poly) := geometry_cm[rdc];
 		attribute<string>            name                            : [ 'All' ];
 		attribute<ipoint>            Nederland_10kbuffer_int  (poly) := polygon_i4D_d4D(geometry[ipoint], 20000d, 10000d);
 		attribute<geometries/rdc>    Nederland_10kbuffer      (poly) := Nederland_10kbuffer_int[geometries/rdc];

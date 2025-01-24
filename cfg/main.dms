@@ -4,7 +4,7 @@ container AccessibilityModelling
 	{
 		container OSM
 		{   
-			parameter<String> Step1_Generate_roads_shp2fss                   := 'Ready', ExplicitSuppliers = "/sourcedata/Infrastructure/OSM/Per_Country/Generate_All";
+			// parameter<String> Step1_Generate_roads_shp2fss                   := 'Ready', ExplicitSuppliers = "/sourcedata/Infrastructure/OSM/Per_Country/Generate_All";
 		}
 		
 		container GTFS_2_FSS

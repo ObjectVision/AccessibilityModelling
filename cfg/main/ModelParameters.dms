@@ -1,11 +1,11 @@
 ﻿container Modelparameters : using = "units"
 {   
 	//Generieke instellingen
-	parameter<string>   AnalyseMoment                := 'Y2018',                                                                                                                   Descr = "use this to select a row in Advanced/AnalyseMomentPresets";
-	parameter<string>   Orgset                       := 'PC4_all',                                                                                                                     Descr = "Which origin point set need to be used? Examples: 'PC4' 'PC6' 'Buurt' 'Gemeente'";
-	parameter<string>   Destset                      := 'PC4_all',                                                                                                                     Descr = "Which destination point set needs to be used? Examples: PC4";
+	parameter<string>   AnalyseMoment                := 'Y2023',                                                                                                                   Descr = "use this to select a row in Advanced/AnalyseMomentPresets";
+	parameter<string>   Orgset                       := '100m_Points',                                                                                                                     Descr = "Which origin point set need to be used? Examples: 'PC4' 'PC6' 'Buurt' 'Gemeente'";
+	parameter<string>   Destset                      := 'Trainstations',                                                                                                                     Descr = "Which destination point set needs to be used? Examples: PC4";
 	parameter<string>   CentroidWeightType           := 'Addresses',                                                                                                               Descr = "If you use a weighted centroid in the org set, how would you like to weigh it? Based on Population or Addresses ?";
-	parameter<string>   Orgset_EnkeleBuurt_selectie  := 'BU00141705',                                                                                                              Descr = "If you choose a single neighbourhood for the OrgSet, which neighbourhood would you like to use? Examples: BU00140107  'Laanhuizen'; 'Elzenhof'; BU19010209";
+	parameter<string>   Orgset_EnkeleBuurt_selectie  := 'Buitenveldert_Zuidwest',                                                                                                              Descr = "If you choose a single neighbourhood for the OrgSet, which neighbourhood would you like to use? Examples: BU00140107  'Laanhuizen'; 'Elzenhof'; BU19010209";
 	parameter<string>   Orgset_EnkeleGem_selectie    := 'GM0119',                                                                                                                  Descr = "If you choose a single municipality for the OrgSet, which municipality would you like to use? Examples: ";
 	parameter<string>   Orgset_EnkeleProv_selectie   := 'Groningen',                                                                                                               Descr = "If you choose a single province for the OrgSet, which province would you like to use? Examples: ";
 	parameter<string>   Orgset_EnkeleCorop_selectie  := 'Flevoland'; //Als je een enkele corop selecteert bij OrgSet, welke provincie wil je dan?
@@ -20,7 +20,7 @@
 	parameter<min_f>    MaxPedestrianTime_Stop2Dest  := 10[min_f],                                                                                                                 Descr = "Maximum walking time from the last stop to the dest, in minutes.";
 	parameter<min_f>    MaxBikeTime_Org2Stop         := 15[min_f],                                                                                                                 Descr = "Maximum biking time from org to the first stop, in minutes.";
 	parameter<min_f>    MaxBikeTime_Stop2Dest        := 10[min_f],                                                                                                                 Descr = "Maximum biking time from the last stop to the dest, in minutes.";
-	parameter<min_f>    MaxPedestrianTime_Org2Dest   := 20[min_f],                                                                                                                 Descr = "Maximale walking time when traveling directly from the org to the destination, in minutes";
+	parameter<min_f>    MaxPedestrianTime_Org2Dest   := 90[min_f],                                                                                                                 Descr = "Maximale walking time when traveling directly from the org to the destination, in minutes";
 	parameter<min_f>    MaxBikeTime_Org2Dest         := 30[min_f],                                                                                                                 Descr = "Maximale biking time when traveling directly from the org to the destination, in minutes";
 	parameter<min_f>    MaxOVTime                    := 45[min_f],                                                                                                                 Descr = "Maximale travel time with public transport, in minutes. This is can be used to limit calculation times. NOTE: this could mean that the location furthest away might not be reached. If a distance decay variant is used, it might not be a big issue, however it will be when calculating a full OD-matrix!";
 	parameter<min_f>    OngelijkvloersPenalty        := 2[min_f],                                                                                                                  Descr = "Is there a stop with a lot of vertical distance to travelled when changing? Here you can specify a time penalty when changing at this stop, in minutes.";
@@ -32,7 +32,7 @@
 	container Advanced
 	{
 		parameter<bool>     Create_Symmetric_fullOD      := FALSE,                                                                                                                 Descr = "If you want a full OD-matrix, i.e. orgset=destset.";
-		parameter<bool>     Getiled_berekenen            := TRUE,                                                                                                                  Descr = "If you want to tile your calculations to speed up calculation times (and decrease the chance of crashed due to large memory consumption issues.";
+		parameter<bool>     Getiled_berekenen            := FALSE,                                                                                                                  Descr = "If you want to tile your calculations to speed up calculation times (and decrease the chance of crashed due to large memory consumption issues.";
 		parameter<string>   Regio_voor_Tiling            := 'corop',                                                                                                               Descr = "This region layout determines which layout to be use when tiling. Options: 'corop', 'provincie'";
 		parameter<string>   BAG_jaar                     := RegioIndelingen_jaar,                                                                                                  Descr = "The BAG year is now dependent on region year. This is used for calculating the centroids. ";
 		parameter<string>   RegioIndelingen_jaar         := rjoin(AnalyseMoment, Advanced/AnalyseMomentPresets/name, Advanced/AnalyseMomentPresets/RegioIndelingen_jaar),          Descr = "The year for the region layouts.";
@@ -53,7 +53,7 @@
 				'Y2018','20240101', '2018', '20181002', '20181009', //tuesday
 				'Y2019','20240101', '2019', '20191007', '20191008', //tuesday
 				'Y2022','20240101', '2022', '20220928', '20221004', //tuesday
-				'Y2023','20240101', '2023', '20231003', '20181010'  //tuesday
+				'Y2023','20240101', '2023', '20231003', '20221004'  //tuesday
 				];
 			}
 			
@@ -66,7 +66,7 @@
 			parameter<uint32> nrAttr := 5;
 		}
 	
-		unit<uint32> org_domain_list : nrofrows = 22
+		unit<uint32> org_domain_list : nrofrows = 23
 		,  Descr = "Here, the paths for each org set is provided"
 		{
 			unit<uint32> Elements  := Range(uint32, 0, nrAttr*#.)
@@ -100,7 +100,8 @@
 				'PC6_sub'                             ,'SourceData/BAG/Adressen/Woon_Voorraad/PC6_centroids/sub',
 
 				'BAG_woonpanden'                      ,'SourceData/BAG/Panden/pand/pand_woon_vbo',
-				'BAG_woonpanden_Clustered'            ,'SourceData/BAG/Panden/pand/pand_woon_vbo/HeeftPanden'
+				'BAG_woningen_Clustered'              ,'SourceData/BAG/VBOs/GebruiksdoelSets/woon/GebruiksdoelSet/HeeftVBOs',
+				'100m_Points'                         ,'Geometries/perGridsize/size_100m/points'
 				]; 
 			}
 			
@@ -111,7 +112,7 @@
 			parameter<uint32> nrAttr := 2;
 		}
 		
-		unit<uint32> dest_domain_list : nrofrows = 3
+		unit<uint32> dest_domain_list : nrofrows = 4
 		,  Descr = "Here, the paths for each dest set is provided"
 		{
 			unit<uint32> Elements  := Range(uint32, 0, nrAttr*#.)
@@ -122,6 +123,7 @@
 				 'PC4'                                                            ,'SourceData/BAG/Adressen/Woon_Voorraad/PC4_centroids'                                                              , 'nr_pc4'
 				,'PC4_all'                                                        ,'SourceData/BAG/Adressen/Voorraad/PC4_centroids'                                                                   , 'nr_pc4'
 				,'PC4_sub1'                                                       ,'SourceData/BAG/Adressen/Woon_Voorraad/PC4_centroids/sub1'                                                         , 'nr_pc4'
+				,'Trainstations'                                                  ,'SourceData/infrastructure/Rail/Trainstations/Uq'                                                                  , 'nr_units'
 				]; 
 			}
 			
