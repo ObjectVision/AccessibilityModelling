@@ -5,8 +5,22 @@ Your branch is up to date with 'origin/main'.
 Changes not staged for commit:
   (use "git add <file>..." to update what will be committed)
   (use "git restore <file>..." to discard changes in working directory)
+	modified:   cfg/main.dms
+	modified:   cfg/main/Analyses.dms
+	modified:   cfg/main/Geometries.dms
 	modified:   cfg/main/ModelParameters.dms
+	modified:   cfg/main/NetworkSetup.dms
+	modified:   cfg/main/SourceData/BAG.dms
+	modified:   cfg/main/SourceData/Infrastructure.dms
+	modified:   cfg/main/SourceData/Infrastructure/OSM.dms
+	modified:   cfg/main/SourceData/Infrastructure/OSM/NetworkPreperation.dms
+	modified:   cfg/main/SourceData/RegionalUnits.dms
+	modified:   cfg/main/Templates/Check_Connectiveness_T.dms
+	modified:   cfg/main/Templates/Check_Connectiveness_T_adhoc.dms
+	modified:   cfg/main/Templates/CreateNetwork_Efficient_T.dms
+	modified:   cfg/main/Templates/CreateNetwork_NotOptimised_T.dms
+	modified:   cfg/main/Templates/Determine_CongestedSpeeds_T.dms
 	modified:   git.txt
 
 no changes added to commit (use "git add" and/or "git commit -a")
-91f5df7df6a1de265f7bbde3a2c711c637a3e782
+65d73fabb288d6fc78d246d996a528881c9c7fc7
