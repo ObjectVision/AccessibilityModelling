@@ -1,21 +1,31 @@
-unit<uint32> Inwoners
-:	StorageName     = "='%SourceDataDir%/CBS/cbs_vk100_'+Modelparameters/Populatie_jaar+'_vol.gpkg'" 
+unit<uint32> Population
+:	StorageName     = "='%Accessibility_DataDir%/Locations/cbs_vk100_'+ModelParameters/Populatie_jaar+'_vol.gpkg'" 
 ,	StorageType     = "gdal.vect"
 ,	SyncMode        = "AllTables"
 ,	StorageReadOnly = "True"
 ,	DialogType      = "map"
 ,	DialogData      = "centroid"
 {
-	attribute<rdc>                            geometry (poly);
-	attribute<rdc>                            centroid       := centroid_or_mid(geometry);
-	attribute<uint32>                         nr_inwoners   := aantal_inwoners[uint32];
-	// attribute<RegioUnit_Buurt>                buurt_rel     := point_in_polygon(centroid, RegioUnit_Buurt/Geometry);
-	// attribute<geometries/selection_polygon>   StudyArea_rel := point_in_polygon(centroid, geometries/selection_polygon/polygon);
-	// attribute<rdc_100m>                       per_rdc_100m  := centroid[rdc_100m];
+	attribute<rdc>                   geometry (poly);
+	attribute<rdc>                   centroid         := centroid_or_mid(geometry);
+	attribute<uint32>                nr_inhabitants   := aantal_inwoners[uint32];
 	
-	unit<uint32> HeeftInwoners := select_with_attr_by_cond(., nr_inwoners > 0)
-	{  
-		attribute<string>           name         := 'd' + string(id(.));
-	}
+	parameter<string>                Gridsize         := ModelParameters/Advanced/Dest_location_scale;
+	unit<ipoint>                     domain           := ='rdc_'+Gridsize;
+	
+	attribute<domain>                domain_rel                      := centroid[domain];
+	attribute<uint32>                sum_inhab_per_grid     (domain) := sum(nr_inhabitants, domain_rel);
+	attribute<uint32>                sum_IsPositive         (domain) := sum_inhab_per_grid > 0 ? sum_inhab_per_grid : null_u;
+	
+	
+	unit<uint32> HasInhabitants := select_uint32_with_attr_by_cond(., sum_IsPositive > 0)
+	{
+		attribute<rdc>    geometry            := collect_by_cond(., ../sum_IsPositive > 0, domain/geometry);
+		attribute<uint32> identification      := id(.);
+		attribute<string> id_name             := 'dest' + string(identification);
+		attribute<string> label               := id_name;
+		attribute<string> name                := label;
+		
+		attribute<uint32> nr_inhabitants      := sum_inhab_per_grid;
+	} 
 }
-

@@ -1,7 +1,7 @@
 container Analyses: Using = "Units;Classifications;geometries;sourcedata;SourceData/RegionalUnits;NetworkSetup" 
 {  
-	parameter<string>  NetworkType    := 'pedestrian';
-	// parameter<uint32>  MaxInhabitants := 1000000;
+	parameter<string>  NetworkType    := 'car'; //pedestrian bike car
+	parameter<uint32>  MaxInhabitants := 500000;
 	
 	unit<uint32> Org     := /NetworkSetup/ConfigurationPerRegio/all/org;
 	unit<uint32> Dest    := /NetworkSetup/ConfigurationPerRegio/all/dest;
@@ -55,16 +55,20 @@ container Analyses: Using = "Units;Classifications;geometries;sourcedata;SourceD
 		}
 	}
 	
-	// unit<uint64> Impedance_OD_Limit :=
-		// impedance_matrix_od64('bidirectional;startPoint(Node_rel):max_imp;endPoint(Node_rel);limit(OrgZone_max_mass,DstZone_mass)'
-			// , impedance
-			// , LinkSet/F1
-			// , LinkSet/F2
+	unit<uint64> Impedance_OD_Limit :=
+		impedance_matrix_od64('bidirectional;startPoint(Node_rel):max_imp;endPoint(Node_rel);limit(OrgZone_max_mass,DstZone_mass)'
+			, impedance
+			, LinkSet/F1
+			, LinkSet/F2
 			
-			// , NodeSet/OrgNode_rel
-			// , NodeSet/DestNode_rel
-			// , MaxInhabitants, dest/nr_inwoners[uint32]
-		// );
+			, NodeSet/OrgNode_rel
+			, NodeSet/DestNode_rel
+			, float32(MaxInhabitants),  float32(dest/nr_inhabitants)
+		)
+	{
+		attribute<s_f> TraveltimeToInhLimit_perOrg_perGrid   (rdc_100m)     := ='OrgZone_MaxImp[invert(Geometries/perGridsize/size_'+replace(ModelParameters/Orgset, '_', '/')+'/grid_rel)]'
+					, StorageName = "='%LocalDataProjDir%/TraveltimeTo'+string(MaxInhabitants / 1000)+'k_'+/Modelparameters/Destset+'_'+Modelparameters/Populatie_jaar+'_From_'+/Modelparameters/Orgset+'.tif'", StorageType = "gdalwrite.grid";
+	}
 	
 	container Impedance_Table_Nearest
 	{

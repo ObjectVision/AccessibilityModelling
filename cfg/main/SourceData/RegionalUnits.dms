@@ -2,7 +2,7 @@ container RegionalUnits : using = "geometries"
 { 	
 	parameter<string> Regio_jaar          := ModelParameters/Advanced/RegioIndelingen_jaar;
 	
-	unit<uint32> Gebiedsindelingen_jaren := range(uint32, 2018, 2024)
+	unit<uint32> Gebiedsindelingen_jaren := range(uint32, 2018, 2026)
 	{
 		attribute<uint32> jaar            := id(.);
 		attribute<string> name            := 'Y'+string(jaar);
@@ -264,25 +264,36 @@ container RegionalUnits : using = "geometries"
 	
 	unit<uint32>  Provincie := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/'+replace(rjoin(Regio_jaar, string(Gebiedsindelingen_jaren/jaar), Gebiedsindelingen_jaren/Pad_Gegen_str), '@R@', 'provincie')+'' 
 	{
-		attribute<rdc>       geometry (poly)         := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/'+replace(rjoin(Regio_jaar, string(Gebiedsindelingen_jaren/jaar), Gebiedsindelingen_jaren/Pad_Gegen_str), '@R@', 'provincie')+'/geometry';
+		attribute<rdc>       geometry_org     (poly) := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/'+replace(rjoin(Regio_jaar, string(Gebiedsindelingen_jaren/jaar), Gebiedsindelingen_jaren/Pad_Gegen_str), '@R@', 'provincie')+'/geometry';
+		attribute<rdc>       geometry         (poly) := geos_union_polygon(metIJburg/geometry, metIJburg/Provincie_rel), Descr = "Provinciegrenzen met IJburg geunioned. Zoals we in het water wel woningen kunnen alloceren. Deze provincie grenzen bepalen namelijk het grid domain.";
 		attribute<string>    statcode                := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/'+replace(rjoin(Regio_jaar, string(Gebiedsindelingen_jaren/jaar), Gebiedsindelingen_jaren/Pad_Gegen_str), '@R@', 'provincie')+'/statcode';
 		attribute<string>    statnaam                := ='Gebiedsindelingen/y'+Regio_jaar+'/gpkg/'+replace(rjoin(Regio_jaar, string(Gebiedsindelingen_jaren/jaar), Gebiedsindelingen_jaren/Pad_Gegen_str), '@R@', 'provincie')+'/statnaam';
 		attribute<string>    name                    := AsItemName(statnaam);
 		attribute<string>    label                   := statnaam;
 		attribute<.>         per_rdc_100m (rdc_100m) := poly2grid(Geometry, rdc_100m);
-		attribute<uint32>    nr_Inwoners             := sum(/SourceData/Locaties/Inwoners/nr_inwoners,point_in_polygon(/SourceData/Locaties/Inwoners/centroid, geometry));
-		attribute<uint32>    nr_banen                := ='sum(uint32(/SourceData/Locaties/LISA/ReadFSS/y'+/ModelParameters/LISA_jaar+'/PerYear/banen), point_in_polygon(/SourceData/Locaties/LISA/ReadFSS/y'+/ModelParameters/LISA_jaar+'/PerYear/Geometry, geometry))';
+		attribute<uint32>    nr_inhabitants          := sum(/SourceData/Locations/Population/nr_inhabitants,point_in_polygon(/SourceData/Locations/Population/centroid, geometry));
+		// attribute<uint32>    nr_jobs                := ='sum(uint32(/SourceData/Locaties/LISA/ReadFSS/y'+/ModelParameters/LISA_jaar+'/PerYear/banen), point_in_polygon(/SourceData/Locaties/LISA/ReadFSS/y'+/ModelParameters/LISA_jaar+'/PerYear/Geometry, geometry))';
 
 		container V := for_each_nedv(name, 'value('+string(id(.))+', ..)', void, .);
+		
+		unit<UInt32> metIJburg := union_unit(., LMSSubzone/IJburg) //Provincie_metIJburg
+		, Descr = "Provinciegrenzen met IJburg geunioned. Zoals we in het water wel woningen kunnen alloceren."
+		{
+			attribute<rdc>            geometry       (poly) := union_data(., ../geometry_org, LMSSubzone/IJburg/geometry);
+			attribute<String>         Label                 := union_data(., ../statnaam, const('Noord-Holland', LMSSubzone/IJburg));
+			attribute<..>             Provincie_rel         := rlookup(lowercase(Label), lowercase(../Label));
+		}
 	}
+	
 
 	unit<uint32> NL := range(uint32, 0, 1) 
 	{
-		attribute<geometries/rdc_cm> geometry_cm              (poly) := bp_union_polygon(Corop/geometry[rdc_cm], const(0[.],Corop));
-		attribute<geometries/rdc>    geometry                 (poly) := geometry_cm[rdc];
+		attribute<geometries/rdc>    geometry                 (poly) := geos_union_polygon(Provincie/geometry, const(0[.],Provincie));
 		attribute<string>            name                            : [ 'All' ];
-		attribute<ipoint>            Nederland_10kbuffer_int  (poly) := polygon_i4D_d4D(geometry[ipoint], 20000d, 10000d);
-		attribute<geometries/rdc>    Nederland_10kbuffer      (poly) := Nederland_10kbuffer_int[geometries/rdc];
+		attribute<geometries/rdc>    Nederland_10kbuffer_inf  (poly) := geos_buffer_multi_polygon(geometry, 20000d, 16b); // om waddenzee en ijsselmeer eruit te krijgen, eerst 20k inflate, daarna 10k deflate.
+		attribute<geometries/rdc>    Nederland_10kbuffer_def  (poly) := geos_buffer_multi_polygon(Nederland_10kbuffer_inf, -10000d, 16b);
+		attribute<geometries/rdc>    Nederland_10kbuffer      (poly) := Nederland_10kbuffer_def;
+		attribute<geometries/rdc>    geometry_smallbuff       (poly) := geos_buffer_multi_polygon(geometry, 200d, 16b);
 	}
 	
 	unit<uint32> PC4 := /SourceData/BAG/Adressen/Woon_Voorraad/PC4_centroids;
@@ -292,6 +303,37 @@ container RegionalUnits : using = "geometries"
 	{
 		attribute<string>         name            := const('Buitenland',.);
 	}
+	
+	unit<UInt32> LMSSubzone 
+	:	StorageName     = "%Accessibility_DataDir%/RegionalUnits/LMS_2011_versie_2012_12_13.shp"
+	,	StorageType     = "gdal.vect"
+	,	StorageReadOnly = "True"
+	,	KeepData        = "True"
+	,	Descr           = "LMS subzones 2011, regio indelingen gebruikt in het Landelijk Model Systeem. TIGRIS claims worden hierin aangeleverd."
+	{
+		attribute<rdc>               geometry                                (poly);
+		attribute<String>            name0                                          := Gemeente/statnaam[Relaties/Gemeente] + '_' + string(ZONE_id);
+		attribute<String>            name                                           := !IsDefined(name0) ? 'Amsterdam_'+string(ZONE_id) : AsItemName(name0); //replace(name0, '/', '_', '-', '_', ' ', '_','(','',')','','\''','','â','a','ú','u',',','','.','');
+		
+		//IJburg-hack om ervoor te zorgen dat IJburg niet water is.
+		attribute<Bool>              IsIjburg2                                      := id(.) == V/Amsterdam_621;
+		attribute<Bool>              IsIjburg1                                      := id(.) == V/Amsterdam_622;
+		attribute<String>            Label                                          := name, DialogType = "LabelText";
+		
+		unit<UInt32> IJburg := select_with_org_rel(IsIjburg1 || IsIjburg2)
+		{
+			attribute<rdc>      geometry_org      (poly) := ../geometry[org_rel];
+			attribute<rdc>      geometry          (poly) := geos_buffer_multi_polygon(geometry_org, 125d, 16b);
+		}
+		
+		container Relaties
+		{
+			attribute<RegionalUnits/Gemeente>              Gemeente (..) := point_in_polygon(centroid_or_mid(../geometry), RegionalUnits/Gemeente/geometry);
+		}
+		
+		container V := for_each_nedv(name, string(id(.))+'[..]', void, .);
+	}
+	
 
 	Template Per_Prov_T
 	{

@@ -1,7 +1,7 @@
 container ExtraVerbindingen
 {
 	unit<uint32> coordinates
-	:	NrOfRows   = 736
+	:	NrOfRows   = 732
 	,	DialogType = "Map"
 	,	DialogData = "location"
 	,	source     = "handmatig gedigitaliseerd"
@@ -14,7 +14,6 @@ container ExtraVerbindingen
 				//X       ,Y         ,seq, order, wegtype
 
 				// Uit script Martin (ODA)
-				
 				83735.6636,434158.627,  0,0,69,
 				83598.5763,434140.144,  0,1,69,
 				83585.2669,434473.754,  1,0,69,
@@ -637,10 +636,9 @@ container ExtraVerbindingen
 				117123.009,477265.597,238,0,69,
 				117125.979,477264.937,238,1,69,
 				
-				
 				// Texel
-				114075.359,553048.149,239,0,69,
-				114076.925,553052.064,239,1,69,
+				// 114075.359,553048.149,239,0,69,
+				// 114076.925,553052.064,239,1,69,
 				114326.979,557569.985,240,0,69,
 				114323.926,557573.853,240,1,69,
 				
@@ -698,14 +696,18 @@ container ExtraVerbindingen
 				116877.840,492396.385, 257,1,76,
 				
 				//Pier Den Helder
-				114072.507,553047.025, 258,0,76,
-				114082.498,553044.527, 258,1,76,
+				// 114072.507,553047.025, 258,0,76,
+				// 114082.498,553044.527, 258,1,76,
+				// 114091.60, 553059.75, 258, 0, 76, 
+				// 114069.86, 553039.28, 258, 1, 76,
+
 				//Pier Texel
 				114288.68,557616.006, 259,0,76,
 				114292.01,557618.921, 259,1,76,
+				
 				//Pier Harlingen
 				156609.336,576552.314, 260,0,76,
-				156691.664,576579.467, 260,1,76,  // [ X=156609.949; Y=576553.025]
+				156691.664,576579.467, 260,1,76, 
 
 				// 156677.196,576569.383, 260,1,76, //punt connect aan voetpad
 				//Pier Holwerd
@@ -789,39 +791,38 @@ container ExtraVerbindingen
 				// 78363.7608,370138.59, 266,1,14
 			];
 		}
-		attribute<m>                           X          := Elements/Text[value(UInt32(ID(.))* nrAttr + 0, Elements)][m];
-		attribute<m>                           Y          := Elements/Text[value(UInt32(ID(.))* nrAttr + 1, Elements)][m];
-		attribute<link_src>                    sequence   := Elements/Text[value(UInt32(ID(.))* nrAttr + 2, Elements)][link_src];
-		attribute<uint32>                      order      := Elements/Text[value(UInt32(ID(.))* nrAttr + 3, Elements)][uint32];
-		attribute<classifications/OSM/roadtype> roadtype_rel    := Elements/Text[value(UInt32(ID(.))* nrAttr + 4, Elements)][classifications/OSM/roadtype];
-		attribute<km_hr>                       kph   := const(ModelParameters/Advanced/CarDefaultSpeed,.);
+		attribute<m>                           X            := Elements/Text[value(UInt32(ID(.))* nrAttr + 0, Elements)][m];
+		attribute<m>                           Y            := Elements/Text[value(UInt32(ID(.))* nrAttr + 1, Elements)][m];
+		attribute<link_src>                    sequence     := Elements/Text[value(UInt32(ID(.))* nrAttr + 2, Elements)][link_src];
+		attribute<uint32>                      order        := Elements/Text[value(UInt32(ID(.))* nrAttr + 3, Elements)][uint32];
+		attribute<roadtype>                    roadtype_rel := Elements/Text[value(UInt32(ID(.))* nrAttr + 4, Elements)][roadtype];
+		attribute<km_hr>                       kph          := const(ModelParameters/Advanced/CarDefaultSpeed,.);
 		
-		attribute<geometries/rdc>              location   := point_xy(X,Y,geometries/rdc);
-		// attribute<geometries/LambertEA>        location   := location_rd[LambertEA];
-		parameter<uint32>                      nrPoly     := uint32(max(Elements/Text[value(UInt32(ID(.))* nrAttr + 2, Elements)])) + 1;
+		attribute<geometries/rdc>              location     := point_xy(X,Y,geometries/rdc);
+		parameter<uint32>                      nrPoly       := uint32(max(Elements/Text[value(UInt32(ID(.))* nrAttr + 2, Elements)])) + 1;
 	}
 	unit<uint32> link_src := range(uint32, 0,coordinates/nrPoly)
 	{
-		attribute<geometries/rdc>            geometry (arc)    := points2sequence(coordinates/location, coordinates/sequence, coordinates/order);
-		attribute<classifications/OSM/roadtype>     roadtype_rel           := rjoin(id(.),coordinates/sequence, coordinates/roadtype_rel);
-		attribute<km_hr>                           kph          := rjoin(id(.),coordinates/sequence, coordinates/kph);
+		attribute<geometries/rdc>              geometry (arc) := points2sequence(coordinates/location, coordinates/sequence, coordinates/order);
+		attribute<roadtype>                    roadtype_rel   := rjoin(id(.),coordinates/sequence, coordinates/roadtype_rel);
+		attribute<km_hr>                       kph            := rjoin(id(.),coordinates/sequence, coordinates/kph);
 	}
 	unit<uint32> nodes_src := union_unit(link_src, link_src)
 	{
-		attribute<geometries/rdc>            geometry          := union_data(.,first_point(link_src/geometry), last_point(link_src/geometry));
+		attribute<geometries/rdc>              geometry       := union_data(.,first_point(link_src/geometry), last_point(link_src/geometry));
 	}
 	
 	
 	unit<uint32> link := union_unit(link_src, ExtraBoatConnections/link)
 	{
-		attribute<geometries/rdc>                  geometry (arc)       := union_data(., link_src/geometry, ExtraBoatConnections/link/geometry);
-		attribute<classifications/OSM/roadtype>     roadtype_rel              := union_data(., link_src/roadtype_rel, ExtraBoatConnections/link/roadtype_rel);
-		attribute<km_hr>                           kph             := union_data(., link_src/kph, ExtraBoatConnections/link/kph);
+		attribute<geometries/rdc>              geometry (arc) := union_data(., link_src/geometry, ExtraBoatConnections/link/geometry);
+		attribute<roadtype>                    roadtype_rel   := union_data(., link_src/roadtype_rel, ExtraBoatConnections/link/roadtype_rel);
+		attribute<km_hr>                       kph            := union_data(., link_src/kph, ExtraBoatConnections/link/kph);
 		///
 	}
 	unit<uint32> nodes := union_unit(nodes_src, ExtraBoatConnections/nodes)
 	{
-		attribute<geometries/rdc>            geometry             := union_data(., nodes_src/geometry, ExtraBoatConnections/nodes/geometry);
+		attribute<geometries/rdc>              geometry       := union_data(., nodes_src/geometry, ExtraBoatConnections/nodes/geometry);
 	}
 
 	#include <ExtraBoatConnections.dms>

@@ -75,16 +75,14 @@ container AccessibilityModelling
 				}
 				container Parameters
 				{
-					// parameter<string>   OrgGridsize                    := ModelParameters/OrgGridsize;
-					// parameter<string>   DestGridsize                   := ModelParameters/DestGridsize;
-					// parameter<string>   MaxTravelTime                  := string(ModelParameters/MaxTravelTime);
-					// parameter<string>   NumberOfItersForNetworkCleanUp := string(ModelParameters/NumberOfItersForNetworkCleanUp);
-					// parameter<string>   MaxCarSpeed                    := string(ModelParameters/Advanced/MaxCarSpeed);
-					// parameter<string>   MaxCarSpeed_limit              := string(ModelParameters/Advanced/MaxCarSpeed_limit);
-					// parameter<string>   CarDefaultSpeed                := string(ModelParameters/Advanced/CarDefaultSpeed);
-					// parameter<string>   CarDefaultSpeed_low            := string(ModelParameters/Advanced/CarDefaultSpeed_low);
-					// parameter<string>   ConnectorLinkSpeed             := string(ModelParameters/Advanced/ConnectorLinkSpeed);
-					// parameter<string>   Ferry_Speed                    := string(ModelParameters/Advanced/Ferry_Speed);
+					parameter<string>   AnalyseMoment             := ModelParameters/AnalyseMoment;
+					parameter<string>   Orgset                    := ModelParameters/Orgset;
+					parameter<string>   Destset                   := ModelParameters/Destset;
+					parameter<string>   CentroidWeightType        := ModelParameters/CentroidWeightType;
+					parameter<string>   Populatie_jaar            := ModelParameters/Populatie_jaar;
+					parameter<string>   RegioIndelingen_jaar      := ModelParameters/Advanced/RegioIndelingen_jaar;
+					parameter<string>   OSM_file_date             := ModelParameters/Advanced/OSM_file_date;
+					parameter<string>   Dest_location_scale       := ModelParameters/Advanced/Dest_location_scale;
 				}
 			}
 		}

@@ -1,25 +1,18 @@
-container OSM
+container OSM : using = "classifications/OSM"
 {  
 	parameter<string> file_date := ModelParameters/Advanced/OSM_file_date;
 	unit<uint32>      Regios    := ModelParameters/Advanced/OSM_Regios;
 
-	container Per_Country :=
+	container Prepare_SourceData :=
 		for_each_ne(
 			Regios/name
-			, 'Per_Country_T('+quote(Regios/label)+')'
-		)
+			, 'Prepare_SourceData_T('+quote(Regios/label)+')'
+		);
+	
+	Template Prepare_SourceData_T
 	{
-		parameter<string> Generate_all      := 'Ready', ExplicitSuppliers = "=AsList(Regios/name+'/Generate_FSS', ';')";
-	}
-
-	Template Per_Country_T
-	{
-		parameter<string> Regio0;
+		parameter<string> Regio;
 		///
-		parameter<string> Regio := replace(Regio0, '_', '-');
-		
-		parameter<string> Generate_FSS      := 'Lines', ExplicitSuppliers = "Make_lines_fss";
-		
 		container Read_Roads_pbf
 		:	StorageName     = "='%Accessibility_DataDir%/Infrastructure/OSM/'+file_date+'/'+Regio+'-latest.osm.pbf'" 
 		,	StorageType     = "gdal.vect"
@@ -35,22 +28,12 @@ container OSM
 			}
 		}
 		
-		unit<uint32> Make_lines_fss := Read_Roads_pbf/lines
-		,   StorageName = "='%LocalDataProjDir%/RegionFiles/'+file_date+'_'+Regio+'.fss'"
+		unit<uint32> lines := Read_Roads_pbf/lines
 		{
 			attribute<wgs84>                        geometry (arc) := Read_Roads_pbf/lines/geometry;
 			attribute<string>                       highway        := Read_Roads_pbf/lines/highway;
 			attribute<string>                       other_tags     := Read_Roads_pbf/lines/other_tags;
-		}
-		
-		unit<uint32> Read_lines_fss 
-		:   StorageName = "='%LocalDataProjDir%/RegionFiles/'+file_date+'_'+Regio+'.fss'"
-		,	StorageReadOnly = "True"
-		{
-			attribute<wgs84>                        geometry (arc);
-			attribute<string>                       highway;
-			attribute<string>                       other_tags;
-			attribute<classifications/OSM/roadtype> roadtype_rel       := switch(
+			attribute<classifications/OSM/roadtype> roadtype_rel   := switch(
 																				case(IsCarFerry, classifications/OSM/roadtype/v/ferry)
 																				, rlookup(highway, classifications/OSM/roadtype/name)
 																			);
@@ -75,9 +58,9 @@ container OSM
 					, .
 					, uint32
 				);
-			attribute<MaxSpeeds>                       KPH_from_source_rel    := ='argmax_ifdefined_uint8('+AsItemList('ExtractMaxSpeeds/'+MaxSpeeds/name+' > 0 ? ExtractMaxSpeeds/'+MaxSpeeds/name+' : null_u')+')';
-			attribute<km_hr>                           KPH_from_source        := value(MaxSpeeds/speed, km_hr)[KPH_from_source_rel];
-			
+				
+			attribute<MaxSpeeds>                    KPH_from_source_rel                                         := ='argmax_ifdefined_uint8('+AsItemList('ExtractMaxSpeeds/'+MaxSpeeds/name+' > 0 ? ExtractMaxSpeeds/'+MaxSpeeds/name+' : null_u')+')';
+			attribute<km_hr>                        KPH_from_source                                             := value(MaxSpeeds/speed, km_hr)[KPH_from_source_rel];
 			attribute<km_hr>                        rth_KPH_per_roadtype         (classifications/OSM/roadtype) := rth_element(KPH_from_source, 0.9f, roadtype_rel);
 			attribute<km_hr>                        rth_KPH_per_roadtype_Defined (classifications/OSM/roadtype) := MakeDefined(rth_KPH_per_roadtype, ModelParameters/Advanced/CarDefaultSpeed_low) == 0[km_hr] 
 																															? ModelParameters/Advanced/CarDefaultSpeed_low 
@@ -93,31 +76,45 @@ container OSM
 																															, case(KPH_edit0 < 15[km_hr], 15[km_hr])
 																															, KPH_edit0
 																														);
-		}				
-		
+		}
 
-		
-		unit<uint32> Roads := select_with_attr_by_cond(Read_lines_fss, Read_lines_fss/IsPartOfCarNetwork || Read_lines_fss/IsCarFerry)
+		unit<uint32> Roads := select_with_attr_by_cond(lines, lines/IsPartOfCarNetwork || lines/IsCarFerry)
 		{
 			attribute<rdc>                            geometry_rd (arc)  := LatLongWgs842RD(geometry, dpoint)[rdc];
 		}
 	}
 	
-	unit<uint32>  Roads := ='union_unit('+AsList('Per_Country/'+Regios/name+'/Roads', ',')+')'
+	unit<uint32>  Roads := ='union_unit('+AsList('Prepare_SourceData/'+Regios/name+'/Roads', ',')+')'
 	{
-		attribute<rdc>                          geometry (arc) := ='union_data(., '+AsList('Per_Country/'+Regios/name+'/Roads/geometry_rd', ',')+')';
-		attribute<km_hr>                        KPH            := ='union_data(., '+AsList('Per_Country/'+Regios/name+'/Roads/KPH', ',')+')';
-		attribute<classifications/OSM/roadtype> roadtype_rel   := ='union_data(., '+AsList('Per_Country/'+Regios/name+'/Roads/roadtype_rel', ',')+')';
-		attribute<bool>                         IsOneDirection := ='union_data(., '+AsList('Per_Country/'+Regios/name+'/Roads/IsOneDirection', ',')+')';
+		attribute<rdc>                          geometry (arc) := ='union_data(., '+AsList('Prepare_SourceData/'+Regios/name+'/Roads/geometry_rd', ',')+')';
+		attribute<km_hr>                        KPH            := ='union_data(., '+AsList('Prepare_SourceData/'+Regios/name+'/Roads/KPH', ',')+')';
+		attribute<classifications/OSM/roadtype> roadtype_rel   := ='union_data(., '+AsList('Prepare_SourceData/'+Regios/name+'/Roads/roadtype_rel', ',')+')';
+		attribute<bool>                         IsOneDirection := ='union_data(., '+AsList('Prepare_SourceData/'+Regios/name+'/Roads/IsOneDirection', ',')+')';
 	}
+	
+	
+	
 	
 	#include <NetworkPreperation.dms>
 
-	unit<uint32> Read_Final_Network := NetworkPreperation/Network_with_extraverbindingen/Make_Final_Network
+	unit<uint32> Make_Final_Network := unique(NetworkPreperation/Network_with_extraverbindingen/ConnectedNetwork/geometry)
+	,   StorageName = "='%LocalDataProjDir%/OSM/Final_Network_'+file_date+'.mmd'"
 	{
-		attribute<string>                       roadtype_label                    := classifications/OSM/roadtype/label[roadtype_rel];
-		attribute<km_hr>                        freeflow_speed_bike              := const(ModelParameters/Advanced/BikingSpeed_kmhr,.);
-		attribute<km_hr>                        freeflow_speed_pedestrian        := const(ModelParameters/Advanced/WalkingSpeed_kmhr,.);
+		attribute<NetworkPreperation/Network_with_extraverbindingen/ConnectedNetwork> ConnectedNetwork_rel    := rlookup(geometry, NetworkPreperation/Network_with_extraverbindingen/ConnectedNetwork/geometry), DisableStorage = "true";
+		attribute<rdc>                          geometry (arc) := values;
+		attribute<rdc>                          values   (arc) : DisableStorage = "true";
+		attribute<roadtype>                     roadtype_rel   := NetworkPreperation/Network_with_extraverbindingen/ConnectedNetwork/roadtype_rel[ConnectedNetwork_rel];
+		attribute<km_hr>                        kph            := NetworkPreperation/Network_with_extraverbindingen/ConnectedNetwork/kph[ConnectedNetwork_rel];
+		attribute<bool>                         IsOneDirection := NetworkPreperation/Network_with_extraverbindingen/ConnectedNetwork/IsOneDirection[ConnectedNetwork_rel];
+	}
+	
+	unit<uint32> Read_Final_Network
+	: StorageName     = "='%LocalDataProjDir%/OSM/Final_Network_'+file_date+'.mmd'"
+	, StorageReadOnly = "true"
+	{
+		attribute<string>                       roadtype_label            := classifications/OSM/roadtype/label[roadtype_rel];
+		attribute<km_hr>                        freeflow_speed_bike       := const(ModelParameters/Advanced/BikingSpeed_kmhr,.);
+		attribute<km_hr>                        freeflow_speed_pedestrian := const(ModelParameters/Advanced/WalkingSpeed_kmhr,.);
 		
 		attribute<bool>                         isPartOfCarNetwork        := classifications/OSM/roadtype/IsPartOfCarNetwork[roadtype_rel];
 		attribute<bool>                         isPartOfBikeNetwork       := classifications/OSM/roadtype/isPartOfBikeNetwork[roadtype_rel];
